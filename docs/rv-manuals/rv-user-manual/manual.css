@@ -1,0 +1,47 @@
+kbd.key {
+    font-family: "Fira Code", monospace;
+    font-size: 80%;
+    padding: 1px 5px;
+    border: 1px solid teal;
+    border-radius: 3px;
+    background: rgb(230,230,230);
+}
+span.menuitem {
+    font-family: "Helvetica Neue", sans-serif;
+    weight: bold;
+}
+.key-table table {
+    margin: 1em auto;
+    border-collapse: collapse;
+}
+.key-table th, .key-table td {
+    padding: 5px 10px;
+    text-align: left;
+    border-bottom: 1px solid #9cc;
+}
+.key-table th {
+    background: #d9eeee;
+    border-top: 2px solid teal;
+    border-bottom: 1px solid teal;
+}
+.key-table tbody tr:nth-child(even) { background: #f5f5f5; }
+.shell pre {
+    background: #f0f0f0;
+    padding: 8px;
+    border-radius: 3px;
+    overflow-x: auto;
+}
+
+.image-row {
+    display: flex;
+    gap: 1em;
+    justify-content: center;
+}
+.image-row img {
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+}
+figure img {
+    max-width: 100%;
+}
