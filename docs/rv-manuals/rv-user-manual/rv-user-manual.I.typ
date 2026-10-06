@@ -1,180 +1,78 @@
 #import "manual-lib.typ": *
 #show: manual.with(appendix: true)
 
-= PySide Example Usage <app-pyside>
+= Supported Multichannel Audio Layouts <app-multichannel-layouts>
 
-#app ships with PySide on all platforms. In this section, we present two
-simple examples of PySide usage. We also demonstrate how to access the #app
-session window in the second example.
+Multichannel audio devices are supported by the #app audio output module
+"Platform Audio". The "Platform Audio" choice is available on all #app
+platforms i.e. macOS, Linux and Windows.
 
-The first example, shown below, is a simple executable Python/PySide file
-that uses #app's #inline-shell("py-interp"). Replace `/path/to/py-interp`
-with the location of #inline-shell("py-interp") in your #app install.
+On macOS, you might need to enable the multichannel (e.g. 5.1) capability of
+your audio device using the macOS utility "Audio MIDI Setup".
 
-#code-block(lang: "python", ````
-#!/path/to/py-interp
+The list of possible channel layouts that #app recognizes is listed in
+@multichannel-layouts. Speakers are abbreviated as follows:
 
-# Import PySide classes
-import sys
-from PySide.QtCore import *
-from PySide.QtGui import *
+#table(
+    columns: 4,
+    align: left,
+    stroke: none,
+    fill: none,
+    `FL`, [Front Left], `BC`, [Back Center],
+    `FR`, [Front Right], `SL`, [Side Left],
+    `FC`, [Front Center], `SR`, [Side Right],
+    `LF`, [Low Frequency (subwoofer)], `FLC`, [Front Left of Center],
+    `BL`, [Back Left], `FRC`, [Front Right of Center],
+    `BR`, [Back Right], `LH`, [Left Height],
+    [], [], `RH`, [Right Height],
+)
 
-# Create a Qt application.
-# IMPORTANT: RV's py-interp contains an instance of QApplication;
-# so always check if an instance already exists.
-app = QApplication.instance()
-if app == None:
-    app = QApplication(sys.argv)
+#figure(
+    kind: table,
+    table(
+        columns: 2,
+        align: left,
+        table.header[*Channel Layout*][*Speaker Order*],
+        [Mono], `FC`,
+        [Stereo], `FL:FR`,
+        [2.1], `FL:FR:LF`,
+        [Quadrophonic], `FL:FR:BL:BR`,
+        [4.1], `FL:FR:FC:LF:BC`,
+        [4.1 (Swap)], `FL:FR:BL:BR:LF`,
+        [5.1], `FL:FR:FC:LF:SL:SR`,
+        [5.1 (Back)], `FL:FR:FC:LF:BL:BR`,
+        [5.1 (Swap)], `FL:FR:BL:BR:FC:LF`,
+        [5.1 (AC3)], `FL:FC:FR:SL:SR:LF`,
+        [5.1 (DTS)], `FC:FL:FR:SL:SR:LF`,
+        [5.1 (AIFF)], `FL:BL:FC:FR:BR:LF`,
+        [6.1], `FL:FR:FC:LF:BL:BR:BC`,
+        [7.1 (SDDS)], `FL:FR:FC:LF:SL:SR:FLC:FRC`,
+        [7.1], `FL:FR:FC:LF:SL:SR:BL:BR`,
+        [7.1 (Back)], `FL:FR:FC:LF:BL:BR:SL:SR`,
+        [9.0 (Generic)], `FL:FR:FC:LF:BL:BR:SL:SR:BC`,
+        [9.1], `FL:FR:FC:LF:BL:BR:SL:SR:LH:RH`,
+        [11.0 -- 16.0 (Generic)], [Generic layouts with 11 to 16 channels],
+    ),
+    caption: [Supported Multichannel Layouts],
+) <multichannel-layouts>
 
-# Display the file path of the app.
-print app.applicationFilePath()
+Note that #app will mix down, mix up or reorder channels for any given media
+to match the intended output device channel layout format.
 
-# Create a Label and show it.
-label = QLabel("Using RV's PySide")
-label.show()
+For example, playing back 5.1 media to a stereo audio device will see the 5.1
+audio channels mixed down to two channels.
 
-# Enter Qt application main loop.
-app.exec_()
+Similarly, playing back stereo media to a 5.1 device will see the media's
+stereo FL and FR content mixed up to the 5.1 device's FL, FR and FC only.
 
-sys.exit()
-````)
+For the case where the media and device have the same channel count and
+speaker types but different layout e.g. for 5.1 media and a 5.1 (AC3)
+device, the media's channel layout is reordered to match the device channel
+layout when #app reads the media.
 
-The second example, shown below, is #a-app Python package that uses PySide
-for building its UI with Qt widgets that control property values on an
-`RVLensWarp` node. Note too that in this example, the current #app session
-`QMainWindow` is obtained from `rv.qtutils.sessionWindow()` and we use it to
-change the session window's opacity with the "Enable" checkbox.
+For the case where the media and device have the same channel count but
+non-matching channel/speaker types, the channel layout of the media is passed
+to the device as is; for example 5.1 (Back) media and a 5.1 device.
 
-This "PySide Example" can be loaded in #app through
-#menu(("Preferences", "Packages")).
-
-#code-block(lang: "python", ````
-from PySide.QtCore import QFile
-from PySide.QtGui import QDoubleSpinBox, QDial, QCheckBox
-from PySide.QtUiTools import QUiLoader
-
-import types
-import os
-import math
-
-import rv
-import rv.qtutils
-
-import pyside_example # need to get at the module itself
-
-
-class PySideDockTest(rv.rvtypes.MinorMode):
-    "A python mode example that uses PySide"
-
-    def checkBoxPressed(self, checkbox, prop):
-        def F():
-            try:
-                if checkbox.isChecked():
-                    if self.rvSessionQObject is not None:
-                        self.rvSessionQObject.setWindowOpacity(1.0)
-                    rv.commands.setIntProperty(prop, [1], True)
-                else:
-                    if self.rvSessionQObject is not None:
-                        self.rvSessionQObject.setWindowOpacity(0.5)
-                    rv.commands.setIntProperty(prop, [0], True)
-            except:
-                pass
-        return F
-
-
-    def dialChanged(self, index, last, spins, prop):
-        def F(value):
-            diff = float(value - last[index])
-            if diff < -180:
-                diff = value - last[index] + 360
-            elif diff > 180:
-                diff = value - last[index] - 360
-            diff /= 360.0
-            last[index] = float(value)
-            try:
-                p = rv.commands.getFloatProperty(prop, 0, 1231231)
-                p[0] += diff
-                if p[0] > spins[index].maximum() :
-                    p[0] = spins[index].maximum()
-                if p[0] <  spins[index].minimum()  :
-                    p[0] = spins[index].minimum()
-                spins[index].setValue(p[0])
-                rv.commands.setFloatProperty(prop, p, True)
-            except:
-                pass
-        return F
-
-    def spinChanged(self, index, spins, prop):
-        def F(value):
-            try:
-                rv.commands.setFloatProperty(prop, [p], True)
-            except:
-                pass
-
-        def F():
-            try:
-                p = spins[index].value()
-                commands.setFloatProperty(prop, [p], True)
-            except:
-                pass
-
-        return F
-
-    def findSet(self, typeObj, names):
-        array = []
-        for n in names:
-            array.append(self.dialog.findChild(typeObj, n))
-            if array[-1] == None:
-                print "Can't find", n
-        return array
-
-    def hookup(self, checkbox, spins, dials, prop, last):
-        checkbox.released.connect(self.checkBoxPressed(checkbox, "%s.node.active"%prop))
-        for i in range(0,3):
-            dial = dials[i]
-            spin = spins[i]
-            propName = "%s.warp.k%d" % (prop,i+1)
-            dial.valueChanged.connect(self.dialChanged(i, last, spins, propName))
-            spin.valueChanged.connect(self.spinChanged(i, spins, propName))
-            last[i] = dial.value()
-
-
-    def __init__(self):
-        rv.rvtypes.MinorMode.__init__(self)
-        self.init("pyside_example", None, None)
-
-        self.loader = QUiLoader()
-        uifile = QFile(os.path.join(self.supportPath(pyside_example, "pyside_example"), "control.ui"))
-        uifile.open(QFile.ReadOnly)
-        self.dialog = self.loader.load(uifile)
-        uifile.close()
-
-        self.enableCheckBox  = self.dialog.findChild(QCheckBox, "enableCheckBox")
-
-        #
-        # To retrieve the current RV session window and
-        # use it as a Qt QMainWindow, we do the following:
-        self.rvSessionQObject = rv.qtutils.sessionWindow()
-
-        # have to hold refs here so they don't get deleted
-        self.radialDistortDials = self.findSet(QDial, ["k1Dial", "k2Dial", "k3Dial"])
-
-        self.radialDistortSpins = self.findSet(QDoubleSpinBox, ["k1SpinBox", "k2SpinBox", "k3SpinBox"])
-
-        self.lastRadialDistort = [0,0,0]
-
-        self.hookup(self.enableCheckBox, self.radialDistortSpins, self.radialDistortDials, "#RVLensWarp", self.lastRadialDistort)
-
-
-    def activate(self):
-        rv.rvtypes.MinorMode.activate(self)
-        self.dialog.show()
-
-    def deactivate(self):
-        rv.rvtypes.MinorMode.deactivate(self)
-        self.dialog.hide()
-
-def createMode():
-    "Required to initialize the module. RV will call this function to create your mode."
-    return PySideDockTest()
-````)
+The audio channel layout for any given media can be determined from #app's
+image info tool.

@@ -118,4 +118,4 @@ server.
 
 #app supports a cross platform audio module based on Qt audio (which on
 Linux is ALSA based). Note Platform Audio supports playback on multichannel
-audio devices (see #xref(<app-multichannel-layouts>)[Appendix J]).
+audio devices (see #xref(<app-multichannel-layouts>)[Appendix I]).

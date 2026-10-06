@@ -1,7 +1,6 @@
-// The complete user manual. Build with, e.g.:
-//   typst compile --root ../.. --input product=openutv rv-user-manual.typ
-//   typst compile --root ../.. --features html --format html rv-user-manual.typ
-// Each chapter file can still be built on its own.
+// The complete user manual. Build it with ./build-docs.sh (see -h), which
+// holds the typst command-line details. Each chapter file can still be built
+// on its own (./build-docs.sh -c 07).
 
 #import "manual-lib.typ": *
 #show: manual.with(master: true)
@@ -56,4 +55,3 @@
 #include "rv-user-manual.H.typ"
 #include "rv-user-manual.I.typ"
 #include "rv-user-manual.J.typ"
-#include "rv-user-manual.K.typ"

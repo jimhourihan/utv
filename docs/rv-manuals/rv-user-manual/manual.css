@@ -1,3 +1,10 @@
+/* Base text size. Browsers default to 16px; the PDF's 11pt body text is
+   about 15px at "actual size" but reads larger on paper-like page views, so
+   bump HTML up a step. Percent keeps the reader's own browser setting as the
+   baseline. */
+html {
+    font-size: 112.5%;   /* 18px at the browser default */
+}
 kbd.key {
     font-family: "Fira Code", monospace;
     font-size: 80%;
@@ -8,7 +15,7 @@ kbd.key {
 }
 span.menuitem {
     font-family: "Helvetica Neue", sans-serif;
-    weight: bold;
+    font-weight: bold;
 }
 .key-table table {
     margin: 1em auto;
@@ -37,11 +44,60 @@ span.menuitem {
     gap: 1em;
     justify-content: center;
 }
-.image-row img {
-    flex: 1;
-    min-width: 0;
-    max-width: 100%;
+.image-row {
+    align-items: flex-end;
+    max-width: 90%;
+    margin-left: auto;
+    margin-right: auto;
 }
+/* keep each image's own (1:1) size; only shrink when the row is too narrow */
+.image-row img {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;   /* the row itself is already 90% wide */
+    /* the row centers the group; auto margins here would spread them apart */
+    margin-left: 0;
+    margin-right: 0;
+}
+/* Typst writes fixed width/height attributes on <img>; height: auto keeps
+   the aspect ratio when max-width shrinks the image */
+/* 90% leaves a 5% margin each side so wide images don't run text-width */
 figure img {
-    max-width: 100%;
+    max-width: 90%;
+    height: auto;
+    border: 1px solid #ddd;
+    /* Typst emits images as display: block with a fixed width; auto side
+       margins center them */
+    margin-left: auto;
+    margin-right: auto;
+}
+figure {
+    margin: 2em 0;
+}
+figcaption {
+    font-size: 90%;
+    color: #555;
+    text-align: center;
+    margin-top: 0.5em;
+}
+
+/* default tables (key-table has its own rules above) */
+table {
+    border-collapse: collapse;
+    margin: 1em auto;
+}
+th, td {
+    padding: 4px 10px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid #ddd;
+}
+thead th {
+    background: #eee;
+    border-bottom: 1.5px solid #999;
+}
+
+/* long reference tables of key bindings */
+.key-table.compact {
+    font-size: 85%;
 }

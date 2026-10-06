@@ -103,8 +103,11 @@ and play back. #app supports a number of raw codecs on all platforms.
 
 #app supports most raw uncompressed audio codecs across platforms.
 
-#app and #ioapp handle stereo audio. #app does not currently handle more
-than two channels of audio.
+#app and #ioapp handle mono, stereo, and multichannel audio (such as 5.1 and
+7.1). #app plays multichannel audio through the "Platform Audio" output
+module, mixing or reordering channels to match the output device (see
+#xref(<app-multichannel-layouts>)[Appendix I]); #ioapp can set the number of
+output channels with #inline-shell("-audiochannels").
 
 === MPEG-4 Movie Files (.mp4)
 
@@ -490,7 +493,7 @@ platforms. On Windows and macOS a number of compressed formats may be
 supported. Currently Microsoft WAV files and Apple's AIFF format are the
 best bet for cross platform use. #app does support multichannel audio files
 for playback to multichannel audio devices (see
-#xref(<app-multichannel-layouts>)[Appendix J]).
+#xref(<app-multichannel-layouts>)[Appendix I]).
 
 == Simple ASCII EDL Format <ascii-edl>
 

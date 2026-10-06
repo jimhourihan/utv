@@ -805,7 +805,7 @@ list of available channel layouts for a chosen output device will be listed
 in the first pulldown menu for the "Output Format and Rate" setting.
 
 The list of all possible channel layouts that #app supports is described in
-#xref(<app-multichannel-layouts>)[Appendix J].
+#xref(<app-multichannel-layouts>)[Appendix I].
 
 === Correcting for AV Sync Delay
 
@@ -928,7 +928,7 @@ for more information about how stereo is handled.
 #app's #menu("Help") menu.
 
 #figure(
-    img("rv-hotkeys-help-menu-01.png", width: 60%),
+    img("rv-hotkeys-help-menu-01.png"),
     caption: [Help menu],
 )
 
@@ -948,7 +948,7 @@ Menu items with hotkeys also display the hotkey on the right side of the
 menu item.
 
 #figure(
-    img("rv-hotkeys-hotkeys-04.png", width: 60%),
+    img("rv-hotkeys-hotkeys-04.png"),
     caption: [Hotkeys shown in a menu],
 )
 
@@ -957,7 +957,7 @@ If you'd like to see a list of all of #app's current key bindings, select
 list of #app's hotkeys (note that capital and lowercase letters are
 different hotkeys):
 
-#key-table(
+#key-table(compact: true,
     [#key("F1") (#key("Fn+F1") on Mac)], [Toggle Menu Bar Visibility],
     [#key("F2") (#key("Fn+F2") on Mac)], [Toggle Heads-Up Timeline],
     [#key("F3") (#key("Fn+F3") on Mac)], [Toggle Timeline Magnifier],
@@ -1067,7 +1067,7 @@ stereo-related hotkeys are active. You enter or leave the mode with
 #key("Alt+s") (#key("Option+s") on Mac). While this mode is active, the
 following additional hotkeys are available:
 
-#key-table(
+#key-table(compact: true,
     key("a"), [Anaglyph Mode],
     key("d"), [Checked Mode],
     key("k"), [Scanline Mode],

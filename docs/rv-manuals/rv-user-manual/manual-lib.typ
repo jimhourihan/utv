@@ -76,18 +76,49 @@
 #let only-for(..prods, body) = if product in prods.pos() { body }
 #let if-feature(name, body) = if name in names.features { body }
 
-// Screenshots live in docs/images. Build with --root pointing at docs/ (or
-// higher) so Typst may read them:  typst compile --root ../.. ...
+// Screenshots live in docs/images (build with ./build-docs.sh, which sets the
+// Typst root so they can be read).
 #let image-dir = "../../images/"
-#let img(name, ..args) = image(image-dir + name, ..args)
+
+// All screenshots share one pixel scale so a small menu and a big dialog look
+// consistent. Sizes are in logical pixels (pixels adjusted for the file's DPI,
+// so a 144 DPI Retina capture counts at half size):
+//   PDF:  one logical pixel = image-scale pt; an image only shrinks further
+//         when it is wider than image-max-width of its space (page, or
+//         image-row cell)
+//   HTML: one logical pixel = one CSS pixel (1:1 on screen); CSS max-width
+//         shrinks it on narrow windows
+// Passing width: or height: to img() overrides this for that image.
+#let image-scale = 0.5
+// Widest an image may be, as a fraction of the space it's in, so wide
+// screenshots keep a margin (5% each side) instead of running text-width.
+#let image-max-width = 0.9
+
+#let img(name, ..args) = context {
+    let path = image-dir + name
+    let border(im) = if target() == "html" { im } else { box(stroke: 0.5pt + luma(200), im) }
+    if "width" in args.named() or "height" in args.named() {
+        border(image(path, ..args))
+    } else {
+        // natural size in pt is the logical pixel count
+        let natural = measure(image(path)).width
+        if target() == "html" {
+            image(path, width: natural * 0.75, ..args)   // 0.75pt = 1 CSS px
+        } else {
+            layout(space => border(image(path,
+                width: calc.min(natural * image-scale, space.width * image-max-width), ..args)))
+        }
+    }
+}
 
 // Images side by side, e.g. inside a figure:
 //   #figure(image-row(img("a.png"), img("b.png")), caption: [...])
 #let image-row(..imgs) = context {
+    let n = imgs.pos().len()
     if target() == "html" {
         html.elem("div", attrs: (class: "image-row"), imgs.pos().join())
     } else {
-        grid(columns: imgs.pos().len(), gutter: 1em, ..imgs)
+        grid(columns: (1fr,) * n, gutter: 1em, align: center + bottom, ..imgs)
     }
 }
 
@@ -153,14 +184,16 @@
     }
 }
 
-#let key-table(..stuff) = context {
+// compact: true uses a smaller font, for long reference tables
+#let key-table(compact: false, ..stuff) = context {
     if target() == "html" {
-        html.elem("div", attrs: (class: "key-table"),
+        html.elem("div", attrs: (class: if compact { "key-table compact" } else { "key-table" }),
             table(columns: 2, table.header[Key][Action], ..stuff))
     } else {
+        set text(size: 0.85em) if compact
         table(columns: (auto, auto),
             align: left + horizon,
-            inset: (x: 8pt, y: 5pt),
+            inset: if compact { (x: 6pt, y: 2pt) } else { (x: 8pt, y: 5pt) },
             // no vertical rules; heavy rule under the header, light rule at the bottom
             stroke: (x, y) => (
                 top: if y == 0 { 1pt + teal } else if y == 1 { 0.75pt + teal } else { none },
@@ -200,6 +233,19 @@
         if appendix { "A.1" } else { "1.1" },
         counter(heading).get().first(), n))
     show table: set align(center)
+    // default table look: thin grey horizontal rules, shaded header row
+    // (key-table and tables that set their own stroke/fill are unaffected)
+    set table(
+        stroke: (x, y) => (
+            top: if y == 1 { 0.6pt + luma(150) } else { 0.4pt + luma(200) },
+            bottom: 0.4pt + luma(200),
+        ),
+        fill: (x, y) => if y == 0 { luma(238) },
+        inset: (x: 6pt, y: 4pt),
+    )
+    // breathing room around figures and their captions
+    show figure: set block(above: 1.6em, below: 1.6em)
+    show figure.caption: set text(size: 0.9em)
     // let long tables in figures split across pages
     show figure.where(kind: table): set block(breakable: true)
     // italicize Latin abbreviations always
