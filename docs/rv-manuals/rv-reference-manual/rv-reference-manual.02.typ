@@ -50,7 +50,7 @@ group nodes created and one display group node for each output device
 present on the system.
 
 #figure(
-    img("rv-reference-manual-2-rv-cxx-se-rv4-top-level-01.png"),
+    img("rv-reference-manual-2-rv-cxx-se-rv4-top-level-01.jpg"),
     caption: [Top-Level node graph when two sources are present.],
 )
 
@@ -132,7 +132,7 @@ pipeline groups which can be modified to customize the source color
 management.
 
 #figure(
-    img("rv-reference-manual-3-rv-cxx-rv4-source-group-02.png"),
+    img("rv-reference-manual-3-rv-cxx-rv4-source-group-02.jpg"),
     caption: [Source Group Internals],
 )
 
@@ -284,7 +284,7 @@ inserted for purposes of QC and visualization. By default, this pipeline is
 empty (it has no effect).
 
 #figure(
-    img("rv-reference-manual-4-rv-cxx-e-rv4-view-group-03.png"),
+    img("rv-reference-manual-4-rv-cxx-e-rv4-view-group-03.jpg"),
     caption: [View Group Internals],
 )
 
@@ -318,7 +318,7 @@ that includes an RVPaint node to hold annotation per input and an optional
 retime node to force all input media to the same FPS.
 
 #figure(
-    img("rv-reference-manual-5-rv-cxx-rv4-sequence-group-04.png"),
+    img("rv-reference-manual-5-rv-cxx-rv4-sequence-group-04.jpg"),
     caption: [Sequence Group Internals],
 )
 
@@ -334,7 +334,7 @@ Unlike the sequence group, the stack group's paint node stores annotation
 after the stacking so it always appears on top of all images.
 
 #figure(
-    img("rv-reference-manual-6-rv-cxx-rv4-stack-group-05.png"),
+    img("rv-reference-manual-6-rv-cxx-rv4-stack-group-05.jpg"),
     caption: [Stack Group Internals],
 )
 
@@ -348,7 +348,7 @@ Annotations on the layout group appear on top of all images regardless of
 their input order.
 
 #figure(
-    img("rv-reference-manual-7-rv-cxx-rv4-layout-group-06.png"),
+    img("rv-reference-manual-7-rv-cxx-rv4-layout-group-06.jpg"),
     caption: [Layout Group Internals],
 )
 
@@ -379,7 +379,7 @@ all devices, a node should be inserted into the view group's pipeline or
 earlier in the graph.
 
 #figure(
-    img("rv-reference-manual-8-rv-cxx-rv4-display-group-07.png"),
+    img("rv-reference-manual-8-rv-cxx-rv4-display-group-07.jpg"),
     caption: [Display Group Internals],
 )
 
@@ -406,7 +406,7 @@ setFloatProperty("display.color.gamma",  [2.2, 2.2, 2.2], True)
 In this case the value is being set to 2.2.
 
 #figure(
-    img("rv-reference-manual-9-rv-cxx-rv4-prop-inactive-08.png"),
+    img("rv-reference-manual-9-rv-cxx-rv4-prop-inactive-08.jpg"),
     caption: [Conceptual diagram of #app Image and Audio Processing Graph for a session with a single sequence of two sources. The default stack and layout are not included in this diagram, but would be present.],
 ) <ref-rv-pipeline-small>
 
@@ -459,7 +459,7 @@ the currently visible sources only. See
 explanation.
 
 #figure(
-    img("rv-reference-manual-10-rv-cx-rv4-prop-active-09.png"),
+    img("rv-reference-manual-10-rv-cx-rv4-prop-active-09.jpg"),
     caption: [Active Nodes in the Image Processing Graph],
 ) <ref-active-nodes-in-the-image-processing-graph>
 

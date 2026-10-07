@@ -23,7 +23,7 @@ The Sphinx build runs with `-W`, so any warning fails it.
 `../build-docs.sh --check` runs this build too when `pandoc` and
 `sphinx-build` are on the `PATH`, and the `docs-check` job in
 `.github/workflows/pr-checks.yml` runs it on pull requests that change
-`docs/rv-manuals/` or `docs/images/`.
+`docs/rv-manuals/`, `docs/images/` or `docs/images-web/`.
 
 ## How it works
 

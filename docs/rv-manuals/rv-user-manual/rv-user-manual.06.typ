@@ -29,7 +29,7 @@ Different devices will have different configuration parameters and some
 devices may not use all of the available ones.
 
 #figure(
-    img("rv-user-manual-42-rv-cx-ease-video-prefs-41.png"),
+    img("rv-user-manual-42-rv-cx-ease-video-prefs-41.jpg"),
     caption: [Video Preferences],
 )
 
@@ -97,7 +97,7 @@ dithering. If custom nodes have been defined and are used in the display
 color pipeline then those will also be stored in the display profile.
 
 #figure(
-    img("rv-user-manual-43-rv-cx-e-profile-dialog-42.png"),
+    img("rv-user-manual-43-rv-cx-e-profile-dialog-42.jpg"),
     caption: [Display Profile Manager],
 )
 

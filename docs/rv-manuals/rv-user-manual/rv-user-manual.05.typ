@@ -57,8 +57,8 @@ views, not to user-defined views.
 
 #figure(
     image-row(
-        img("rv-user-manual-30-rv-cx-session-manager-29.png"),
-        img("rv-user-manual-31-rv-cx-session-manager2-30.png"),
+        img("rv-user-manual-30-rv-cx-session-manager-29.jpg"),
+        img("rv-user-manual-31-rv-cx-session-manager2-30.jpg"),
     ),
     caption: [Session Manager on the Mac showing Inputs and Sequence Edit
         Panel. The DefaultSequence is being viewed.],
@@ -85,8 +85,8 @@ source.
 
 #figure(
     image-row(
-        img("rv-user-manual-32-rv-cx-ease-sm-add-menu-31.png"),
-        img("rv-user-manual-33-rv-cx-e-sm-folder-menu-32.png"),
+        img("rv-user-manual-32-rv-cx-ease-sm-add-menu-31.jpg"),
+        img("rv-user-manual-33-rv-cx-e-sm-folder-menu-32.jpg"),
     ),
     caption: [The Add View and Folders Menus],
 )
@@ -161,7 +161,7 @@ numbers can be set from the command line, or changed with the Edit panel of
 the Source View interface.
 
 #figure(
-    img("rv-user-manual-34-rv-cx-ase-sourceSMShot-33.png"),
+    img("rv-user-manual-34-rv-cx-ase-sourceSMShot-33.jpg"),
     caption: [The Source Edit Interface],
 )
 

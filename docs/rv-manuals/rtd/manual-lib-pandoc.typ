@@ -31,7 +31,7 @@
 #let if-feature(name, body) = if name in names.features { body }
 
 // Image sizing (the shared pixel scale) is done in sphinx-roles.lua.
-#let image-dir = "../../images/"
+#let image-dir = "../../images-web/"
 #let img(name, ..args) = image(image-dir + name)
 #let image-row(..imgs) = imgs.pos().join()
 

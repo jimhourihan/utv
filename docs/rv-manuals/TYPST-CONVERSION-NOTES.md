@@ -19,8 +19,14 @@ the docs, if the invocation changes. It runs from any directory.
 ./build-docs.sh --check             # build every chapter alone, report failures
 ```
 
-The Typst root must be the repository root: the manual reads `docs/images/`
+The Typst root must be the repository root: the manual reads `docs/images-web/`
 and Appendix H reads `src/plugins/rv-packages/pyside_example/pyside_example.py`.
+
+Images: originals stay in `docs/images/`; the manuals load compressed copies
+from `docs/images-web/` (8.3 MB -> 4.6 MB), made by `compress-images.py`
+(needs Pillow). After adding or replacing a screenshot in `docs/images/`, run
+it again; if it turns a PNG into a JPEG it prints the new name to use in
+`img()`.
 Products: `rv`, `openrv`, `openutv` (default). `build/` is git-ignored.
 
 ## Layout

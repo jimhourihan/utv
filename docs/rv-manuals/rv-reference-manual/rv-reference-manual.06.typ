@@ -718,7 +718,7 @@ of the source image directly by #app's render.
 of metadata rendered by the RVOverlay node.
 
 #figure(
-    img("rv-reference-manual-11-rv-cx-ase-overlay-shot-010.png"),
+    img("rv-reference-manual-11-rv-cx-ase-overlay-shot-010.jpg"),
     caption: [Metadata Rendered By RVOverlay Node From Session File],
 ) <ref-metadata-rendered-by-rvoverlay-node-from-session-file>
 
@@ -735,7 +735,7 @@ and text.@ref-rvoverlay-node-example shows an example which draws three
 colored boxes with text starting at each box's origin.
 
 #figure(
-    img("rv-reference-manual-12-rv-cx-overlay-example-11.png"),
+    img("rv-reference-manual-12-rv-cx-overlay-example-11.jpg"),
     caption: [RVOverlay Node Example],
 ) <ref-rvoverlay-node-example>
 

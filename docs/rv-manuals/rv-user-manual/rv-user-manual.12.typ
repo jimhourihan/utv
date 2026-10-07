@@ -86,12 +86,12 @@ that the same effect can be produced by flopping the right eye only in
 mirror mode.
 
 #figure(
-    img("rv-user-manual-55-rv-cx-dice-side-by-side-55.png"),
+    img("rv-user-manual-55-rv-cx-dice-side-by-side-55.jpg"),
     caption: [Side-by-Side Stereo Display],
 )
 
 #figure(
-    img("rv-user-manual-56-rv-cx-ease-dice-mirror-56.png"),
+    img("rv-user-manual-56-rv-cx-ease-dice-mirror-56.jpg"),
     caption: [Mirror Display Mode],
 )
 
@@ -103,7 +103,7 @@ HD LCD display and DLP projectors using the Texas Instruments checkerboard
 3D DLP input.
 
 #figure(
-    img("rv-user-manual-57-rv-dice-dlp-and-scanline-57.png"),
+    img("rv-user-manual-57-rv-dice-dlp-and-scanline-57.jpg"),
     caption: [DLP (left) and LCD Scanline (right) Stereo Display],
 )
 
@@ -172,6 +172,6 @@ with #menu(("Image", "Flip")) and #menu(("Image", "Flop")) and rotation to
 move the images into the correct position.
 
 #figure(
-    img("rv-user-manual-59-rv-cx-dice-one-eye-flipped-59.png"),
+    img("rv-user-manual-59-rv-cx-dice-one-eye-flipped-59.jpg"),
     caption: [Flipping One Eye],
 )

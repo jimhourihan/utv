@@ -164,7 +164,7 @@ and another at a QuickTime movie of the same sequence, and the sync can still
 be quite useful.
 
 #figure(
-    img("rv-user-manual-63-rv-cxx98-release-grabSync-63.png"),
+    img("rv-user-manual-63-rv-cxx98-release-grabSync-63.jpg"),
     caption: [Sync Mode Showing Remote User's Cursor],
 )
 
@@ -181,7 +181,7 @@ Sync mode will always send frame changes and playback options like the
 current fps, and the playback mode.
 
 #figure(
-    img("rv-user-manual-64-rv-cx-ase-grabSyncMenu-64.png"),
+    img("rv-user-manual-64-rv-cx-ase-grabSyncMenu-64.jpg"),
     caption: [Sync Mode Menu],
 )
 

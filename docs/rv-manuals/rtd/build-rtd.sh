@@ -48,13 +48,13 @@ case "$PRODUCT" in rv|openrv|openutv) ;; *) echo "unknown product: $PRODUCT" >&2
 command -v pandoc >/dev/null || { echo "pandoc not found (brew install pandoc)" >&2; exit 1; }
 
 # Staging tree mirrors the repo layout so the chapters' relative paths
-# (../common/, ../../images/, ../../../src/...) resolve; docs/images and src
-# are symlinks.
+# (../common/, ../../images-web/, ../../../src/...) resolve; docs/images-web
+# and src are symlinks.
 STAGE="$OUTDIR/stage"
 DOCS="$STAGE/docs"
 rm -rf "$STAGE"
 mkdir -p "$DOCS/rv-manuals/common"
-ln -s "$REPO/docs/images" "$DOCS/images"
+ln -s "$REPO/docs/images-web" "$DOCS/images-web"
 ln -s "$REPO/src" "$STAGE/src"
 
 # Pandoc library = products table from the real manual-lib.typ + Pandoc

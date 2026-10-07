@@ -14,7 +14,7 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Repository root: Typst may only read files below --root, and the manuals read
-# docs/images/ and src/plugins/ (user manual Appendix H).
+# docs/images-web/ and src/plugins/ (user manual Appendix H).
 ROOT="$(cd "$HERE/../.." && pwd)"
 
 # manual name -> directory / file prefix (a function, not an associative

@@ -59,7 +59,7 @@ The main #app window contains two toolbars that are visible by default:
 - *Lower toolbar*: Controls playback, tool buttons, and audio functions
 
 #figure(
-    img("rv-user-manual-7-rv-cxx-toolbars-legend-06.png"),
+    img("rv-user-manual-7-rv-cxx-toolbars-legend-06.jpg"),
     caption: [Toolbar Controls],
 )
 
@@ -310,7 +310,7 @@ keys.
         [Mouse Button 1 Up], [Finish parameter edit],
         [Wheel], [Increment or decrement parameter],
         key("Enter"), [Enter parameter numerically],
-        [#key("0") through #key("9")], [Enter parameter numerically],
+        [#key("0") through #key("6 KB  png lossless  rv-user-manual-27-rv-cx-ase-region-cache-26.png")], [Enter parameter numerically],
         key("Escape"), [Cancel parameter edit mode],
         [#key("+") or #key("=")], [Increment parameter value],
         [#key("-") or #key("_")], [Decrement parameter value],
@@ -454,7 +454,7 @@ and data type of the image as well as associated meta-data (attributes in
 the file). @image-info-widget shows an example of the information widget.
 
 #figure(
-    img("rv-user-manual-19-rv-cx-e-infoWidgetShot-18.png"),
+    img("rv-user-manual-19-rv-cx-e-infoWidgetShot-18.jpg"),
     caption: [Image Information Widget],
 ) <image-info-widget>
 
@@ -485,7 +485,7 @@ or by hitting the #key("Tab") key.
 === Timeline <timeline>
 
 #figure(
-    img("rv-user-manual-20-rv-cx-timeline-labelled-19.png"),
+    img("rv-user-manual-20-rv-cx-timeline-labelled-19.jpg"),
     caption: [Timeline With Labelled Parts],
 )
 
@@ -536,7 +536,7 @@ FPS, the second the actual measured playback FPS.
 ) <timeline-hotkeys>
 
 #figure(
-    img("rv-user-manual-21-rv-cx-timeline-reddot-20.png"),
+    img("rv-user-manual-21-rv-cx-timeline-reddot-20.jpg"),
     caption: [Dropped frame indicator],
 )
 
@@ -638,7 +638,7 @@ movies at the shot boundaries to make it easy to step through and review
 each shot.
 
 #figure(
-    img("rv-user-manual-23-rv-cx-timelineMarksShot-22.png"),
+    img("rv-user-manual-23-rv-cx-timelineMarksShot-22.jpg"),
     caption: [Timeline with Marks],
 ) <timeline-with-marks>
 
@@ -734,7 +734,7 @@ CODEC" (`front:CARD=CODEC,DEV=0` on Linux) in the "Output Device" pull down
 menu when "Platform Audio" is selected.
 
 #figure(
-    img("rv-user-manual-25-rv-cx-audio-prefs-mac-24.png"),
+    img("rv-user-manual-25-rv-cx-audio-prefs-mac-24.jpg"),
     caption: [Audio Preferences (macOS)],
 )
 
@@ -833,7 +833,7 @@ intervals of 1 second at 24 FPS:
 range, or being used as a look-ahead (also known as a ring) buffer.
 
 #figure(
-    img("rv-user-manual-26-rv-cx-e-timeline-cache-25.png"),
+    img("rv-user-manual-26-rv-cx-e-timeline-cache-25.jpg"),
     caption: [Timeline Showing Cache Progress],
 )
 
@@ -928,7 +928,7 @@ for more information about how stereo is handled.
 #app's #menu("Help") menu.
 
 #figure(
-    img("rv-hotkeys-help-menu-01.png"),
+    img("rv-hotkeys-help-menu-01.jpg"),
     caption: [Help menu],
 )
 
@@ -938,8 +938,8 @@ within #app of what certain hotkeys do.
 
 #figure(
     image-row(
-        img("rv-hotkeys-describe-options-rv-02.png"),
-        img("rv-hotkeys-describe-options-03.png"),
+        img("rv-hotkeys-describe-options-rv-02.jpg"),
+        img("rv-hotkeys-describe-options-03.jpg"),
     ),
     caption: [Describe options],
 )
@@ -948,7 +948,7 @@ Menu items with hotkeys also display the hotkey on the right side of the
 menu item.
 
 #figure(
-    img("rv-hotkeys-hotkeys-04.png"),
+    img("rv-hotkeys-hotkeys-04.jpg"),
     caption: [Hotkeys shown in a menu],
 )
 
@@ -986,9 +986,9 @@ different hotkeys):
     key("2"), [Scale 2:1],
     key("3"), [Scale 3:1],
     key("4"), [Scale 4:1],
-    key("5"), [Scale 5:1],
+    key("3 KB  jpeg q85      rv-user-manual-26-rv-cx-e-timeline-cache-25.png"), [Scale 5:1],
     key("6"), [Scale 6:1],
-    key("7"), [Scale 7:1],
+    key("5 KB  jpeg q85      rv-user-manual-23-rv-cx-timelineMarksShot-22.png"), [Scale 7:1],
     key("8"), [Scale 8:1],
     key("A"), [Toggle Real-Time Playback],
     key("a"), [Show Alpha Channel],

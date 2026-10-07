@@ -76,9 +76,10 @@
 #let only-for(..prods, body) = if product in prods.pos() { body }
 #let if-feature(name, body) = if name in names.features { body }
 
-// Screenshots live in docs/images (build with ./build-docs.sh, which sets the
-// Typst root so they can be read).
-#let image-dir = "../../images/"
+// Screenshots: the manuals load the compressed copies in docs/images-web,
+// made from the originals in docs/images by ../compress-images.py (build
+// with ./build-docs.sh, which sets the Typst root so they can be read).
+#let image-dir = "../../images-web/"
 
 // All screenshots share one pixel scale so a small menu and a big dialog look
 // consistent. Sizes are in logical pixels (pixels adjusted for the file's DPI,
