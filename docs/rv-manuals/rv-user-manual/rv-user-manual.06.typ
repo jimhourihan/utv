@@ -1,4 +1,4 @@
-#import "manual-lib.typ": *
+#import "../common/manual-lib.typ": *
 #show: manual
 
 = Presentation Mode and Video Devices <ch-presentation>

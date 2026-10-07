@@ -6,11 +6,11 @@ There are more than a few variables that determine I/O and decoding speed. When 
 
 Most of these settings are available from either the Caching preference or the Rendering preference panes.
 
-![65_ase_render_prefs.jpg](../../images/rv-user-manual-65-rv-cx-ase-render-prefs-65.jpg)  
+![65_ase_render_prefs.jpg](../../../images/rv-user-manual-65-rv-cx-ase-render-prefs-65.jpg)  
 
 Figure 14.1: Render Preference Pane
 
-![66_se_caching_prefs.jpg](../../images/rv-user-manual-66-rv-cx-se-caching-prefs-66.jpg)  
+![66_se_caching_prefs.jpg](../../../images/rv-user-manual-66-rv-cx-se-caching-prefs-66.jpg)  
 
 Figure 14.2: Caching Preference Pane
 
@@ -97,7 +97,7 @@ For playback and review of sequences at speed, you may wish to cache images with
 
 Similarly, reducing the color resolution can squeeze more frames into memory. For example a 1024x1024 4 channel 8-bit integer image requires 4 Mb of memory internally. The same image as 16-bit floating-point requires 8 Mb and a 32-bit float image requires 16 Mb. So by having RV reduce a 32-bit float image to an 8-bit image, you can pack four times the number of frames into memory without changing the image size.
 
-Not caching the Alpha channel of a 4 channel image will also reduce the memory footprint of the frames. You can tell RV to remap the image channels to R, G, B before caching (See [7.3.2](topicid=SG_RV_rv_manuals_rv_user_manual_rv_user_manual_chapter_seven_html#732-channel-remapping)). This may affect playback speed for other reasons, depending on your graphics card. You will need to experiment to determine if this works well on your system.
+Not caching the Alpha channel of a 4 channel image will also reduce the memory footprint of the frames. You can tell RV to remap the image channels to R, G, B before caching (See [7.3.2](rv-user-manual-chapter-seven.md#732-channel-remapping)). This may affect playback speed for other reasons, depending on your graphics card. You will need to experiment to determine if this works well on your system.
 
 ## Reader Threads
 

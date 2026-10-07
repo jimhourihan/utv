@@ -1,4 +1,4 @@
-#import "manual-lib.typ": *
+#import "../common/manual-lib.typ": *
 #show: manual
 
 = Command Line Usage <ch-command-line>

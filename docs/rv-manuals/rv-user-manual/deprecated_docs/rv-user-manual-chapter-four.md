@@ -12,7 +12,7 @@ A single RV process can control multiple independent sessions on all platforms. 
 
 Many of the tools that RV provides are heads up widgets. The widgets live in the image display are or are connected to the image itself. Aside from uniformity across platforms, the reason we have opted for this style of interface was primarily to make RV function well when in full screen mode.
 
-![4_linux_snapshot.jpg](../../images/rv-user-manual-4-rv-cxx-rv-linux-snapshot-03.jpg)   ![5_osx_snapshot.jpg](../../images/rv-user-manual-5-rv-cxx-rv-osx-snapshot-04.jpg)
+![4_linux_snapshot.jpg](../../../images/rv-user-manual-4-rv-cxx-rv-linux-snapshot-03.jpg)   ![5_osx_snapshot.jpg](../../../images/rv-user-manual-5-rv-cxx-rv-osx-snapshot-04.jpg)
 
 Table 4.1: RV on Linux and on macOS.
 
@@ -20,7 +20,7 @@ Table 4.1: RV on Linux and on macOS.
 
 RV provides feedback about its current state near the top left corner of the window.
 
-![6_rv_rv-cxx98-release_feedback.jpg](../../images/rv-user-manual-6-rv-cxx98-release-feedback-05.jpg)  
+![6_rv_rv-cxx98-release_feedback.jpg](../../../images/rv-user-manual-6-rv-cxx98-release-feedback-05.jpg)  
 
 Figure 4.1: Feedback widget indicating full-color display
 
@@ -31,7 +31,7 @@ The main RV window contains two toolbars that are visible by default:
 - **Upper toolbar**: Controls view display, viewing options, and display device settings
 - **Lower toolbar**: Controls playback, tool buttons, and audio functions
 
-![7_toolbars_legend.png](../../images/rv-user-manual-7-rv-cxx-toolbars-legend-06.png)  
+![7_toolbars_legend.png](../../../images/rv-user-manual-7-rv-cxx-toolbars-legend-06.png)  
 
 Figure 4.2: Toolbar Controls
 
@@ -75,7 +75,7 @@ Audio files can be loaded into RV using the file browser. To associate an audio 
 
 The file browser has three file display modes: column view, file details view, and media details view. Sequences of images appear as virtual directories in the file browser: you can select the entire sequence or individual files if you open the sequence up. **Note:** You can multi-select in File Details and Media Details, but not in Column View. In general the File Details view will be the fastest.
 
-![8_rv_rv-cxx98-release_grabFile.png](../../images/rv-user-manual-8-rv-cxx98-release-grabFile-07.png)  
+![8_rv_rv-cxx98-release_grabFile.png](../../../images/rv-user-manual-8-rv-cxx98-release-grabFile-07.png)  
 
 Figure 4.3: File Browser Show File Details
 
@@ -123,11 +123,11 @@ RV shows either the source pixel values or the final rendered values. The source
 
 The value is normalized if the image is stored as non-floating point — so values in these types of images will be restricted to the [0,1] range. Floating point images pass the value through unchanged so pixels can take values below zero or above one. Table [7.3](rv-user-manual-chapter-seven.md#characteristics-of-channel-data-types) shows the range of each of the channel data types.
 
-![11_rv_rv-cxx98-release_inspector.jpg](../../images/rv-user-manual-11-rv-cxx98-release-inspector-010.jpg)
+![11_rv_rv-cxx98-release_inspector.jpg](../../../images/rv-user-manual-11-rv-cxx98-release-inspector-010.jpg)
 
 Figure 4.6: Color inspector <a id="color-inspector"></a>
 
-![12_rv_rv-cxx98-release_average.jpg](../../images/rv-user-manual-12-rv-cxx98-release-average-11.jpg)  
+![12_rv_rv-cxx98-release_average.jpg](../../../images/rv-user-manual-12-rv-cxx98-release-average-11.jpg)  
 
 Figure 4.7: Average Color <a id="average-color"></a>
 
@@ -171,7 +171,7 @@ When image pixels are scaled to be larger or smaller than display pixels, resamp
 
 You can see the effects of the resampling filters by making the scale greater than 1:1. This can be done with any of the hot keys \`\`2'' through \`\`8'' or by zooming the image interactively. When the image pixels are large enough, you can switch the sampling method via View → Linear Filter or by hitting the \`\`n'' key. Figure [4.3](#nearest-neighbor-and-linear-interpolation-filtering) shows an example of an image displayed with nearest neighbor and linear filtering.
 
-![14_e_nearest_filter.jpg](../../images/rv-user-manual-14-rv-cx-e-nearest-filter-13.jpg)   ![15_se_linear_filter.jpg](../../images/rv-user-manual-15-rv-cx-se-linear-filter-14.jpg)
+![14_e_nearest_filter.jpg](../../../images/rv-user-manual-14-rv-cx-e-nearest-filter-13.jpg)   ![15_se_linear_filter.jpg](../../../images/rv-user-manual-15-rv-cx-se-linear-filter-14.jpg)
 
 Table 4.3: Nearest Neighbor and Linear Interpolation Filtering. Nearest neighbor filtering makes pixels into blocks (helpful in trying to determine an exact pixel value). <a id="nearest-neighbor-and-linear-interpolation-filtering"></a>
 
@@ -193,7 +193,7 @@ If RV is displaying floating point data directly, linear filtering may not occur
 
 Figure [4.4](#floating-point-filter) shows an example of a floating point image with linear filtering enabled versus equivalent 8-bit images.
 
-![16_ase_float_linear.jpg](../../images/rv-user-manual-16-rv-cx-ase-float-linear-15.jpg)   ![17_ease_8bit_linear.jpg](../../images/rv-user-manual-17-rv-cx-ease-8bit-linear-16.jpg) ![18_ase_8bit_nearest.jpg](../../images/rv-user-manual-18-rv-cx-ase-8bit-nearest-17.jpg)
+![16_ase_float_linear.jpg](../../../images/rv-user-manual-16-rv-cx-ase-float-linear-15.jpg)   ![17_ease_8bit_linear.jpg](../../../images/rv-user-manual-17-rv-cx-ease-8bit-linear-16.jpg) ![18_ase_8bit_nearest.jpg](../../../images/rv-user-manual-18-rv-cx-ase-8bit-nearest-17.jpg)
 
 Table 4.4: Floating point linear, 8 bit linear, and 8 bit nearest neighbor filtering.
 
@@ -217,7 +217,7 @@ You can determine if RV is tiling the image by looking the image info widget und
 
 The image information widget, can be shown or hidden via the Tools → Image Info menu item or using the hot key: \`\`i''. You can move the widget by clicking and dragging. The widget shows the geometry and data type of the image as well as associated meta-data (attributes in the file). Figure [4.9](#image-information-widget) shows an example of the information widget.
 
-![19_e_infoWidgetShot.png](../../images/rv-user-manual-19-rv-cx-e-infoWidgetShot-18.png)  
+![19_e_infoWidgetShot.png](../../../images/rv-user-manual-19-rv-cx-e-infoWidgetShot-18.png)  
 
 Figure 4.9: Image Information Widget. <a id="image-information-widget"></a>
 
@@ -233,7 +233,7 @@ RV can play multiple images, image sequences and movie files as well as associat
 
 #### 4.5.1 Timeline
 
-![20_timeline_labelled.png](../../images/rv-user-manual-20-rv-cx-timeline-labelled-19.png)  
+![20_timeline_labelled.png](../../../images/rv-user-manual-20-rv-cx-timeline-labelled-19.png)  
 
 Figure 4.10: Timeline With Labelled Parts
 
@@ -265,7 +265,7 @@ There are two FPS indicators on the timeline. The first indicates the target FPS
 
 Table 4.5: Useful Timeline Hotkeys <a id="useful-timeline-hotkeys"></a>
 
-![21_timeline_reddot.png](../../images/rv-user-manual-21-rv-cx-timeline-reddot-20.png)  
+![21_timeline_reddot.png](../../../images/rv-user-manual-21-rv-cx-timeline-reddot-20.png)  
 
 **Note:** A red dot with a number indicates how many frames RV has lost since the last screen refresh.
 
@@ -275,7 +275,7 @@ The timeline can be configured from its popup menu. Use the right mouse button a
 
 By default the timeline will show the \`\`source” frame number, the native number of the media. Alternately you can show the global frame number, global time code, or even the \`\`Footage” common in traditional animation (16 frames per foot).
 
-![22_timelineMenuShot.jpg](../../images/rv-user-manual-22-rv-cx-timelineMenuShot-21.jpg)  
+![22_timelineMenuShot.jpg](../../../images/rv-user-manual-22-rv-cx-timelineMenuShot-21.jpg)  
 
 Figure 4.12: Timeline Configuration Popup Menu <a id="timeline-configuration-popup-menu"></a>
 
@@ -311,7 +311,7 @@ While not very exciting in and of themselves, marks can be used to build more co
 
 Marking and associated hot keys for navigating marked regions quickly becomes indispensable for many users. These features make it very easy to navigate around a movie or sequence and loop over part of the timeline. Producers and coordinators who often work with movie files of complete sequences (for bidding or for client reviews) find it useful to mark up movie at the shot boundaries to make it easy to step through and review each shot.
 
-![23_timelineMarksShot.png](../../images/rv-user-manual-23-rv-cx-timelineMarksShot-22.png)  
+![23_timelineMarksShot.png](../../../images/rv-user-manual-23-rv-cx-timelineMarksShot-22.png)  
 
 Figure 4.13: Timline with Marks <a id="timline-with-marks"></a>
 
@@ -331,7 +331,7 @@ Note that on each end of the timeline magnifier, there are two triangular \`\`ar
 
 All the hotkeys mentioned in Table [4.5](#useful-timeline-hotkeys) are also relevant to the timeline magnifier. The timeline magnifier configuration menu is also a subset of the regular timeline menu (see Figure [4.12](#timeline-configuration-popup-menu) ), with additional items for setting the height of the audio waveform display.
 
-![24_magnifierMenuShot.jpg](../../images/rv-user-manual-24-rv-cx-magnifierMenuShot-23.jpg)  
+![24_magnifierMenuShot.jpg](../../../images/rv-user-manual-24-rv-cx-magnifierMenuShot-23.jpg)  
 
 Figure 4.14:
 
@@ -357,7 +357,7 @@ RV provides audio preferences in the Preferences dialog. The most important audi
 
 RV offers a cross-platform output module choice called “Platform Audio”. This is based on Qt audio. “Platform Audio” does support the use USB based audio peripherals for playback (e.g. Behringer UCA 202) on all platforms. These usb audio devices would typically appear as “USB Audio CODEC” (“front:CARD=CODEC,DEV=0” on Linux) in the “Output Device” pull down menu when “Platform Audio” is selected.
 
-![25_audio_prefs_mac.png](../../images/rv-user-manual-25-rv-cx-audio-prefs-mac-24.png)  
+![25_audio_prefs_mac.png](../../../images/rv-user-manual-25-rv-cx-audio-prefs-mac-24.png)  
 
 Figure 4.15: Audio Preferences (macOS)
 
@@ -405,23 +405,23 @@ rv syncflash,start=1,end=500,interval=1,fps=24.movieproc
 
 RV has a three state cache: it's either off, caching the current in/out range, or being used as a look-ahead (also known as a ring) buffer.
 
-![26_e_timeline_cache.png](../../images/rv-user-manual-26-rv-cx-e-timeline-cache-25.png)  
+![26_e_timeline_cache.png](../../../images/rv-user-manual-26-rv-cx-e-timeline-cache-25.png)  
 
 Figure 4.16: Timeline Showing Cache Progress
 
 The region cache reads frames starting at the in point and attempts to fill the cache up to the out point. If there is not enough room in the cache, RV will stop caching. The region cache can be toggled on or off from the Tools menu or by using the shift-C hot key.
 
-![27_ase_region_cache.png](../../images/rv-user-manual-27-rv-cx-ase-region-cache-26.png)  
+![27_ase_region_cache.png](../../../images/rv-user-manual-27-rv-cx-ase-region-cache-26.png)  
 
 Figure 4.17: Region Cache Operation With Lots of Memory
 
-![28_region_cache_no_room.png](../../images/rv-user-manual-28-rv-cx-region-cache-no-room-27.png)  
+![28_region_cache_no_room.png](../../../images/rv-user-manual-28-rv-cx-region-cache-no-room-27.png)  
 
 Figure 4.18: Region Cache Operation During Caching With Low Memory
 
 Look-ahead caching can be activated from the Tools menu or by using the meta-l hot key. The look-ahead cache attempts to smooth out playback by pre-caching frames right before they are played. If RV can read the files from disk at close to the frame rate, this is the best caching mode. If playback catches up to the look-ahead cache, playback will be paused until the cache is filled or for a length of time specified in the Caching preferences. At that point playback will resume.
 
-![29_look_ahead_cache.png](../../images/rv-user-manual-29-rv-cx-look-ahead-cache-28.png)  
+![29_look_ahead_cache.png](../../../images/rv-user-manual-29-rv-cx-look-ahead-cache-28.png)  
 
 Figure 4.19: Look-Ahead Cache Operation
 
@@ -445,17 +445,17 @@ RV supports playback of stereoscopic source material. RV has two methods for han
 
 RV has many built-in shortcuts. You can learn about RV’s hotkeys via RV’s Help menu.
 
-![Help menu](../../images/rv-hotkeys-help-menu-01.png)
+![Help menu](../../../images/rv-hotkeys-help-menu-01.png)
 
 From the Utilities section of the Help menu, select “Describe…” or “Describe Key Binding…” to see an explanation within RV of what certain hotkeys do.
 
-![Describe options in RV](../../images/rv-hotkeys-describe-options-rv-02.png)
+![Describe options in RV](../../../images/rv-hotkeys-describe-options-rv-02.png)
 
-![Describe options](../../images/rv-hotkeys-describe-options-03.png)
+![Describe options](../../../images/rv-hotkeys-describe-options-03.png)
 
 Menu items with hotkeys also display the hotkey on the right side of the menu item.
 
-![Hotkeys](../../images/rv-hotkeys-hotkeys-04.png)
+![Hotkeys](../../../images/rv-hotkeys-hotkeys-04.png)
 
 If you’d like to see a list of all of RV’s current key bindings, select “Show Current Bindings” from the Help menu. Below is also a list of RV’s hotkeys (note that capital and lowercase letters are different hotkeys):
 

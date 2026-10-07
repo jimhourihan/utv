@@ -6,7 +6,7 @@ The UI needs to communicate with the core part of RV. This is done in two ways: 
 
 When RV is started with e.g. two media (movies, file sequences) it will create two top-level group nodes: one for each media source. These are called RVSourceGroup nodes. In addition, there are four other top-level group nodes created and one display group node for each output device present on the system.
 
-![2_se_top_level.png](../../images/rv-reference-manual-2-rv-cxx-se-rv4-top-level-01.png)
+![2_se_top_level.png](../../../images/rv-reference-manual-2-rv-cxx-se-rv4-top-level-01.png)
 
 Figure 2.1:Top-Level node graph when two sources are present.
 
@@ -42,7 +42,7 @@ A pipeline group is a type of group node that connects it members into a single 
 
 The source group node (RVSourceGroup) has fixed set of nodes and three pipeline groups which can be modified to customize the source color management.
 
-![3_source_group.png](../../images/rv-reference-manual-3-rv-cxx-rv4-source-group-02.png)
+![3_source_group.png](../../../images/rv-reference-manual-3-rv-cxx-rv4-source-group-02.png)
 
 Figure 2.2: Source Group Internals
 
@@ -146,7 +146,7 @@ If you prefer, you can instead clear all the sources from the current session wi
 
 The view group (RVViewGroup) is responsible for viewing transforms and is the final destination for audio in most cases. The view group is also responsible for rendering any audio waveform visualization.Changing the view in RV is equivalent to changing the input of the view group. There is only one view group in an RV session.The view group contains a pipeline into which arbitrary nodes can be inserted for purposes of QC and visualization. By default, this pipeline is empty (it has no effect).
 
-![4_view_group.png](../../images/rv-reference-manual-4-rv-cxx-e-rv4-view-group-03.png)
+![4_view_group.png](../../../images/rv-reference-manual-4-rv-cxx-e-rv4-view-group-03.png)
 
 Figure 2.3:View Group Internals
 
@@ -162,7 +162,7 @@ Table 2.3:High level commands used to change the view group inputs
 
 The sequence group node causes its inputs to be rendered one after another in time.The internal RVSequence node contains an EDL data structure which determines the order and possibly the frame ranges for its inputs. By default the EDL is automatically created by sequencing the inputs in order from the first to last with their full frame ranges. The automatic EDL function can be turned off in which case arbitrary EDL data can be set including cuts back to a single source multiple times.Each input to a sequence group has a unique sub-graph associated with it that includes an RVPaint node to hold annotation per input and an optional retime node to force all input media to the same FPS.
 
-![5_sequence_group.png](../../images/rv-reference-manual-5-rv-cxx-rv4-sequence-group-04.png)
+![5_sequence_group.png](../../../images/rv-reference-manual-5-rv-cxx-rv4-sequence-group-04.png)
 
 Figure 2.4:Sequence Group Internals
 
@@ -170,7 +170,7 @@ Figure 2.4:Sequence Group Internals
 
 The stack group node displays its inputs on top of each other and can control a crop per input in order to allow pixels from lower layers to be seen under upper layers. Similar to a sequence group, the stack group contains an optional retime node per input in order to force all of the input FPS' to the same value.Unlike the sequence group, the stack group's paint node stores annotation after the stacking so it always appears on top of all images.
 
-![6_stack_group.png](../../images/rv-reference-manual-6-rv-cxx-rv4-stack-group-05.png)
+![6_stack_group.png](../../../images/rv-reference-manual-6-rv-cxx-rv4-stack-group-05.png)
 
 Figure 2.5:Stack Group Internals
 
@@ -178,7 +178,7 @@ Figure 2.5:Stack Group Internals
 
 The layout group is similar to a stack group, but instead of showing all of its inputs on top of one another, the inputs are transformed into a grid, row, column, or under control of the user (manually). Like the other group nodes, there is an optional retime node to force all inputs to a common FPS. Annotations on the layout group appear on top of all images regardless of their input order.
 
-![7_layout_group.png](../../images/rv-reference-manual-7-rv-cxx-rv4-layout-group-06.png)
+![7_layout_group.png](../../../images/rv-reference-manual-7-rv-cxx-rv4-layout-group-06.png)
 
 Figure 2.6:Layout Group Internals
 
@@ -186,7 +186,7 @@ Figure 2.6:Layout Group Internals
 
 There is one display group for each video device accessible to RV. For example in the case of a dual monitor setup, there would be two display groups: one for each monitor. The display group has two functions: to prepare the working space pixels for display on the associated device and to set any stereo modes for that device.By default the display group's pipeline uses an RVDisplayColor node to provide the color correction. The user can use any node for that purpose instead or in addition to the existing RVDisplayColor. For example, when OpenColorIO is being used a DisplayOCIONode is used in place of the RVDisplayColor.For a given desktop setup with multiple monitors only one of the RVDisplayGroups is active at a time: the one corresponding to the monitor that RV's main window is on. In presentation mode, two RVDisplayGroups will be active: one for RV's main window and one for the presentation device. Each display group has properties which identify their associated device.Changes to a display group affect the color and stereo mode for the associated device only. In order to make a global color change that affects all devices, a node should be inserted into the view group's pipeline or earlier in the graph.
 
-![8_display_group.png](../../images/rv-reference-manual-8-rv-cxx-rv4-display-group-07.png)
+![8_display_group.png](../../../images/rv-reference-manual-8-rv-cxx-rv4-display-group-07.png)
 
 Figure 2.7:Display Group Internals
 
@@ -206,7 +206,7 @@ setFloatProperty("display.color.gamma",  [2.2, 2.2, 2.2], True)
 
 In this case the value is being set to 2.2.
 
-![9_prop_inactive.png](../../images/rv-reference-manual-9-rv-cxx-rv4-prop-inactive-08.png)
+![9_prop_inactive.png](../../../images/rv-reference-manual-9-rv-cxx-rv4-prop-inactive-08.png)
 
 Figure 2.8:Conceptual diagram of RV Image and Audio Processing Graph for a session with a single sequence of two sources. The default stack and layout are not included in this diagram, but would be present. <a id="rv-pipeline-small"></a>
 
@@ -236,7 +236,7 @@ setFloatProperty("#RVColor.color.exposure", [2.0, 2.0, 2.0], True)
 
 In sequence mode (i.e. the default case), only one RVColor node is usually active at a time (the one belonging to the source being viewed at the current frame). In stack mode, the RVColor nodes for all of the sources could be active. In that case, they will all have their exposure set. In the UI, properties are almost exclusively addressed in this manner so that making changes affects the currently visible sources only. See figure [2.9](#active-nodes-in-the-image-processing-graph) for a diagrammatic explanation.
 
-![10_prop_active.png](../../images/rv-reference-manual-10-rv-cx-rv4-prop-active-09.png)
+![10_prop_active.png](../../../images/rv-reference-manual-10-rv-cx-rv4-prop-active-09.png)
 
 Figure 2.9: Active Nodes in the Image Processing Graph <a id="active-nodes-in-the-image-processing-graph"></a>
 

@@ -1,4 +1,4 @@
-#import "manual-lib.typ": *
+#import "../common/manual-lib.typ": *
 #show: manual
 
 = Using CDLs in #app <ch-cdls>

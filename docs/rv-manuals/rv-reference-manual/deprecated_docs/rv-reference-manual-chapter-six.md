@@ -1,6 +1,6 @@
 # Chapter 6 - UTV File Format
 
-The RV file format (.rv) is a text GTO file. GTO is an open source file format which stores arbitrary data — mostly for use in computer graphics applications. The text GTO format is meant to be simple and human readable. It's helpful to have familiarized yourself with the GTO documentation before reading this section. The documentation should come with RV, or you can read it on line at the [GTO](../../rv-manuals/rv-gto.md).
+The RV file format (.rv) is a text GTO file. GTO is an open source file format which stores arbitrary data — mostly for use in computer graphics applications. The text GTO format is meant to be simple and human readable. It's helpful to have familiarized yourself with the GTO documentation before reading this section. The documentation should come with RV, or you can read it on line at the [GTO](../../../rv-manuals/rv-gto.md).
 
 ### 6.1 How UTV Uses GTO
 
@@ -462,13 +462,13 @@ The stack and layout groups can be made in a similar manner to the above. The im
 
 Burned in metadata can be useful when creating session files. Shot status, artist, name, sequence, and other static information can be rendered on top of the source image directly by RV's render. Figure [6.1](#metadata-rendered-by-rvoverlay-node-from-session-file) shows an example of metadata rendered by the RVOverlay node.
 
-![11_ase_overlay_shot.png](../../images/rv-reference-manual-11-rv-cx-ase-overlay-shot-010.png)
+![11_ase_overlay_shot.png](../../../images/rv-reference-manual-11-rv-cx-ase-overlay-shot-010.png)
 
 Figure 6.1:Metadata Rendered By RVOverlay Node From Session File <a id="metadata-rendered-by-rvoverlay-node-from-session-file"></a>
 
 Each RVSourceGroup can have an RVOverlay node. The RVOverlay node is used for matte rendering by user interface, but it can do much more than that. The RVOverlay node currently supports drawing arbitrary filled rectangles and text in addition to the mattes. The text and filled rectangle are currently limited to static shapes and text. Text and rectangles rendered in this fashion are considered part of the image by RV. If you pass a session file with an active RVOverlay node to rvio it will render the overlay the same way RV would. This is completely independent of any rvio overlay scripts which use a different mechanism to generate overlay drawings and text.Figure [6.2](#rvoverlay-node-example) shows an example which draws three colored boxes with text starting at each box's origin.
 
-![12_overlay_example.png](../../images/rv-reference-manual-12-rv-cx-overlay-example-11.png)
+![12_overlay_example.png](../../../images/rv-reference-manual-12-rv-cx-overlay-example-11.png)
 
 Figure 6.2:RVOverlay Node Example <a id="rvoverlay-node-example"></a>
 

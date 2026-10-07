@@ -1,4 +1,4 @@
-#import "manual-lib.typ": *
+#import "../common/manual-lib.typ": *
 #show: manual
 
 = How a Pixel Gets from a File to the Screen <ch-pixel-pipeline>

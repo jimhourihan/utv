@@ -1,4 +1,4 @@
-#import "manual-lib.typ": *
+#import "../common/manual-lib.typ": *
 #show: manual.with(appendix: true)
 
 = Rising Sun Research CineSpace .csp File Format <app-csp-format>

@@ -38,7 +38,7 @@ The pre-LUT is identical to the channel LUT in implementation. It maps single ch
 
 For example, it may make sense for 3D LUT input values to be in a non-linear space – like log space. If the incoming pixels are linear they need to be transformed to log before the 3D LUT is applied. By using a relatively high resolution pre-LUT the data can be transformed into that space without precision loss.
 
-![50_lut_pipeline_diagram.png](../../images/rv-user-manual-50-rv-cx-lut-pipeline-diagram-49.png)  
+![50_lut_pipeline_diagram.png](../../../images/rv-user-manual-50-rv-cx-lut-pipeline-diagram-49.png)  
 
 Figure 8.1: 3D and Channel LUT Components <a id="3d-and-channel-lut-components"></a>
 

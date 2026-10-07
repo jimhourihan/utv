@@ -47,7 +47,7 @@ To add a package:
 1. In the Packages tab, click **Add Packages...**
 1. Navigate to the package's .rvpkg file.
 
-![51_ase_packagesShot.jpg](../../images/rv-user-manual-51-rv-cx-ase-packagesShot-50.jpg)  
+![51_ase_packagesShot.jpg](../../../images/rv-user-manual-51-rv-cx-ase-packagesShot-50.jpg)  
 
 Figure 10.1: Package Manager
 

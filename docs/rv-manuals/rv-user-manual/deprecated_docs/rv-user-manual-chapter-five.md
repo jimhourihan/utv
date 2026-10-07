@@ -6,7 +6,7 @@ Each viewer window represents an RV session. A session is composed of one or mor
 
 An RV session can be saved as an .rv file. The .rv file contains the entire state of its image processing tree—all of the variables that determine how it will work—as well as information about frame ranges, in/out points, etc. The .rv file stores references to movie files and images; it does not make copies of them. If you change source material on disk and load an .rv file that references those materials, the changes will be evident in RV.
 
-The .rv file is a GTO file. Tools that operate on GTO files can be used on .rv files. C++ and Python source code is available for creating, reading, and manipulating GTO files, including the ASCII GTO files used by RV. [See RV File Format](../rv-reference-manual/rv-reference-manual-chapter-six.md).
+The .rv file is a GTO file. Tools that operate on GTO files can be used on .rv files. C++ and Python source code is available for creating, reading, and manipulating GTO files, including the ASCII GTO files used by RV. [See RV File Format](../../rv-reference-manual/deprecated_docs/rv-reference-manual-chapter-six.md).
 
 ### 5.1.1 What's in a Session
 
@@ -18,7 +18,7 @@ The DAG nodes that are visible in the user interface are called Views. RV provid
 
 ### 5.2 Session Manager
 
-![30_session_manager.png](../../images/rv-user-manual-30-rv-cx-session-manager-29.png)   ![31_session_manager2.png](../../images/rv-user-manual-31-rv-cx-session-manager2-30.png)
+![30_session_manager.png](../../../images/rv-user-manual-30-rv-cx-session-manager-29.png)   ![31_session_manager2.png](../../../images/rv-user-manual-31-rv-cx-session-manager2-30.png)
 
 Figure 5.1: Session Manager on the Mac showing Inputs and Sequence Edit Panel. The DefaultSequence is being viewed.
 
@@ -28,7 +28,7 @@ The session manager interface is in two parts: the top panel shows an outline of
 
 ### 5.3 Creating, Adding to, and Removing from a View
 
-![32_ease_sm_add_menu.png](../../images/rv-user-manual-32-rv-cx-ease-sm-add-menu-31.png)   ![33_e_sm_folder_menu.png](../../images/rv-user-manual-33-rv-cx-e-sm-folder-menu-32.png)
+![32_ease_sm_add_menu.png](../../../images/rv-user-manual-32-rv-cx-ease-sm-add-menu-31.png)   ![33_e_sm_folder_menu.png](../../../images/rv-user-manual-33-rv-cx-e-sm-folder-menu-32.png)
 
 Figure 5.2:
 
@@ -64,7 +64,7 @@ Once you have changed views, you can go backwards and forwards in the view histo
 
 Source Views are the \`\`leaves'' of the graph in that they are views with no inputs (since they get their pixels from some external source, usually files on disk somewhere). The Edit interface for source views is currently used only to adjust editorial information (in the future it may provide access to other per-source information like color corrections, LUTs, etc). In RV, each source has an Cut In/Out information which provide editorial information to views that use that source (like a Sequence view). These In/Out frame numbers can be set from the command line, or changed with the Edit panel of the Source View interface.
 
-![34_ase_sourceSMShot.png](../../images/rv-user-manual-34-rv-cx-ase-sourceSMShot-33.png)  
+![34_ase_sourceSMShot.png](../../../images/rv-user-manual-34-rv-cx-ase-sourceSMShot-33.png)  
 
 Figure 5.3:
 
@@ -96,7 +96,7 @@ Similarly, the output frame rate can be specified in the Output FPS field. This 
 
 As long as Use Source Cut Information is checked in the Group interface, the group will adopt the editorial cut in/out information provided by the sources (see Section [5.5](#55-source-views) ). This is particularly useful in the case of sequences, but also comes up with stacks and layouts, when, for example, you want to compare a matching region of movies with different overall frame ranges.
 
-![37_e_sequenceSMShot.jpg](../../images/rv-user-manual-37-rv-cx-e-sequenceSMShot-36.jpg)   ![38_ease_stackSMShot.jpg](../../images/rv-user-manual-38-rv-cx-ease-stackSMShot-37.jpg) ![39_ase_layoutSMShot.jpg](../../images/rv-user-manual-39-rv-cx-ase-layoutSMShot-38.jpg)
+![37_e_sequenceSMShot.jpg](../../../images/rv-user-manual-37-rv-cx-e-sequenceSMShot-36.jpg)   ![38_ease_stackSMShot.jpg](../../../images/rv-user-manual-38-rv-cx-ease-stackSMShot-37.jpg) ![39_ase_layoutSMShot.jpg](../../../images/rv-user-manual-39-rv-cx-ase-layoutSMShot-38.jpg)
 
 Table 5.1:
 
@@ -138,7 +138,7 @@ The Retime View takes a single input and alters it's timing, making it faster or
 
 The Length Multiplier and Offset apply to both the video and audio of the input. If you want to apply an additional scale or offset to just the audio, you can use the Audio Offset and Audio Scale fields.
 
-![40_ase_retimeSMShot.jpg](../../images/rv-user-manual-40-rv-cx-ase-retimeSMShot-39.jpg)  
+![40_ase_retimeSMShot.jpg](../../../images/rv-user-manual-40-rv-cx-ase-retimeSMShot-39.jpg)  
 
 Figure 5.6: Retime View Edit Interface
 
@@ -152,7 +152,7 @@ You can change how a folder is displayed by selecting either Layout or Switch fr
 
 When a view becomes a member of a folder, it will no longer appear in one of the other categories of the session manager. If a view is removed as a member of a folder, it will once again appear in one of the other categories.
 
-![41_cxx98-release_folders.jpg](../../images/rv-user-manual-41-rv-cxx98-release-folders-40.jpg)  
+![41_cxx98-release_folders.jpg](../../../images/rv-user-manual-41-rv-cxx98-release-folders-40.jpg)  
 
 Figure 5.7: Folders in the Session Manager
 

@@ -1,4 +1,4 @@
-#import "manual-lib.typ": *
+#import "../common/manual-lib.typ": *
 #show: manual.with(appendix: true)
 
 = Localizing Media Paths with RV_OS_PATH or RV_PATHSWAP <app-path-localization>

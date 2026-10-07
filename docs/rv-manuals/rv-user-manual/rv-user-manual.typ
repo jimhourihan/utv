@@ -2,7 +2,7 @@
 // holds the typst command-line details. Each chapter file can still be built
 // on its own (./build-docs.sh -c 07).
 
-#import "manual-lib.typ": *
+#import "../common/manual-lib.typ": *
 #show: manual.with(master: true)
 
 #set document(title: app + " User Manual")

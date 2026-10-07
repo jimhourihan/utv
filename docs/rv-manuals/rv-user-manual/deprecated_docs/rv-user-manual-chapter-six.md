@@ -12,7 +12,7 @@ Video devices are configured from the preferences Video tab. The interface is in
 
 Different devices will have different configuration parameters and some devices may not use all of the available ones.
 
-![42_ease_video_prefs.png](../../images/rv-user-manual-42-rv-cx-ease-video-prefs-41.png)  
+![42_ease_video_prefs.png](../../../images/rv-user-manual-42-rv-cx-ease-video-prefs-41.png)  
 
 Figure 6.1:
 
@@ -60,7 +60,7 @@ Each video device configuration can have a unique display profile associated wit
 
 Display profiles are snapshots of the view settings including a display LUT if present, the transfer function (sRGB, Rec.709, Gamma 2.2, etc), the primaries, the background, view channel ordering, stereo view modes, and dithering. If a custom nodes have been defined and are used in the display color pipeline than those will also be stored in the display profile.
 
-![43_e_profile_dialog.png](../../images/rv-user-manual-43-rv-cx-e-profile-dialog-42.png)  
+![43_e_profile_dialog.png](../../../images/rv-user-manual-43-rv-cx-e-profile-dialog-42.png)  
 
 Figure 6.2:
 
@@ -186,7 +186,7 @@ It's possible that there are various limitations to this approach. Our testing w
 
 Here's a screengrab of the SwitchResX custom resolution dialog, showing our 1920x2205 mode:
 
-![44_ase_macCustomRes.jpg](../../images/rv-user-manual-44-rv-cx-ase-macCustomRes-43.jpg)  
+![44_ase_macCustomRes.jpg](../../../images/rv-user-manual-44-rv-cx-ase-macCustomRes-43.jpg)  
 
 #### Windows
 
@@ -194,4 +194,4 @@ On Windows, you can use the NVIDIA control panel to create a custom resolution w
 
 Here's an example the timing setup that has worked for us:
 
-![45_ase_winCustomRes.jpg](../../images/rv-user-manual-45-rv-cx-ase-winCustomRes-44.jpg)  
+![45_ase_winCustomRes.jpg](../../../images/rv-user-manual-45-rv-cx-ase-winCustomRes-44.jpg)  

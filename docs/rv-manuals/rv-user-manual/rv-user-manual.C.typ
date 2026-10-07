@@ -1,4 +1,4 @@
-#import "manual-lib.typ": *
+#import "../common/manual-lib.typ": *
 #show: manual.with(appendix: true)
 
 = The RVLINK Protocol: Using #app as a URL Handler <app-rvlink>

@@ -20,7 +20,7 @@ Before you can use any of RV's networking features, you have to tell RV to begin
 
 The network dialog box has three pages: Configuration for setting up your identity and the port on which RV will communicate, the Contacts page for managing permissions, and the Connections page which shows a list of the currently active connections. At the bottom of the dialog are buttons for starting and stopping the networking and for initiating a new connection.
 
-![60_se_rv_networking.jpg](../../images/rv-user-manual-60-rv-cx-se-rv-networking-60.jpg)  
+![60_se_rv_networking.jpg](../../../images/rv-user-manual-60-rv-cx-se-rv-networking-60.jpg)  
 
 Figure 13.1: RV Network Dialog
 
@@ -36,7 +36,7 @@ There are two ways to initiate a new connection: by pressing the Connect... butt
 
 Using the Connect... button will show another dialog asking for the host name of the machine to connect to. Using this method, RV will not care which user it finds at the other end of the connection. If RV does not yet have record of the user it finds it will create one.
 
-![61_network_connect.jpg](../../images/rv-user-manual-61-rv-cx-network-connect-61.jpg)  
+![61_network_connect.jpg](../../../images/rv-user-manual-61-rv-cx-network-connect-61.jpg)  
 
 Figure 13.2: Network Dialog Starting a Connection
 
@@ -52,7 +52,7 @@ To initiate a connection to an existing contact, double click on the contact nam
 
 There is also a pop-up menu which lets you delete an existing contact or initiate a connection.
 
-![62_network_contacts.jpg](../../images/rv-user-manual-62-rv-cx-network-contacts-62.jpg)  
+![62_network_contacts.jpg](../../../images/rv-user-manual-62-rv-cx-network-contacts-62.jpg)  
 
 Figure 13.3: Network Contacts Page
 
@@ -72,7 +72,7 @@ To start sync select the menu item Tools → Sync With Connected RVs. You should
 
 Usually it's a good idea to have all participants looking at the similar media, but it's not enforced. In particular, note that RV's auto-conforming features mean that one party can be looking at a high-res OpenEXR sequence and another at a qucktime movie of the same sequence, and the sync can still be quite useful.
 
-![63_rv_rv-cxx98-release_grabSync.png](../../images/rv-user-manual-63-rv-cxx98-release-grabSync-63.png)  
+![63_rv_rv-cxx98-release_grabSync.png](../../../images/rv-user-manual-63-rv-cxx98-release-grabSync-63.png)  
 
 Figure 13.4: Sync Mode Showing Remote User's Cursor
 
@@ -82,7 +82,7 @@ You can control which aspects of RV are transmitted to and received from remote 
 
 Sync mode will always send frame changes and playback options like the current fps, and the playback mode.
 
-![64_ase_grabSyncMenu.png](../../images/rv-user-manual-64-rv-cx-ase-grabSyncMenu-64.png)  
+![64_ase_grabSyncMenu.png](../../../images/rv-user-manual-64-rv-cx-ase-grabSyncMenu-64.png)  
 
 Figure 13.5: Sync Mode Menu
 

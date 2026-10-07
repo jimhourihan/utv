@@ -1,4 +1,4 @@
-#import "manual-lib.typ": *
+#import "../common/manual-lib.typ": *
 #show: manual.with(appendix: true)
 
 = Tuning Platform Audio for Linux <app-tuning-audio>

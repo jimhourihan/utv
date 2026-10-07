@@ -26,7 +26,7 @@ Done! Now Nuke well pick up new stuff from this area on start-up
 
 The following assumes that you've setup a custom plugin area as described in the previous section.
 
-1. Download the script \`\`rv_this.py'' from [this forum post](../../rv-packages/rv-nuke-integration.md).
+1. Download the script \`\`rv_this.py'' from [this forum post](../../../rv-packages/rv-nuke-integration.md).
 
 2. Move rv_this.py into $HOME/.nuke/python.
 

@@ -47,7 +47,7 @@ Some additional details about RV_OS_PATH variables:
 * RV_OS_PATH variables do not affect outgoing filenames.
 * If more than one match is found, the variable that matches the largest number of characters in the incoming path will be used.
 
-> **Note:** If you need more dynamic control over your path remapping, you can author an RV package to handle transforming your paths with the ' [incoming-source-path](../rv-manuals/rv-reference-manual/rv-reference-manual-chapter-five.md) '.
+> **Note:** If you need more dynamic control over your path remapping, you can author an RV package to handle transforming your paths with the ' [incoming-source-path](../../rv-reference-manual/deprecated_docs/rv-reference-manual-chapter-five.md) '.
 
 > **Note:** Due to how environments propagate, it is highly recommended to restart your computer after defining an environment variable on your system.
 
