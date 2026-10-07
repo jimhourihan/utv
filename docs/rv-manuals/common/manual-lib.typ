@@ -254,6 +254,7 @@
     if master { in-master.update(true) }
     context if target() == "html" and (master or not in-master.get()) {
         html.elem("style", read("manual.css"))
+        html.elem("script", read("manual.js"))
     }
     body
 }

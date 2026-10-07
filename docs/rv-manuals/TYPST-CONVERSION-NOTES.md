@@ -31,7 +31,8 @@ Products: `rv`, `openrv`, `openutv` (default). `build/` is git-ignored.
 | `rv-user-manual.01.typ` … `.18.typ` | Chapters (each also builds alone) |
 | `rv-user-manual.A.typ` … `.J.typ` | Appendices |
 | `manual-lib.typ` | Product table, helpers, `manual` template |
-| `manual.css` | HTML stylesheet (embedded by the template) |
+| `manual.css` | HTML stylesheet (embedded by the template); pins the contents as a sidebar on wide screens |
+| `manual.js` | Contents sidebar behavior: current-section highlight, folding chapters, overlay on narrow screens (embedded by the template; does nothing without contents) |
 | `deprecated_docs/rv-user-manual.H.typ` | Retired Typst appendix (old H, Crash Reporting) |
 | `deprecated_docs/rv-user-manual-chapter-*.md` | Original Markdown manual; still published by the Sphinx build (`docs/index.md`) until the Typst→RTD output replaces it |
 | `backup.typ`, `mathtest.typ` | Early experiments; can be deleted |

@@ -101,3 +101,109 @@ thead th {
 .key-table.compact {
     font-size: 85%;
 }
+
+/* Contents (Typst's <nav role="doc-toc">, only in whole-manual builds).
+   Wide screens: pinned to the left as a sidebar, which also works without
+   JavaScript. manual.js adds folding, highlights the current section, and
+   on narrow screens turns the contents into an overlay behind a button. */
+nav[role="doc-toc"] ol {
+    margin: 0;
+    padding-left: 1.3em;
+}
+nav[role="doc-toc"] li {
+    position: relative;
+    margin: 0.15em 0;
+}
+nav[role="doc-toc"] a {
+    color: inherit;
+    text-decoration: none;
+}
+nav[role="doc-toc"] a:hover {
+    text-decoration: underline;
+}
+nav[role="doc-toc"] a.toc-current {
+    color: teal;
+    font-weight: bold;
+}
+.toc-folder.toc-closed > ol {
+    display: none;
+}
+.toc-toggle {
+    position: absolute;
+    left: -1.3em;
+    width: 1.3em;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #777;
+    font: inherit;
+    cursor: pointer;
+}
+.toc-toggle::before {
+    content: "\25BE";   /* down triangle */
+}
+.toc-folder.toc-closed > .toc-toggle::before {
+    content: "\25B8";   /* right triangle */
+}
+.toc-show {
+    display: none;
+}
+
+/* The sidebar narrows with the window: a quarter of its width, between
+   9.75rem and 19rem. At 700px a quarter is about 9.75rem, so below that it
+   becomes the "Contents" button without a jump in size. Change the minimum
+   and the two 700px breakpoints below together. */
+:root {
+    --toc-width: clamp(9.75rem, 25vw, 19rem);
+}
+@media (min-width: 700px) {
+    body:has(> nav[role="doc-toc"]) {
+        margin-left: calc(var(--toc-width) + 2em);
+    }
+    nav[role="doc-toc"] {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: var(--toc-width);
+        box-sizing: border-box;
+        overflow-y: auto;
+        padding: 1em 1em 2em 0.5em;
+        border-right: 1px solid #ddd;
+        background: #e2eaef;
+        font-size: 85%;
+    }
+    nav[role="doc-toc"] > h2 {
+        font-size: 1.2em;
+        margin: 0 0 0.5em 1.3em;
+    }
+}
+
+@media (max-width: 699.98px) {
+    html.toc-js nav[role="doc-toc"] {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        overflow-y: auto;
+        padding: 1em 1em 4em 0.5em;
+        background: white;
+    }
+    html.toc-js.toc-overlay nav[role="doc-toc"] {
+        display: block;
+    }
+    html.toc-js .toc-show {
+        display: block;
+        position: fixed;
+        right: 1em;
+        bottom: 1em;
+        z-index: 11;
+        padding: 0.5em 1em;
+        border: 1px solid teal;
+        border-radius: 4px;
+        background: white;
+        color: teal;
+        font: inherit;
+        cursor: pointer;
+    }
+}
