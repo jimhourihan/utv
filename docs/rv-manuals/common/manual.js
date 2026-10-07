@@ -1,12 +1,54 @@
-// Interactive contents for the HTML manuals, embedded by manual() in
-// manual-lib.typ. manual.css pins the contents as a sidebar on wide screens;
-// this script adds the rest:
+// Scripts for the HTML manuals, embedded by manual() in manual-lib.typ.
+//
+// Theme: a button cycles automatic (follow the system) -> light -> dark.
+// The choice is remembered in localStorage and applied as data-theme on
+// <html>; manual.css holds the colors. This part runs immediately, before
+// the page is drawn, so a dark page doesn't flash white first.
+//
+// Contents: manual.css pins the contents as a sidebar on wide screens; this
+// script adds the rest:
 //   - the section you are reading is highlighted and kept in view
 //   - each chapter's sections fold away; the current chapter is open
 //   - on narrow screens a "Contents" button shows the list as an overlay
 // It only relies on Typst's <nav role="doc-toc">, its nested <ol>s and the
 // links' #ids, and does nothing on pages without contents (single
 // chapters). Without JavaScript the contents is a plain list.
+(function () {
+    "use strict";
+    const key = "manual-theme";
+    const modes = ["auto", "light", "dark"];
+    const labels = { auto: "Theme: automatic", light: "Theme: light", dark: "Theme: dark" };
+    const icons = { auto: "\u25D0", light: "\u2600", dark: "\u263E" };  // half circle, sun, moon
+    let mode = "auto";
+    try { mode = localStorage.getItem(key) || "auto"; } catch (e) { /* storage blocked */ }
+    if (!modes.includes(mode)) mode = "auto";
+
+    function apply() {
+        if (mode === "auto") document.documentElement.removeAttribute("data-theme");
+        else document.documentElement.setAttribute("data-theme", mode);
+    }
+    apply();
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "theme-toggle";
+        function label() {
+            button.textContent = icons[mode];
+            button.title = labels[mode];
+            button.setAttribute("aria-label", labels[mode] + " (click to change)");
+        }
+        button.addEventListener("click", function () {
+            mode = modes[(modes.indexOf(mode) + 1) % modes.length];
+            try { localStorage.setItem(key, mode); } catch (e) { /* storage blocked */ }
+            apply();
+            label();
+        });
+        label();
+        document.body.append(button);
+    });
+})();
+
 // Typst puts the script at the top of <body>, before the contents exists,
 // so wait for the whole page.
 document.addEventListener("DOMContentLoaded", function () {

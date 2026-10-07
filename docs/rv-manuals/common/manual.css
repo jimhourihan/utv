@@ -1,3 +1,106 @@
+/* Colors. Light is the default; dark applies when the system is set to dark
+   (unless the reader picked light with the theme button, which sets
+   data-theme on <html>) or when the reader picked dark. The dark values
+   are listed twice because CSS can't share them between the two cases. */
+:root {
+    color-scheme: light;
+    --bg: #fff;
+    --fg: #000;
+    --muted: #555;
+    --link: #0000ee;      /* browser defaults */
+    --link-visited: #551a8b;
+    --accent: teal;
+    --rule: #ddd;
+    --rule-strong: #999;
+    --header-bg: #eee;
+    --stripe-bg: #f5f5f5;
+    --code-bg: #f0f0f0;
+    --kbd-bg: #e6e6e6;
+    --key-rule: #9cc;
+    --key-header-bg: #d9eeee;
+    --toc-bg: #e2eaef;
+    --image-bg: transparent;
+    /* Typst's code highlighting colors (written into the HTML) */
+    --syntax-blue: #4b69c6;
+    --syntax-red: #d73948;
+    --syntax-green: #198810;
+    --syntax-magenta: #b60157;
+    --syntax-gray: #74747c;
+    --syntax-purple: #8b41b1;
+    --syntax-teal: #1d6c76;
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --bg: #201e1c;
+        --fg: #dcdcdc;
+        --muted: #a0a0a0;
+        --link: #f8b48a;
+        --link-visited: #f5a3c4;
+        --accent: #e0b060;
+        --rule: #44403c;
+        --rule-strong: #726e6a;
+        --header-bg: #34302c;
+        --stripe-bg: #292623;
+        --code-bg: #2c2926;
+        --kbd-bg: #3b3733;
+        --key-rule: #5c4a2a;
+        --key-header-bg: #3b311e;
+        --toc-bg: var(--header-bg);
+        --image-bg: #fff;
+        --syntax-blue: #8fa6f0;
+        --syntax-red: #f2838c;
+        --syntax-green: #74cf6c;
+        --syntax-magenta: #f27ab0;
+        --syntax-gray: #a29a9a;
+        --syntax-purple: #c69cf0;
+        --syntax-teal: #5ec4cf;
+    }
+}
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #201e1c;
+    --fg: #dcdcdc;
+    --muted: #a0a0a0;
+    --link: #f8b48a;
+    --link-visited: #f5a3c4;
+    --accent: #e0b060;
+    --rule: #44403c;
+    --rule-strong: #726e6a;
+    --header-bg: #34302c;
+    --stripe-bg: #292623;
+    --code-bg: #2c2926;
+    --kbd-bg: #3b3733;
+    --key-rule: #5c4a2a;
+    --key-header-bg: #3b311e;
+    --toc-bg: var(--header-bg);
+    --image-bg: #fff;
+    --syntax-blue: #8fa6f0;
+    --syntax-red: #f2838c;
+    --syntax-green: #74cf6c;
+    --syntax-magenta: #f27ab0;
+    --syntax-gray: #a29a9a;
+    --syntax-purple: #c69cf0;
+    --syntax-teal: #5ec4cf;
+}
+body {
+    background: var(--bg);
+    color: var(--fg);
+}
+a:link { color: var(--link); }
+a:visited { color: var(--link-visited); }
+/* Typst writes each highlighted token's color inline; map them to the
+   palette (!important is what lets a stylesheet beat an inline style). If a
+   Typst update changes its colors these stop matching and code keeps the
+   light colors. */
+[style="color: #4b69c6"] { color: var(--syntax-blue) !important; }
+[style="color: #d73948"] { color: var(--syntax-red) !important; }
+[style="color: #198810"] { color: var(--syntax-green) !important; }
+[style="color: #b60157"] { color: var(--syntax-magenta) !important; }
+[style="color: #74747c"] { color: var(--syntax-gray) !important; }
+[style="color: #8b41b1"] { color: var(--syntax-purple) !important; }
+[style="color: #1d6c76"] { color: var(--syntax-teal) !important; }
+
 /* Base text size. Browsers default to 16px; the PDF's 11pt body text is
    about 15px at "actual size" but reads larger on paper-like page views, so
    bump HTML up a step. Percent keeps the reader's own browser setting as the
@@ -9,9 +112,9 @@ kbd.key {
     font-family: "Fira Code", monospace;
     font-size: 80%;
     padding: 1px 5px;
-    border: 1px solid teal;
+    border: 1px solid var(--accent);
     border-radius: 3px;
-    background: rgb(230,230,230);
+    background: var(--kbd-bg);
 }
 span.menuitem {
     font-family: "Helvetica Neue", sans-serif;
@@ -24,16 +127,16 @@ span.menuitem {
 .key-table th, .key-table td {
     padding: 5px 10px;
     text-align: left;
-    border-bottom: 1px solid #9cc;
+    border-bottom: 1px solid var(--key-rule);
 }
 .key-table th {
-    background: #d9eeee;
-    border-top: 2px solid teal;
-    border-bottom: 1px solid teal;
+    background: var(--key-header-bg);
+    border-top: 2px solid var(--accent);
+    border-bottom: 1px solid var(--accent);
 }
-.key-table tbody tr:nth-child(even) { background: #f5f5f5; }
+.key-table tbody tr:nth-child(even) { background: var(--stripe-bg); }
 .shell pre {
-    background: #f0f0f0;
+    background: var(--code-bg);
     padding: 8px;
     border-radius: 3px;
     overflow-x: auto;
@@ -65,7 +168,8 @@ span.menuitem {
 figure img {
     max-width: 90%;
     height: auto;
-    border: 1px solid #ddd;
+    border: 1px solid var(--rule);
+    background: var(--image-bg);
     /* Typst emits images as display: block with a fixed width; auto side
        margins center them */
     margin-left: auto;
@@ -76,7 +180,7 @@ figure {
 }
 figcaption {
     font-size: 90%;
-    color: #555;
+    color: var(--muted);
     text-align: center;
     margin-top: 0.5em;
 }
@@ -90,11 +194,11 @@ th, td {
     padding: 4px 10px;
     text-align: left;
     vertical-align: top;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--rule);
 }
 thead th {
-    background: #eee;
-    border-bottom: 1.5px solid #999;
+    background: var(--header-bg);
+    border-bottom: 1.5px solid var(--rule-strong);
 }
 
 /* long reference tables of key bindings */
@@ -122,7 +226,7 @@ nav[role="doc-toc"] a:hover {
     text-decoration: underline;
 }
 nav[role="doc-toc"] a.toc-current {
-    color: teal;
+    color: var(--accent);
     font-weight: bold;
 }
 .toc-folder.toc-closed > ol {
@@ -135,7 +239,7 @@ nav[role="doc-toc"] a.toc-current {
     padding: 0;
     border: none;
     background: none;
-    color: #777;
+    color: var(--muted);
     font: inherit;
     cursor: pointer;
 }
@@ -169,8 +273,8 @@ nav[role="doc-toc"] a.toc-current {
         box-sizing: border-box;
         overflow-y: auto;
         padding: 1em 1em 2em 0.5em;
-        border-right: 1px solid #ddd;
-        background: #e2eaef;
+        border-right: 1px solid var(--rule);
+        background: var(--toc-bg);
         font-size: 85%;
     }
     nav[role="doc-toc"] > h2 {
@@ -187,7 +291,7 @@ nav[role="doc-toc"] a.toc-current {
         z-index: 10;
         overflow-y: auto;
         padding: 1em 1em 4em 0.5em;
-        background: white;
+        background: var(--toc-bg);
     }
     html.toc-js.toc-overlay nav[role="doc-toc"] {
         display: block;
@@ -199,11 +303,33 @@ nav[role="doc-toc"] a.toc-current {
         bottom: 1em;
         z-index: 11;
         padding: 0.5em 1em;
-        border: 1px solid teal;
+        border: 1px solid var(--accent);
         border-radius: 4px;
-        background: white;
-        color: teal;
+        background: var(--bg);
+        color: var(--accent);
         font: inherit;
         cursor: pointer;
     }
+}
+
+/* light / dark / automatic button (manual.js), top right */
+.theme-toggle {
+    position: fixed;
+    top: 0.6em;
+    right: 0.6em;
+    z-index: 12;
+    width: 2em;
+    height: 2em;
+    padding: 0;
+    border: 1px solid var(--rule-strong);
+    border-radius: 50%;
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 0.9rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.7;
+}
+.theme-toggle:hover {
+    opacity: 1;
 }
