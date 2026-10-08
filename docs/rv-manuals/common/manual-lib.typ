@@ -56,6 +56,11 @@
 #assert(product in products, message: "unknown product: " + product)
 #let names = products.at(product)
 
+// Release version shown on the title page, in the PDF footer and in the HTML
+// title. build-docs.sh passes it (see docs-version.sh); chapter text can use
+// #version too.
+#let version = sys.inputs.at("version", default: "development")
+
 #let app = names.app
 // "a UTV" / "an RV": use #a-app mid-sentence and #A-app to start one
 #let a-app = names.article + " " + names.app
@@ -205,6 +210,39 @@
             ..stuff
         )
     }
+}
+
+// Master files: the title (a title page in the PDF, a heading block in HTML)
+// and the page footer for the body:
+//   #title-page[#app User Manual]
+//   #outline(depth: 2)
+//   #show: body-pages.with[#app User Manual]
+#let title-page(title) = context {
+    if target() == "html" {
+        html.elem("header", attrs: (class: "doc-title"), {
+            html.elem("h1", title)
+            html.elem("p", attrs: (class: "doc-version"), [Version #version])
+        })
+    } else {
+        set page(numbering: none)
+        align(center + horizon, {
+            text(size: 32pt, weight: "bold", title)
+            v(1.2em)
+            text(size: 14pt, fill: luma(90))[Version #version]
+        })
+        pagebreak()
+    }
+}
+// PDF only (HTML has no pages): page numbers, and the manual and version in
+// small type at the bottom of every page.
+#let body-pages(title, body) = context if target() == "html" { body } else {
+    set page(numbering: "1", footer: context {
+        set text(size: 8pt, fill: luma(120))
+        [#title, version #version]
+        h(1fr)
+        counter(page).display("1")
+    })
+    body
 }
 
 // Document template: every set/show rule lives here so it applies to the

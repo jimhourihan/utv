@@ -312,6 +312,26 @@ nav[role="doc-toc"] a.toc-current {
     }
 }
 
+/* title block of a whole manual (title-page() in manual-lib.typ) */
+.doc-title h1 {
+    margin-bottom: 0.2em;
+}
+.doc-title .doc-version {
+    margin-top: 0;
+    color: var(--muted);
+}
+/* the same, repeated at the top of the contents by manual.js */
+.toc-title {
+    margin: 0 0 1em 1.3em;
+    font-weight: bold;
+}
+.toc-title span {
+    display: block;
+    font-weight: normal;
+    font-size: 0.9em;
+    color: var(--muted);
+}
+
 /* light / dark / automatic button (manual.js), top right */
 .theme-toggle {
     position: fixed;

@@ -10,6 +10,7 @@
 //   - the section you are reading is highlighted and kept in view
 //   - each chapter's sections fold away; the current chapter is open
 //   - on narrow screens a "Contents" button shows the list as an overlay
+//   - the manual's name and version head the list
 // It only relies on Typst's <nav role="doc-toc">, its nested <ol>s and the
 // links' #ids, and does nothing on pages without contents (single
 // chapters). Without JavaScript the contents is a plain list.
@@ -56,6 +57,22 @@ document.addEventListener("DOMContentLoaded", function () {
     const nav = document.querySelector('nav[role="doc-toc"]');
     if (!nav) return;
     document.documentElement.classList.add("toc-js");
+
+    // Name the manual and its version at the top of the contents, from the
+    // title block title-page() writes (manual-lib.typ).
+    const title = document.querySelector(".doc-title h1");
+    const version = document.querySelector(".doc-title .doc-version");
+    if (title) {
+        const box = document.createElement("div");
+        box.className = "toc-title";
+        box.textContent = title.textContent;
+        if (version) {
+            const v = document.createElement("span");
+            v.textContent = version.textContent;
+            box.append(v);
+        }
+        nav.prepend(box);
+    }
 
     // heading element -> its contents link, in document order
     const entries = [];

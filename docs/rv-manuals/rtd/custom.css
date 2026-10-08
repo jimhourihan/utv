@@ -26,3 +26,19 @@ figure.image-row img {
 figure.image-row figcaption {
     flex-basis: 100%;
 }
+
+/* "Version ..." (build-rtd.sh's layout.html): under the project name, above
+   the search box, in smaller type */
+.wy-side-nav-search {
+    display: flex;
+    flex-direction: column;
+}
+.wy-side-nav-search > div.version {
+    order: 1;
+    margin: 0.2em 0 0.6em;
+    font-size: 85%;
+    color: rgba(255, 255, 255, 0.8);
+}
+.wy-side-nav-search > [role="search"] {
+    order: 2;
+}

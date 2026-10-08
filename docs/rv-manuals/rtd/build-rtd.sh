@@ -6,6 +6,8 @@
 #   ./build-rtd.sh                    openutv, all manuals, into ./build
 #   ./build-rtd.sh -p rv -o /tmp/rtd  another product / output dir
 #   ./build-rtd.sh --rst-only         stop after writing the RST
+#   ./build-rtd.sh --version 2026.8   version shown in the docs (default:
+#                                     ../docs-version.sh)
 #
 # Needs pandoc (3.x) and, unless --rst-only, Sphinx 7+ with
 # sphinx_rtd_theme (see README for a private install; don't use a bare
@@ -29,9 +31,10 @@ manual_title() {
 PRODUCT=openutv
 OUTDIR="$HERE/build"
 RST_ONLY=0
+VERSION=""
 
 usage() {
-    sed -n '3,12p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '3,14p' "$0" | sed 's/^# \{0,1\}//'
 }
 
 while [[ $# -gt 0 ]]; do
@@ -39,6 +42,7 @@ while [[ $# -gt 0 ]]; do
         -p|--product) PRODUCT="$2"; shift 2 ;;
         -o|--outdir)  OUTDIR="$2"; shift 2 ;;
         --rst-only)   RST_ONLY=1; shift ;;
+        --version)    VERSION="$2"; shift 2 ;;
         -h|--help)    usage; exit 0 ;;
         *)            echo "unknown option: $1" >&2; exit 2 ;;
     esac
@@ -46,6 +50,11 @@ done
 
 case "$PRODUCT" in rv|openrv|openutv) ;; *) echo "unknown product: $PRODUCT" >&2; exit 2 ;; esac
 command -v pandoc >/dev/null || { echo "pandoc not found (brew install pandoc)" >&2; exit 1; }
+[[ -n "$VERSION" ]] || VERSION="$("$MANUALS_DIR/docs-version.sh")"
+# the product's display name (UTV, OpenRV, RV) from the products table
+APP="$(awk -v p="    $PRODUCT: (" 'index($0, p) == 1 { f = 1 } f && /app: "/ { sub(/.*app: "/, ""); sub(/".*/, ""); print; exit }' \
+    "$MANUALS_DIR/common/manual-lib.typ")"
+[[ -n "$APP" ]] || { echo "no app name for $PRODUCT in manual-lib.typ" >&2; exit 1; }
 
 # Staging tree mirrors the repo layout so the chapters' relative paths
 # (../common/, ../../images-web/, ../../../src/...) resolve; docs/images-web
@@ -61,7 +70,7 @@ ln -s "$REPO/src" "$STAGE/src"
 # helpers, with the product filled in. Chapters import ../common/manual-lib.typ.
 {
     sed -n '/^#let products = (/,/^#let product = sys.inputs/p' "$MANUALS_DIR/common/manual-lib.typ" | sed '$d'
-    sed "s/PRODUCT_PLACEHOLDER/$PRODUCT/" "$HERE/manual-lib-pandoc.typ"
+    sed -e "s/PRODUCT_PLACEHOLDER/$PRODUCT/" -e "s|VERSION_PLACEHOLDER|$VERSION|" "$HERE/manual-lib-pandoc.typ"
 } > "$DOCS/rv-manuals/common/manual-lib.typ"
 
 # Convert each chapter. Run from the chapter directory so image paths in the
@@ -111,14 +120,22 @@ echo "RST in $DOCS/rv-manuals"
 
 # Minimal Sphinx project: each manual's chapters, and its appendices, in their
 # own numbered toctree; manual_ext.py turns appendix numbers into letters.
-mkdir -p "$DOCS/_static"
+mkdir -p "$DOCS/_static" "$DOCS/_templates"
 cp "$HERE/custom.css" "$DOCS/_static/"
+# version under the project name in the sidebar (the theme leaves that to
+# Read the Docs' version menu, which only exists on the hosted site)
+cat > "$DOCS/_templates/layout.html" <<'EOF'
+{% extends "!layout.html" %}
+{% block sidebartitle %}{{ super() }}<div class="version">Version {{ release }}</div>{% endblock %}
+EOF
 cp "$HERE/manual_ext.py" "$DOCS/"
 cat > "$DOCS/conf.py" <<EOF
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 extensions = ["manual_ext"]
-project = "Manuals ($PRODUCT)"
+project = "$APP Manuals"
+version = release = "$VERSION"
+templates_path = ["_templates"]
 # name the top page explicitly: Sphinx < 2.0 defaults to "contents"
 root_doc = master_doc = "index"
 html_theme = "sphinx_rtd_theme"
@@ -127,8 +144,11 @@ html_css_files = ["custom.css"]
 numfig = True
 EOF
 {
-    echo "Manuals"
-    echo "======="
+    title="$APP Manuals"
+    echo "$title"
+    echo "${title//?/=}"
+    echo
+    echo "Version $VERSION"
     printf '%s\n' "$toctrees"
 } > "$DOCS/index.rst"
 

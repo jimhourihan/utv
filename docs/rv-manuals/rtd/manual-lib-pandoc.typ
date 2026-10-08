@@ -1,8 +1,8 @@
 // Pandoc version of the helpers in a manual's manual-lib.typ.
 //
 // build-rtd.sh prepends the `products` table taken from the real
-// manual-lib.typ and replaces PRODUCT_PLACEHOLDER, then uses the result in
-// place of manual-lib.typ when running `pandoc -f typst`.
+// manual-lib.typ, fills in PRODUCT_PLACEHOLDER and VERSION_PLACEHOLDER, and
+// uses the result in place of manual-lib.typ when running `pandoc -f typst`.
 //
 // Same names and arguments as manual-lib.typ, but plain implementations:
 // Pandoc's Typst reader has no context, target(), html.elem, measure,
@@ -14,6 +14,7 @@
 // exist here too.
 
 #let product = "PRODUCT_PLACEHOLDER"
+#let version = "VERSION_PLACEHOLDER"
 #let names = products.at(product)
 #let app = names.app
 #let a-app = names.article + " " + names.app

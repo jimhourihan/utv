@@ -35,6 +35,7 @@ FORMAT=all
 OUTDIR="$HERE/build"
 CHAPTER=""
 CHECK=0
+VERSION=""
 
 usage() {
     cat <<EOF
@@ -46,6 +47,8 @@ usage: $(basename "$0") [options]
                        default: all)
   -f, --format FMT     pdf, html or all (default: all)
   -o, --outdir DIR     output directory (default: $HERE/build)
+  -v, --version VER    version shown in the manuals (default: worked out
+                       by docs-version.sh from git tags or CMakeLists.txt)
   -c, --chapter ID     build one chapter/appendix file of a single manual
                        instead of the whole manual, e.g. 07 or H
       --check          build every chapter and appendix on its own, in both
@@ -60,6 +63,7 @@ while [[ $# -gt 0 ]]; do
         -p|--product)  IFS=, read -r -a p <<< "$2"; PRODUCTS+=("${p[@]}"); shift 2 ;;
         -f|--format)   FORMAT="$2"; shift 2 ;;
         -o|--outdir)   OUTDIR="$2"; shift 2 ;;
+        -v|--version)  VERSION="$2"; shift 2 ;;
         -c|--chapter)  CHAPTER="$2"; shift 2 ;;
         --check)       CHECK=1; shift ;;
         -h|--help)     usage; exit 0 ;;
@@ -91,10 +95,12 @@ if ! command -v typst >/dev/null 2>&1; then
     exit 1
 fi
 
+[[ -n "$VERSION" ]] || VERSION="$("$HERE/docs-version.sh")"
+
 # compile SOURCE OUTPUT FORMAT PRODUCT
 compile() {
     local src="$1" out="$2" fmt="$3" product="$4"
-    local args=(compile --root "$ROOT" --input "product=$product")
+    local args=(compile --root "$ROOT" --input "product=$product" --input "version=$VERSION")
     if [[ "$fmt" == html ]]; then
         args+=(--features html --format html)
     fi
@@ -124,7 +130,7 @@ if [[ $CHECK -eq 1 ]]; then
     # drifting apart.
     if ! command -v pandoc >/dev/null 2>&1 || ! command -v sphinx-build >/dev/null 2>&1; then
         echo "skipped Read the Docs build: needs pandoc and sphinx-build (see rtd/README.md)"
-    elif "$HERE/rtd/build-rtd.sh" -o "$tmp/rtd" >"$tmp/log" 2>&1; then
+    elif "$HERE/rtd/build-rtd.sh" -o "$tmp/rtd" --version "$VERSION" >"$tmp/log" 2>&1; then
         echo "Read the Docs build passes"
     else
         echo "FAIL  rtd/build-rtd.sh"
@@ -140,6 +146,7 @@ if [[ $CHECK -eq 1 ]]; then
     exit 0
 fi
 
+echo "version $VERSION"
 mkdir -p "$OUTDIR"
 for m in "${MANUALS[@]}"; do
     base="$(manual_dir "$m")"

@@ -5,23 +5,13 @@
 #import "../common/manual-lib.typ": *
 #show: manual.with(master: true)
 
-#set document(title: app + " User Manual")
+#set document(title: app + " User Manual " + version)
 
-#context if target() != "html" {
-    set page(numbering: none)
-    align(center + horizon)[
-        #text(size: 32pt, weight: "bold")[#app User Manual]
-    ]
-    pagebreak()
-}
+#title-page[#app User Manual]
 
 #outline(depth: 2)
 
-// page numbers for the body (PDF only; pages don't exist in HTML)
-#show: body => context if target() == "html" { body } else {
-    set page(numbering: "1")
-    body
-}
+#show: body-pages.with[#app User Manual]
 
 #include "rv-user-manual.01.typ"
 #include "rv-user-manual.02.typ"

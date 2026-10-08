@@ -8,6 +8,7 @@ and the Read the Docs theme. The Typst files stay the source of truth.
 ./build-rtd.sh                  # openutv → build/html/index.html
 ./build-rtd.sh -p rv            # another product
 ./build-rtd.sh --rst-only       # just the RST (build/stage/...)
+./build-rtd.sh --version 2026.8 # version to show (default: ../docs-version.sh)
 ```
 
 Needs `pandoc` 3.x, plus Sphinx 7+ and `sphinx-rtd-theme` for the HTML.
@@ -64,11 +65,18 @@ build:
         | tar -xz --strip-components=2 -C $HOME/bin pandoc-3.12/bin/pandoc
     build:
       html:
-        - PATH=$HOME/bin:$PATH docs/rv-manuals/rtd/build-rtd.sh -o $READTHEDOCS_OUTPUT
+        - PATH=$HOME/bin:$PATH docs/rv-manuals/rtd/build-rtd.sh -p "${DOCS_PRODUCT:-openutv}" -o $READTHEDOCS_OUTPUT
 python:
   install:
     - requirements: docs/rv-manuals/rtd/requirements.txt
 ```
+
+Nothing in it names a product or a site address, so the same file serves
+every product: each product is its own Read the Docs project, with
+`DOCS_PRODUCT` (`rv`, `openrv` or `openutv`) set under the project's
+environment variables. The version shown comes from `../docs-version.sh`,
+which uses the tag when Read the Docs builds one (`2026.8`) and
+`<tag>+dev (<commit>)` otherwise.
 
 Ubuntu's own `pandoc` package is too old for the Typst reader, hence the
 download. The PDF comes from Typst (`../build-docs.sh`), not from Sphinx, so

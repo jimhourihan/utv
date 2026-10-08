@@ -24,8 +24,8 @@ The result is in `build/html/index.html`.
 1. **Staging.** The script copies the chapters into `build/stage/`, laid out
    like the repository so image paths still work. In place of the real
    `common/manual-lib.typ` it puts `manual-lib-pandoc.typ`, with the
-   product filled in. The product names come from the real library's
-   `products` table, so they are only kept in one place.
+   product and version filled in. The product names come from the real
+   library's `products` table, so they are only kept in one place.
 2. **Conversion.** Pandoc reads each chapter and writes RST. Pandoc
    understands plain Typst markup but not Typst's layout and scripting
    features, which is why the library has a simpler Pandoc version.
