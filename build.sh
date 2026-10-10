@@ -372,6 +372,7 @@ CMAKE_ARGS=(
     "-DRV_DEPS_QT_LOCATION=${QT_HOME}"
     "-DRV_VFX_PLATFORM=CY2026"
     "-DRV_USE_SYSTEM_DEPS=ON"
+    "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 )
 
 # Linux Homebrew prefix injection

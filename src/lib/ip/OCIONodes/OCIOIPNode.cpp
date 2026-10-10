@@ -493,8 +493,6 @@ namespace IPCore
         return matrix_xyz_to_rec709;
     }
 
-    // Note: Ensure that the m_lock mutex is locked prior to calling this
-    // function
     OCIO::MatrixTransformRcPtr OCIOIPNode::getMatrixTransformXYZToRec709()
     {
         if (!m_matrix_xyz_to_rec709)
@@ -505,8 +503,6 @@ namespace IPCore
         return m_matrix_xyz_to_rec709;
     }
 
-    // Note: Ensure that the m_lock mutex is locked prior to calling this
-    // function
     OCIO::MatrixTransformRcPtr OCIOIPNode::getMatrixTransformRec709ToXYZ()
     {
         if (!m_matrix_rec709_to_xyz)

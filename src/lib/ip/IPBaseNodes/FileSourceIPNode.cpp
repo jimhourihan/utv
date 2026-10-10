@@ -444,10 +444,8 @@ namespace IPCore
         return sharedMedia;
     }
 
-    void FileSourceIPNode::changeMedia(const SharedMediaPointer& sharedMedia, const SharedMediaPointer& proxySharedMedia)
+    void FileSourceIPNode::changeMediaLocked(const SharedMediaPointer& sharedMedia, const SharedMediaPointer& proxySharedMedia)
     {
-        const QWriteLocker writeLock(&m_mediaMutex);
-
         Media* media = new Media(sharedMedia);
         MediaPointer mediap(media);
 
@@ -535,7 +533,7 @@ namespace IPCore
         if (hasAudio)
         {
             AudioConfiguration config(m_adevRate, m_adevLayout, m_adevSamples);
-            audioConfigure(config);
+            audioConfigureLocked(config);
         }
 
         if (defaultOverrideFPS != 0)
@@ -575,9 +573,9 @@ namespace IPCore
                     }
 
                     {
-                        const QWriteLocker writeLock(&m_mediaMutex);
-                        changeMedia(sharedMedia, proxySharedMedia);
-                        updateHasAudioStatus();
+                        const MediaWriteLock writeLock(m_mediaMutex);
+                        changeMediaLocked(sharedMedia, proxySharedMedia);
+                        updateHasAudioStatusLocked();
                     }
 
                     // The order of propagation is important. The AudioStatus
@@ -605,9 +603,9 @@ namespace IPCore
         else
         {
             {
-                const QWriteLocker writeLock(&m_mediaMutex);
-                changeMedia(sharedMedia, proxySharedMedia);
-                updateHasAudioStatus();
+                const MediaWriteLock writeLock(m_mediaMutex);
+                changeMediaLocked(sharedMedia, proxySharedMedia);
+                updateHasAudioStatusLocked();
             }
 
             // See previous comment
@@ -660,16 +658,22 @@ namespace IPCore
 
     FileSourceIPNode::MediaPointer FileSourceIPNode::getMediaFromContext(ImageComponent& selection, const Context& context) const
     {
+        const MediaReadLock readLock(m_mediaMutex);
+        return getMediaFromContextLocked(selection, context);
+    }
+
+    FileSourceIPNode::MediaPointer FileSourceIPNode::getMediaFromContextLocked(ImageComponent& selection, const Context& context) const
+    {
         selection = selectComponentFromContext(context);
 
-        MediaPointer media = mediaForComponent(selection, context);
+        MediaPointer media = mediaForComponentLocked(selection, context);
         if (context.stereo)
         {
             ImageComponent newSelection = stereoComponent(selection, context.eye);
 
             if (newSelection.isValid())
             {
-                if (MediaPointer newMedia = mediaForComponent(newSelection, context))
+                if (MediaPointer newMedia = mediaForComponentLocked(newSelection, context))
                 {
                     selection = newSelection;
                     media = newMedia;
@@ -679,13 +683,13 @@ namespace IPCore
 
         if (!selection.isValid())
         {
-            media = defaultMedia(context.stereo ? context.eye : 0);
+            media = defaultMediaLocked(context.stereo ? context.eye : 0);
         }
 
         return media;
     }
 
-    FileSourceIPNode::MediaPointer FileSourceIPNode::mediaForComponent(ImageComponent& c, const Context& context) const
+    FileSourceIPNode::MediaPointer FileSourceIPNode::mediaForComponentLocked(ImageComponent& c, const Context& context) const
     {
         if (!c.isValid())
             return nullptr;
@@ -693,8 +697,6 @@ namespace IPCore
         //
         //  Search for an exact match
         //
-
-        const QReadLocker readLock(&m_mediaMutex);
 
         if (context.stereo && context.eye < m_mediaVector.size())
         {
@@ -814,10 +816,8 @@ namespace IPCore
         return nullptr;
     }
 
-    FileSourceIPNode::MediaPointer FileSourceIPNode::defaultMedia(int eye) const
+    FileSourceIPNode::MediaPointer FileSourceIPNode::defaultMediaLocked(int eye) const
     {
-        const QReadLocker readLock(&m_mediaMutex);
-
         int count = 0;
 
         for (size_t i = 0; i < m_mediaVector.size(); i++)
@@ -837,7 +837,7 @@ namespace IPCore
         //
 
         if (eye > 0)
-            return defaultMedia(0);
+            return defaultMediaLocked(0);
 
         //
         //  No media found. Presumably if we have an audio media we should just
@@ -986,13 +986,13 @@ namespace IPCore
         ImageComponent selection;
         MediaPointer media;
         {
-            const QReadLocker readLock(&m_mediaMutex);
+            const MediaReadLock readLock(m_mediaMutex);
 
             // NOTE: Might be loading still
             if (m_mediaVector.size() == 0)
                 return IPImage::newNoImage(this, "No Media");
 
-            media = getMediaFromContext(selection, context);
+            media = getMediaFromContextLocked(selection, context);
         }
 
         Movie* mov = movieForThread(media.get(), context);
@@ -1617,13 +1617,13 @@ namespace IPCore
         ImageComponent selection;
         MediaPointer media;
         {
-            const QReadLocker readLock(&m_mediaMutex);
+            const MediaReadLock readLock(m_mediaMutex);
 
             // NOTE: Might be loading still
             if (m_mediaVector.size() == 0)
                 return new IPImageID("No Media");
 
-            media = getMediaFromContext(selection, context);
+            media = getMediaFromContextLocked(selection, context);
         }
 
         Movie* mov = movieForThread(media.get(), context);
@@ -1729,7 +1729,7 @@ namespace IPCore
 
     IPNode::ImageRangeInfo FileSourceIPNode::imageRangeInfo() const
     {
-        const QReadLocker readLock(&m_mediaMutex);
+        const MediaReadLock readLock(m_mediaMutex);
 
         int rangeOffset = m_rangeOffset->front();
 
@@ -1756,7 +1756,7 @@ namespace IPCore
 
             // Only use undiscovered range in async mode
             const auto isUndiscovered = hasProgressiveSourceLoading() && !media->shared->hasValidRange;
-            return ImageRangeInfo(start, end, mov->info().inc, fps(), cutin, cutout, isUndiscovered);
+            return ImageRangeInfo(start, end, mov->info().inc, fpsLocked(), cutin, cutout, isUndiscovered);
         }
 
         // Only use undiscovered range in async mode
@@ -1766,7 +1766,7 @@ namespace IPCore
 
     IPNode::ImageStructureInfo FileSourceIPNode::imageStructureInfo(const Context& context) const
     {
-        const QReadLocker readLock(&m_mediaMutex);
+        const MediaReadLock readLock(m_mediaMutex);
 
         int wa = 0;
         int ha = 0;
@@ -1775,7 +1775,7 @@ namespace IPCore
         float pa = 1.0;
         Mat44f O;
         ImageComponent selection;
-        MediaPointer media = getMediaFromContext(selection, context);
+        MediaPointer media = getMediaFromContextLocked(selection, context);
 
         if (media)
         {
@@ -1806,8 +1806,13 @@ namespace IPCore
 
     void FileSourceIPNode::audioConfigure(const AudioConfiguration& config)
     {
-        const QWriteLocker writeLock(&m_mediaMutex); // Always take the media mutex before the audio one
-        LockGuard lockAudio(m_audioMutex);
+        const MediaWriteLock writeLock(m_mediaMutex);
+        audioConfigureLocked(config);
+    }
+
+    void FileSourceIPNode::audioConfigureLocked(const AudioConfiguration& config)
+    {
+        LockGuard lockAudio(m_audioMutex); // The media mutex is always taken before the audio one
 
         m_adevRate = config.rate;
         m_adevLayout = config.layout;
@@ -1996,7 +2001,7 @@ namespace IPCore
         //  fps. In order to handle fps
         //
 
-        const QReadLocker readLock(&m_mediaMutex); // Always take the media mutex before the audio one
+        const MediaReadLock readLock(m_mediaMutex); // Always take the media mutex before the audio one
 
         vector<size_t> audioMedia;
         for (size_t i = 0; i < m_mediaVector.size(); i++)
@@ -2031,7 +2036,8 @@ namespace IPCore
         {
             Media* media = m_mediaVector[*am].get();
 
-            AudioBuffer mediaBuffer(context.buffer.size(), context.buffer.channels(), context.buffer.rate(), offsetStartTime(context));
+            AudioBuffer mediaBuffer(context.buffer.size(), context.buffer.channels(), context.buffer.rate(),
+                                    offsetStartTimeLocked(context));
 
             media->setBackwards(isBackwards());
 
@@ -2055,17 +2061,17 @@ namespace IPCore
         return targetNumSamples;
     }
 
-    TwkAudio::Time FileSourceIPNode::offsetStartTime(const AudioContext context)
+    TwkAudio::Time FileSourceIPNode::offsetStartTimeLocked(const AudioContext context)
     {
         const double rate = context.buffer.rate();
         const Time startTime = samplesToTime(context.buffer.startSample(), rate);
 
-        return (startTime - m_offset->front()) * (context.fps / fps());
+        return (startTime - m_offset->front()) * (context.fps / fpsLocked());
     }
 
     void FileSourceIPNode::flushAllCaches(const FlushContext& context)
     {
-        const QReadLocker readLock(&m_mediaMutex);
+        const MediaReadLock readLock(m_mediaMutex);
         for (size_t i = 0; i < m_mediaVector.size(); i++)
         {
             const SharedMoviePointerVector& movies = m_mediaVector[i]->shared->movies;
@@ -2076,7 +2082,7 @@ namespace IPCore
 
     void FileSourceIPNode::invalidateFileSystemInfo()
     {
-        const QReadLocker readLock(&m_mediaMutex);
+        const MediaReadLock readLock(m_mediaMutex);
         for (size_t i = 0; i < m_mediaVector.size(); i++)
         {
             const SharedMoviePointerVector& movies = m_mediaVector[i]->shared->movies;
@@ -2092,7 +2098,7 @@ namespace IPCore
             // Note: It is possible for m_mediaVector to be empty if the media
             // is
             //       not active for example.
-            const QReadLocker readLock(&m_mediaMutex);
+            const MediaReadLock readLock(m_mediaMutex);
             if (!m_mediaVector.empty())
             {
                 size = Vec2i(m_mediaVector.front()->primaryMovie()->info().uncropWidth,
@@ -2229,7 +2235,7 @@ namespace IPCore
 
     void FileSourceIPNode::clearMedia()
     {
-        const QWriteLocker writeLock(&m_mediaMutex);
+        const MediaWriteLock writeLock(m_mediaMutex);
         m_mediaVector.clear();
         setHasAudio(false);
         setHasVideo(false);
@@ -2240,7 +2246,7 @@ namespace IPCore
 
     FileSourceIPNode::Movie* FileSourceIPNode::movieByMediaIndex(size_t index)
     {
-        const QReadLocker readLock(&m_mediaMutex);
+        const MediaReadLock readLock(m_mediaMutex);
         if (index < m_mediaVector.size())
         {
             return m_mediaVector[index]->primaryMovie();
@@ -2253,7 +2259,7 @@ namespace IPCore
 
     const FileSourceIPNode::Movie* FileSourceIPNode::movieByMediaIndex(size_t index) const
     {
-        const QReadLocker readLock(&m_mediaMutex);
+        const MediaReadLock readLock(m_mediaMutex);
         if (index < m_mediaVector.size())
         {
             return m_mediaVector[index]->primaryMovie();
@@ -2266,7 +2272,7 @@ namespace IPCore
 
     FileSourceIPNode::Movie* FileSourceIPNode::movieByMediaName(const string& name)
     {
-        const QReadLocker readLock(&m_mediaMutex);
+        const MediaReadLock readLock(m_mediaMutex);
         for (size_t i = 0; i < m_mediaVector.size(); i++)
         {
             Movie* mov = m_mediaVector[i]->primaryMovie();
@@ -2283,7 +2289,7 @@ namespace IPCore
 
     const FileSourceIPNode::Movie* FileSourceIPNode::movieByMediaName(const string& name) const
     {
-        const QReadLocker readLock(&m_mediaMutex);
+        const MediaReadLock readLock(m_mediaMutex);
         for (size_t i = 0; i < m_mediaVector.size(); i++)
         {
             Movie* mov = m_mediaVector[i]->primaryMovie();
@@ -2305,7 +2311,16 @@ namespace IPCore
             return m_fps->front();
         }
 
-        const QReadLocker readLock(&m_mediaMutex);
+        const MediaReadLock readLock(m_mediaMutex);
+        return fpsLocked();
+    }
+
+    float FileSourceIPNode::fpsLocked() const
+    {
+        if (m_fps->size() && m_fps->front() != 0.0)
+        {
+            return m_fps->front();
+        }
 
         float nfps = 0.0, afps = 0.0;
 
@@ -2385,8 +2400,12 @@ namespace IPCore
 
     void FileSourceIPNode::updateHasAudioStatus()
     {
-        const QWriteLocker writeLock(&m_mediaMutex);
+        const MediaWriteLock writeLock(m_mediaMutex);
+        updateHasAudioStatusLocked();
+    }
 
+    void FileSourceIPNode::updateHasAudioStatusLocked()
+    {
         bool hasAudio = false;
         for (int i = 0; i < m_mediaVector.size(); ++i)
         {
@@ -2452,13 +2471,13 @@ namespace IPCore
 
     size_t FileSourceIPNode::numMedia() const
     {
-        const QReadLocker readLock(&m_mediaMutex);
+        const MediaReadLock readLock(m_mediaMutex);
         return m_mediaVector.size();
     }
 
     size_t FileSourceIPNode::mediaIndex(const std::string& name) const
     {
-        const QReadLocker readLock(&m_mediaMutex);
+        const MediaReadLock readLock(m_mediaMutex);
         for (size_t i = 0; i < m_mediaVector.size(); i++)
         {
             Movie* mov = m_mediaVector[i]->primaryMovie();

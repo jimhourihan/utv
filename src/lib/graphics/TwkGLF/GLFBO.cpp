@@ -11,9 +11,6 @@
 #include <TwkUtil/sgcHop.h>
 #include <TwkUtil/sgcHopTools.h>
 
-#include <QOpenGLContext>
-#include <QImage>
-
 /// #define NDEBUG
 
 namespace TwkGLF
@@ -508,13 +505,11 @@ namespace TwkGLF
     {
         size_t w = width();
         size_t h = height();
-        QImage image(w, h, QImage::Format_RGBA8888);
+        std::vector<unsigned char> pixels(w * h * 4);
 
         bind(GL_READ_FRAMEBUFFER);
 
-        glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, image.bits());
-
-        // image.save("/Users/pbergeron/fbo.png");
+        glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
     }
 
     void GLFBO::copyTo(const GLFBO* destinationGLFBO, GLenum mask, GLenum filter) const

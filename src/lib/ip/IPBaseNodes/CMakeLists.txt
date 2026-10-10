@@ -71,12 +71,6 @@ ADD_LIBRARY(
   ${_sources}
 )
 
-FIND_PACKAGE(
-  ${RV_QT_PACKAGE_NAME}
-  COMPONENTS Core
-  REQUIRED
-)
-
 TARGET_INCLUDE_DIRECTORIES(
   ${_target}
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
@@ -84,7 +78,7 @@ TARGET_INCLUDE_DIRECTORIES(
 
 TARGET_LINK_LIBRARIES(
   ${_target}
-  PUBLIC TwkApp TwkFB TwkMovie Qt::Core
+  PUBLIC TwkApp TwkFB TwkMovie
   PRIVATE CDL
           IPCore
           OpenEXR::OpenEXR

@@ -10,12 +10,15 @@
 using namespace TwkMath;
 using namespace std;
 
+// #define TRACK_GL_CONTEXT
+
+#ifdef TRACK_GL_CONTEXT
+// Needs Qt: add Qt::Gui to TwkGLF's link libraries when enabling this
 #include <QOpenGLContext>
+#endif
 
 namespace
 {
-
-    // #define TRACK_GL_CONTEXT
 
 #ifdef TRACK_GL_CONTEXT
 

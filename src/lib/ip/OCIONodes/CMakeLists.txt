@@ -10,11 +10,6 @@ SET(_target
     "OCIONodes"
 )
 
-FIND_PACKAGE(
-  ${RV_QT_PACKAGE_NAME} REQUIRED
-  COMPONENTS Core
-)
-
 FILE(GLOB _sources *.cpp)
 
 ADD_LIBRARY(
@@ -30,7 +25,7 @@ TARGET_INCLUDE_DIRECTORIES(
 TARGET_LINK_LIBRARIES(
   ${_target}
   PUBLIC IPCore TwkFB OpenColorIO::OpenColorIO
-  PRIVATE TwkUtil Qt::Core
+  PRIVATE TwkUtil
 )
 
 IF(RV_TARGET_WINDOWS)

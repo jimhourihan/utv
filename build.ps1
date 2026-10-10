@@ -303,7 +303,10 @@ $CmakeArgs = @(
     "-DCMAKE_PREFIX_PATH=$PrefixPaths",
     "-DPython3_ROOT_DIR=$PythonPath",
     "-DRV_VFX_PLATFORM=CY2026",
-    "-DRV_USE_SYSTEM_DEPS=ON"
+    "-DRV_USE_SYSTEM_DEPS=ON",
+    # For clangd and other C++ LSPs. Only the Makefile and Ninja generators
+    # write it; the Visual Studio generators ignore it.
+    "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 )
 
 if ($env:VULKAN_SDK) {

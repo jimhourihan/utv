@@ -7,22 +7,6 @@
 INCLUDE(cxx_defaults)
 INCLUDE(rv_quote_file)
 
-FIND_PACKAGE(
-  ${RV_QT_PACKAGE_NAME}
-  COMPONENTS Widgets
-  REQUIRED
-)
-
-SET(CMAKE_AUTOUIC
-    ON
-)
-SET(CMAKE_AUTOMOC
-    ON
-)
-SET(CMAKE_AUTORCC
-    ON
-)
-
 SET(_target
     "IPCore"
 )
@@ -220,13 +204,6 @@ ADD_LIBRARY(
   ${_target} STATIC
   ${_sources}
 )
-
-# Need that with Qt6 since the code for this target does not support unicode correctly.
-IF(RV_TARGET_WINDOWS
-   AND RV_VFX_PLATFORM STRGREATER_EQUAL CY2024
-)
-  QT_DISABLE_UNICODE_DEFINES(${_target})
-ENDIF()
 
 TARGET_INCLUDE_DIRECTORIES(
   ${_target}

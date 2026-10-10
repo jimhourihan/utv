@@ -2902,6 +2902,25 @@ IPGraph::findNodesByAbstractPath(int frame,
 
     void IPGraph::flushAudioCache()
     {
+        // flushAudioCache() may only:
+        //   - hold the audio cache lock and the internal audio lock briefly,
+        //     in that order, calling nothing else while holding them;
+        //   - call maybeDispatchAudioThread(). It cannot wait on the
+        //     dispatch.
+        //
+        // It must never wait for another thread: so no finishAudioThread()
+        // / thread_group::control_wait(), no lockAudioFill() or anything
+        // that takes it (audioConfigure(), setAudioCachingMode()).
+        //
+        // Obviously, no calls into nodes under threat of deadlock.
+        //
+        // Callers must *not* hold the audio cache lock or the internal
+        // audio lock (e.g. audioCache().lock()). These are not recursive.
+        //
+        // Callers can call from any thread, holding any locks of their
+        // own, including locks the audio thread needs while it evaluates
+        // the graph.
+        //
         m_audioCache.lock();
         m_audioCache.clear();
         lockAudioInternal();
