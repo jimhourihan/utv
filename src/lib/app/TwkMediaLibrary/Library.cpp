@@ -7,8 +7,6 @@
 //
 #include <TwkMediaLibrary/Library.h>
 #include <sstream>
-#include <QtCore/QUrl>
-#include <QtCore/QFileInfo>
 #include <TwkUtil/FileStream.h>
 #include <TwkUtil/FNV1a.h>
 #include <TwkUtil/Timer.h>
@@ -18,11 +16,7 @@
 #include <algorithm>
 #include <iterator>
 #include <iomanip>
-
-//
-//  NOTE: using QtCore in order to use QUrl. boost doesn't have a URL
-//  type -- the other option would be cpp-netlib
-//
+#include <cctype>
 
 namespace TwkMediaLibrary
 {
@@ -32,7 +26,118 @@ namespace TwkMediaLibrary
     namespace
     {
         LibraryMap globalLibraryMap;
-    }
+
+        //
+        //  The parts of a URL used here: scheme://host/path?query#fragment.
+        //  The scheme and host are lowercased, the host and path are
+        //  percent-decoded and the query is dropped (as with QUrl).
+        //
+
+        struct URLParts
+        {
+            string scheme;
+            string host;
+            string path;
+            string fragment;
+        };
+
+        string percentDecode(const string& s)
+        {
+            string out;
+            out.reserve(s.size());
+
+            for (size_t i = 0; i < s.size(); ++i)
+            {
+                if (s[i] == '%' && i + 2 < s.size() && isxdigit((unsigned char)s[i + 1]) && isxdigit((unsigned char)s[i + 2]))
+                {
+                    out += char(stoi(s.substr(i + 1, 2), nullptr, 16));
+                    i += 2;
+                }
+                else
+                {
+                    out += s[i];
+                }
+            }
+
+            return out;
+        }
+
+        string lowercase(string s)
+        {
+            for (char& c : s)
+                c = char(tolower((unsigned char)c));
+            return s;
+        }
+
+        URLParts parseURL(const string& url)
+        {
+            URLParts parts;
+            string rest = url;
+
+            const size_t hash = rest.find('#');
+            if (hash != string::npos)
+            {
+                parts.fragment = rest.substr(hash + 1);
+                rest.erase(hash);
+            }
+
+            const size_t query = rest.find('?');
+            if (query != string::npos)
+                rest.erase(query);
+
+            const size_t colon = rest.find(':');
+            if (colon != string::npos && colon > 0 && isalpha((unsigned char)rest[0]))
+            {
+                const string scheme = rest.substr(0, colon);
+                const bool valid = all_of(scheme.begin(), scheme.end(),
+                                          [](char c) { return isalnum((unsigned char)c) || c == '+' || c == '-' || c == '.'; });
+
+                if (valid)
+                {
+                    parts.scheme = lowercase(scheme);
+                    rest.erase(0, colon + 1);
+                }
+            }
+
+            if (rest.compare(0, 2, "//") == 0)
+            {
+                const size_t slash = rest.find('/', 2);
+                string authority = rest.substr(2, slash == string::npos ? string::npos : slash - 2);
+                rest = slash == string::npos ? string() : rest.substr(slash);
+
+                const size_t at = authority.rfind('@');
+                if (at != string::npos)
+                    authority.erase(0, at + 1);
+
+                const size_t port = authority.rfind(':');
+                if (port != string::npos && authority.find(']', port) == string::npos)
+                    authority.erase(port);
+
+                if (authority.size() >= 2 && authority.front() == '[' && authority.back() == ']')
+                    authority = authority.substr(1, authority.size() - 2);
+
+                parts.host = lowercase(percentDecode(authority));
+            }
+
+            parts.path = percentDecode(rest);
+            return parts;
+        }
+
+        //  Last component of a '/' separated path (QFileInfo::fileName)
+        string pathFileName(const string& path)
+        {
+            const size_t slash = path.rfind('/');
+            return slash == string::npos ? path : path.substr(slash + 1);
+        }
+
+        //  File name without its last suffix (QFileInfo::completeBaseName)
+        string pathCompleteBaseName(const string& path)
+        {
+            const string name = pathFileName(path);
+            const size_t dot = name.rfind('.');
+            return dot == string::npos ? name : name.substr(0, dot);
+        }
+    } // namespace
 
     Task::~Task() {}
 
@@ -485,8 +590,7 @@ namespace TwkMediaLibrary
     {
         if (Library* l = libraryOfURL(inURL))
         {
-            QUrl url(inURL.c_str());
-            return url.fragment() == "";
+            return parseURL(inURL).fragment.empty();
         }
 
         return false;
@@ -496,26 +600,15 @@ namespace TwkMediaLibrary
     {
         if (Library* l = libraryOfURL(inURL))
         {
-            QUrl url(inURL.c_str());
-            return url.fragment() != "";
+            return !parseURL(inURL).fragment.empty();
         }
 
         return false;
     }
 
-    string Library::nameFromMedia(const URL& inURL)
-    {
-        QUrl url(inURL.c_str());
-        QFileInfo info(url.path());
-        return info.completeBaseName().toUtf8().constData();
-    }
+    string Library::nameFromMedia(const URL& inURL) { return pathCompleteBaseName(parseURL(inURL).path); }
 
-    string Library::filenameOfMedia(const URL& inURL)
-    {
-        QUrl url(inURL.c_str());
-        QFileInfo info(url.path());
-        return info.fileName().toUtf8().constData();
-    }
+    string Library::filenameOfMedia(const URL& inURL) { return pathFileName(parseURL(inURL).path); }
 
     MediaFileInfo Library::computeMediaFileInfo(const URL& mediaURL)
     {
@@ -602,8 +695,7 @@ namespace TwkMediaLibrary
 
     NodeVector Library::associatedNodes(const URL& inURL) const
     {
-        QUrl url(inURL.c_str());
-        const Node* node = url.scheme() == "file" ? nodeOfMedia(inURL) : nodeOfURL(inURL);
+        const Node* node = parseURL(inURL).scheme == "file" ? nodeOfMedia(inURL) : nodeOfURL(inURL);
         NodeVector nodes;
 
         if (node)
@@ -736,11 +828,11 @@ namespace TwkMediaLibrary
 
     Library* libraryOfURL(const URL& inURL)
     {
-        QUrl url(inURL.c_str());
+        const URLParts url = parseURL(inURL);
 
-        if (url.scheme() == "sglib")
+        if (url.scheme == "sglib")
         {
-            string libname = url.host().toUtf8().constData();
+            const string& libname = url.host;
             LibraryMap::const_iterator i = globalLibraryMap.find(libname);
             if (i != globalLibraryMap.end())
                 return i->second;
@@ -759,8 +851,7 @@ namespace TwkMediaLibrary
             }
             else
             {
-                QUrl url(inURL.c_str());
-                if (url.path() == "")
+                if (parseURL(inURL).path.empty())
                     return l->rootNode();
             }
         }
