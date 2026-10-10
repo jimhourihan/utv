@@ -5,17 +5,16 @@
 //
 //******************************************************************************
 
-#ifndef _TwkUtilLog_h_
-#define _TwkUtilLog_h_
+#ifndef __RvCommon__FileLogger__h__
+#define __RvCommon__FileLogger__h__
 
-#include <TwkUtil/dll_defs.h>
 #include <spdlog/logger.h>
 #include <string>
 
-namespace TwkUtil
+namespace Rv
 {
 
-    class TWKUTIL_EXPORT FileLogger
+    class FileLogger
     {
     public:
         FileLogger();
@@ -29,6 +28,6 @@ namespace TwkUtil
         void setLogLevel(const std::string& level);
     };
 
-} // namespace TwkUtil
+} // namespace Rv
 
 #endif

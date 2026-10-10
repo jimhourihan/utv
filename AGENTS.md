@@ -112,7 +112,7 @@ Full reference: [`docs/architecture/windows_runtime_architecture.md`](docs/archi
 
 ### 2.4 Hardened Logging Subsystem (`FileLogger.cpp`)
 
-- OpenUTV uses `spdlog` for file and console logging (`src/lib/base/TwkUtil/FileLogger.cpp`).
+- OpenUTV uses `spdlog` for file and console logging (`src/lib/app/RvCommon/FileLogger.cpp`).
 - **Crash Prevention**:
   - `spdlog::basic_logger_mt` / `spdlog::details::file_helper::open` throws an unhandled `spdlog_ex` if the target directory does not exist or if user paths contain non-ASCII characters or network redirections.
   - Always pre-create the log directory (`%APPDATA%/OpenUTV/Logs` on Windows) using `QDir().mkpath()` *before* initializing the sink.
