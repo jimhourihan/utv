@@ -11,7 +11,7 @@
 #include <RvCommon/generated/ui_RvConsoleWindow.h>
 #include <QtCore/QtCore>
 #include <RvApp/Options.h>
-#include <TwkUtil/FileLogger.h>
+#include <RvCommon/FileLogger.h>
 #include <sstream>
 
 namespace Rv
@@ -82,7 +82,7 @@ namespace Rv
         std::stringstream m_textBuffer;
         QTimer* m_processTimer;
         bool m_processTimerRunning;
-        TwkUtil::FileLogger m_fileLogger;
+        FileLogger m_fileLogger;
     };
 
 } // namespace Rv

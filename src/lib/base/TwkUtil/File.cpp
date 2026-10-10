@@ -22,37 +22,50 @@
 
 #ifdef PLATFORM_WINDOWS
 #include <windows.h>
-#include <codecvt>
 #include <wchar.h>
-#include <QFileInfo>
-#include <TwkQtCoreUtil/QtConvert.h>
-#include <mutex>
 #endif
 
 #include <time.h>
 #include <stl_ext/string_algo.h>
-
-#ifdef PLATFORM_WINDOWS
-#include <windows.h>
-extern Q_CORE_EXPORT int qt_ntfs_permission_lookup;
-std::mutex g_perms_mutex;
-#endif
 
 namespace TwkUtil
 {
     using namespace std;
 
 #ifdef _MSC_VER
+    //
+    //  UTF-8 <-> UTF-16. Invalid sequences become U+FFFD instead of
+    //  throwing.
+    //
+
     wstring to_wstring(const char* c)
     {
-        wstring_convert<codecvt_utf8<wchar_t>> wstr;
-        return wstr.from_bytes(c);
+        if (!c || !*c)
+            return wstring();
+
+        const int size = MultiByteToWideChar(CP_UTF8, 0, c, -1, nullptr, 0);
+        if (size <= 1)
+            return wstring();
+
+        wstring out(size_t(size), L'\0');
+        MultiByteToWideChar(CP_UTF8, 0, c, -1, out.data(), size);
+        out.resize(size_t(size - 1)); // drop the terminating null
+        return out;
     }
 
     string to_utf8(const wchar_t* wc)
     {
-        wstring_convert<codecvt_utf8_utf16<wchar_t>, wchar_t> wstr;
-        return wstr.to_bytes(wc);
+        if (!wc || !*wc)
+            return string();
+
+        const int size = WideCharToMultiByte(CP_UTF8, 0, wc, -1, nullptr, 0, nullptr, nullptr);
+        if (size <= 1)
+            return string();
+
+        string out(size_t(size), '\0');
+        WideCharToMultiByte(CP_UTF8, 0, wc, -1, out.data(), size, nullptr, nullptr);
+        out.resize(size_t(size - 1)); // drop the terminating null
+        return out;
     }
 
     int stat(const char* c, struct _stat64* buffer) { return _wstat64(to_wstring(c).c_str(), buffer); }
@@ -63,34 +76,44 @@ namespace TwkUtil
 
     int access(const char* path, int mode)
     {
-        if (!isDirectory(path))
+        const wstring wpath = to_wstring(path);
+        const DWORD attributes = GetFileAttributesW(wpath.c_str());
+
+        if (attributes == INVALID_FILE_ATTRIBUTES)
         {
-            return _waccess(to_wstring(path).c_str(), mode);
+            return -1;
         }
 
-        // access does not work with directories on Windows, so let's use Qt,
-        // but Qt permission checks are turned off by default on Windows
-        QFileInfo qf(TwkQtCoreUtil::UTF8::qconvert(path));
+        //
+        //  _waccess only checks that a directory exists, and for files it
+        //  only looks at the read-only attribute. Open the path with the
+        //  requested rights instead and let Windows check them against its
+        //  permissions.
+        //
 
+        const bool directory = attributes & FILE_ATTRIBUTE_DIRECTORY;
+
+        DWORD rights = 0;
+        if (mode & R_OK)
+            rights |= directory ? FILE_LIST_DIRECTORY : FILE_READ_DATA;
+        if (mode & W_OK)
+            rights |= directory ? (FILE_ADD_FILE | FILE_ADD_SUBDIRECTORY) : FILE_WRITE_DATA;
+
+        if (rights == 0)
+            return 0; // F_OK: the path exists
+
+        HANDLE handle = CreateFileW(wpath.c_str(), rights, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, OPEN_EXISTING,
+                                    directory ? FILE_FLAG_BACKUP_SEMANTICS : 0, nullptr);
+
+        if (handle == INVALID_HANDLE_VALUE)
         {
-            std::lock_guard<std::mutex> guard(g_perms_mutex);
-            qt_ntfs_permission_lookup++;
+            // Windows checks the rights before the sharing mode, so a
+            // sharing violation means the rights were granted
+            return GetLastError() == ERROR_SHARING_VIOLATION ? 0 : -1;
         }
 
-        int result = 0;
-        if (mode | F_OK)
-            result = qf.exists() ? result : -1;
-        if (mode | R_OK)
-            result = qf.isReadable() ? result : -1;
-        if (mode | W_OK)
-            result = qf.isWritable() ? result : -1;
-
-        {
-            std::lock_guard<std::mutex> guard(g_perms_mutex);
-            qt_ntfs_permission_lookup--;
-        }
-
-        return result;
+        CloseHandle(handle);
+        return 0;
     }
 #else
     int stat(const char* c, struct stat* buffer) { return ::stat(c, buffer); }
@@ -583,7 +606,7 @@ namespace TwkUtil
     {
 #ifdef _MSC_VER
         DWORD ftyp = GetFileAttributesW(to_wstring(directory).c_str());
-        return ftyp & FILE_ATTRIBUTE_DIRECTORY;
+        return ftyp != INVALID_FILE_ATTRIBUTES && (ftyp & FILE_ATTRIBUTE_DIRECTORY);
 #else
         DIR* dir = opendir(directory);
 

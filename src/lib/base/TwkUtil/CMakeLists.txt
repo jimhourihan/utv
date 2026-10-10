@@ -10,12 +10,6 @@ SET(_target
     "TwkUtil"
 )
 
-FIND_PACKAGE(
-  ${RV_QT_PACKAGE_NAME}
-  COMPONENTS Core
-  REQUIRED
-)
-
 SET(_sources
     TwkRegEx.cpp
     Timer.cpp
@@ -47,7 +41,6 @@ SET(_sources
     sgcHopTools.cpp
     sgcJobDispatcher.cpp
     sgcRefCounted.cpp
-    FileLogger.cpp
 )
 
 ADD_LIBRARY(
@@ -62,8 +55,8 @@ TARGET_INCLUDE_DIRECTORIES(
 
 TARGET_LINK_LIBRARIES(
   ${_target}
-  PUBLIC Boost::thread TwkExc TwkMath spdlog::spdlog
-  PRIVATE Boost::system Qt::Core stl_ext
+  PUBLIC Boost::thread TwkExc TwkMath
+  PRIVATE Boost::system stl_ext
 )
 
 IF(RV_TARGET_LINUX)
@@ -92,7 +85,7 @@ ENDIF()
 IF(RV_TARGET_WINDOWS)
   TARGET_LINK_LIBRARIES(
     ${_target}
-    PRIVATE nedmalloc win_posix win_pthreads TwkQtCoreUtil
+    PRIVATE nedmalloc win_posix win_pthreads
     PUBLIC pcre2-8 pcre2-posix
   )
 ENDIF()

@@ -42,6 +42,7 @@ SET(_sources
     PyUICommands.cpp
     RvFileDialog.cpp
     RvConsoleWindow.cpp
+    FileLogger.cpp
     RvPreferences.cpp
     RvDocument.cpp
     RvConsoleApplication.cpp

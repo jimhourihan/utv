@@ -5,7 +5,7 @@
 //
 //******************************************************************************
 
-#include <TwkUtil/FileLogger.h>
+#include <RvCommon/FileLogger.h>
 #include <TwkUtil/EnvVar.h>
 #include <QtCore/QtCore>
 #include <spdlog/spdlog.h>
@@ -15,8 +15,9 @@
 #include <iostream>
 #include <ostream>
 
-namespace TwkUtil
+namespace Rv
 {
+    using namespace TwkUtil;
 
     static ENVVAR_STRING(evFileLogLevel, "RV_FILE_LOG_LEVEL", "debug");
     static ENVVAR_INT(evFileLogSize, "RV_FILE_LOG_SIZE",
@@ -156,4 +157,4 @@ namespace TwkUtil
             m_logger->set_level(spdlog::level::critical);
         }
     }
-} // namespace TwkUtil
+} // namespace Rv

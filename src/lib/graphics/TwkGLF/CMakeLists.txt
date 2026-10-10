@@ -60,12 +60,6 @@ SET(_shaders
 
 FIND_PACKAGE(OpenGL REQUIRED)
 
-FIND_PACKAGE(
-  ${RV_QT_PACKAGE_NAME}
-  COMPONENTS Core Gui OpenGL Widgets
-  REQUIRED
-)
-
 # Create shaders and add them to sources
 QUOTE_FILES(_cooked_shaders INPUT_LIST ${_shaders} SUFFIX "glsl")
 LIST(APPEND _sources ${_cooked_shaders})
@@ -79,7 +73,7 @@ IF(RV_TARGET_LINUX)
   TARGET_LINK_LIBRARIES(
     ${_target}
     # OpenGL:GL vs. GL Usage of GL does find the 'glGenFencesNV' whereas 'OpenGL:GL' does not :-(
-    GL GLEW::GLEW
+    PUBLIC GL GLEW::GLEW
   )
 ENDIF()
 
@@ -90,19 +84,14 @@ TARGET_INCLUDE_DIRECTORIES(
 
 TARGET_LINK_LIBRARIES(
   ${_target}
-  TwkApp
-  TwkFB
-  TwkGLText
-  TwkUtil
-  TwkAudio
-  Qt::Core
-  Qt::Gui
-  Qt::Widgets
-  Qt::OpenGL
+  PUBLIC TwkApp TwkFB TwkGLText TwkUtil TwkAudio
 )
 
 IF(RV_TARGET_WINDOWS)
-  TARGET_LINK_LIBRARIES(${_target} glew)
+  TARGET_LINK_LIBRARIES(
+    ${_target}
+    PUBLIC glew
+  )
 ENDIF()
 
 IF(RV_TARGET_LINUX)

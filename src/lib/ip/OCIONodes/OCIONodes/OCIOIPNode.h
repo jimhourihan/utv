@@ -12,7 +12,6 @@
 #include <IPCore/IPNode.h>
 #include <TwkFB/FrameBuffer.h>
 
-#include <QMutex>
 #include <OpenColorIO/OpenColorIO.h>
 
 #include <memory>

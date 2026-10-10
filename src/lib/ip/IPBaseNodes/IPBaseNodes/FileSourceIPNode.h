@@ -23,8 +23,6 @@
 
 #include <boost/thread.hpp>
 
-#include <QReadWriteLock>
-
 namespace TwkContainer
 {
     class PropertyContainer;
@@ -61,6 +59,9 @@ namespace IPCore
         typedef std::set<std::string> StringSet;
         typedef std::recursive_mutex Mutex;
         typedef std::lock_guard<Mutex> LockGuard;
+        typedef std::shared_mutex MediaMutex;
+        typedef std::shared_lock<MediaMutex> MediaReadLock;
+        typedef std::unique_lock<MediaMutex> MediaWriteLock;
         typedef boost::condition_variable Condition;
         typedef boost::shared_ptr<Movie> SharedMoviePointer;
         typedef boost::shared_ptr<PropertyContainer> SharedPropertyContainer;
@@ -195,14 +196,24 @@ namespace IPCore
         void setProgressiveSourceLoading(bool b) { m_progressiveSourceLoading = b; }
 
     protected:
+        //
+        //  m_mediaMutex is not recursive. The *Locked() functions expect the
+        //  caller to hold it already (shared or exclusive, as noted) and never
+        //  take it themselves; the functions without the suffix take it.
+        //
+
         virtual void audioConfigure(const AudioConfiguration&);
+        void audioConfigureLocked(const AudioConfiguration&); // exclusive
         size_t audioFillBufferInternal(const AudioContext&);
         void addMedia(const SharedMediaPointer& sharedMedia, const SharedMediaPointer& proxySharedMedia = SharedMediaPointer());
-        void changeMedia(const SharedMediaPointer& sharedMedia, const SharedMediaPointer& proxySharedMedia = SharedMediaPointer());
+        void changeMediaLocked(const SharedMediaPointer& sharedMedia,
+                               const SharedMediaPointer& proxySharedMedia = SharedMediaPointer()); // exclusive
 
         MediaPointer getMediaFromContext(ImageComponent& selection, const Context& context) const;
-        MediaPointer mediaForComponent(ImageComponent&, const Context& context) const;
-        MediaPointer defaultMedia(int) const;
+        MediaPointer getMediaFromContextLocked(ImageComponent& selection, const Context& context) const;
+        MediaPointer mediaForComponentLocked(ImageComponent&, const Context& context) const;
+        MediaPointer defaultMediaLocked(int) const;
+        float fpsLocked() const;
         Movie* movieForThread(const Media*, const Context&) const;
         void setupRequest(const Movie*, const ImageComponent&, const Context&, Movie::ReadRequest& request);
 
@@ -211,7 +222,8 @@ namespace IPCore
         SharedMedia* newSharedMedia(Movie*, bool hasValidRange);
 
         void updateHasAudioStatus();
-        Time offsetStartTime(const AudioContext context);
+        void updateHasAudioStatusLocked(); // exclusive
+        Time offsetStartTimeLocked(const AudioContext context);
 
         void configureAlphaAttrs(FrameBuffer* fb, IPImage* img);
         Movie* openProxyMovie(const std::string& errorString, double minBeforeTime, const std::string filename, double defaultFPS);
@@ -249,7 +261,7 @@ namespace IPCore
         double m_adevRate;
         size_t m_adevSamples;
         size_t m_adevBufferWindow;
-        mutable QReadWriteLock m_mediaMutex{QReadWriteLock::Recursive};
+        mutable MediaMutex m_mediaMutex;
         Time m_grainDuration;
         Time m_grainEnvelope;
         Components m_tempComponents;
