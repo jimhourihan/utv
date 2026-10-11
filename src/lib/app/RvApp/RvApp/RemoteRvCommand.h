@@ -18,22 +18,41 @@
 #include <vector>
 #include <type_traits>
 
-namespace IPMu
+namespace Rv
 {
+    //
+    //  Only the outermost RemoteRvCommand sends its command. One that is
+    //  created while another is in scope (e.g. a session file loaded by
+    //  addSources clears the session) is part of the outer command, which
+    //  will redo it when replayed. Inner commands still push and pop
+    //  broadcast suppression. Commands are only created on the main
+    //  thread.
+    //
+
     class RemoteRvCommand
     {
     public:
         template <typename... Args> RemoteRvCommand(IPCore::Session* s, const std::string& command, Args&&... args)
         {
             m_session = s;
-            std::string parameters = pack(command, std::forward<Args>(args)...);
 
-            m_session->userGenericEvent("generic-rv-command", parameters.c_str(), "");
+            if (s_depth++ == 0)
+            {
+                std::string parameters = pack(command, std::forward<Args>(args)...);
+                m_session->userGenericEvent("generic-rv-command", parameters.c_str(), "");
+            }
 
             m_session->userGenericEvent("push-eat-broadcast-events", "");
         }
 
-        ~RemoteRvCommand() { m_session->userGenericEvent("pop-eat-broadcast-events", ""); }
+        ~RemoteRvCommand()
+        {
+            m_session->userGenericEvent("pop-eat-broadcast-events", "");
+            s_depth--;
+        }
+
+        RemoteRvCommand(const RemoteRvCommand&) = delete;
+        RemoteRvCommand& operator=(const RemoteRvCommand&) = delete;
 
         template <typename... Args> static std::string pack(const std::string& name, Args&&... args)
         {
@@ -50,6 +69,7 @@ namespace IPMu
 
     private:
         IPCore::Session* m_session;
+        static inline int s_depth = 0;
 
         // Ultra-simple conversion - let Qt handle most of the work
         template <typename T> static QJsonValue toJson(T&& val)
@@ -91,4 +111,4 @@ namespace IPMu
             return arr;
         }
     };
-} // namespace IPMu
+} // namespace Rv

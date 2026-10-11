@@ -8,6 +8,7 @@
 #include <RvApp/CommandsModule.h>
 #include <RvApp/Options.h>
 #include <RvApp/RvSession.h>
+#include <RvApp/RemoteRvCommand.h>
 #include <IPBaseNodes/FileSourceIPNode.h>
 #include <IPBaseNodes/ImageSourceIPNode.h>
 #include <IPBaseNodes/SequenceIPNode.h>
@@ -25,7 +26,6 @@
 #include <IPCore/IPInstanceNode.h>
 #include <OCIONodes/OCIOIPNode.h>
 #include <IPMu/CommandsModule.h>
-#include <IPMu/RemoteRvCommand.h>
 #include <TwkDeploy/Deploy.h>
 #include <Mu/ClassInstance.h>
 #include <Mu/Exception.h>
@@ -1252,7 +1252,7 @@ namespace Rv
         }
 
         // silences broadcasting events below this constructor
-        IPMu::RemoteRvCommand remoteRvCommand(s, "addSourceVerbose", filesAndOptionsRemote, tag);
+        RemoteRvCommand remoteRvCommand(s, "addSourceVerbose", filesAndOptionsRemote, tag);
 
         // Now that we've broadcast the remote event, complete the work without
         // broadcasting anything else.
@@ -1333,7 +1333,7 @@ namespace Rv
         }
 
         // silences broadcasting events below this constructor
-        IPMu::RemoteRvCommand remoteRvCommand(s, "addSources", sargsRemote, tag, processOpts, merge);
+        RemoteRvCommand remoteRvCommand(s, "addSources", sargsRemote, tag, processOpts, merge);
 
         //
         //  Note we do not make GraphEdit object here, since this load will be
@@ -1403,7 +1403,7 @@ namespace Rv
         }
 
         // silences broadcasting events below this constructor
-        IPMu::RemoteRvCommand remoteRvCommand(s, "addSourcesVerbose", allFilesAndOptionsRemote, tag);
+        RemoteRvCommand remoteRvCommand(s, "addSourcesVerbose", allFilesAndOptionsRemote, tag);
 
         // Now that we've broadcast the remote event, complete the work without
         // broadcasting anything else.

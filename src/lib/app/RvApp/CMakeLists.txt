@@ -27,6 +27,12 @@ ADD_LIBRARY(
   ${_sources}
 )
 
+FIND_PACKAGE(
+  ${RV_QT_PACKAGE_NAME}
+  COMPONENTS Core
+  REQUIRED
+)
+
 TARGET_INCLUDE_DIRECTORIES(
   ${_target}
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
@@ -36,6 +42,7 @@ TARGET_LINK_LIBRARIES(
   ${_target}
   PUBLIC IPCore Mu MuLang TwkMovie TwkFBAux
   PRIVATE Python::Python
+          Qt::Core
           IPBaseNodes
           IPMu
           MuAutoDoc

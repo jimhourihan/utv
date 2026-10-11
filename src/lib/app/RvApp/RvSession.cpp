@@ -85,6 +85,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 
+#include <RvApp/RemoteRvCommand.h>
+
 #ifndef PLATFORM_WINDOWS
 #include <stdio.h>
 #include <sys/resource.h>
@@ -310,6 +312,8 @@ namespace Rv
 
     void RvSession::clear()
     {
+        RemoteRvCommand remoteRvCommand(this, "clearSession");
+
         Session::clear();
         m_loadingErrorString = "";
         m_loadingError = false;
@@ -320,6 +324,8 @@ namespace Rv
         {
             applyRvSessionSpecificOptions();
         }
+
+        askForRedraw();
     }
 
     void RvSession::render()

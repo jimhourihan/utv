@@ -67,8 +67,6 @@
 #include <TwkUtil/Timer.h>
 #include <TwkDeploy/Deploy.h>
 
-#include <IPMu/RemoteRvCommand.h>
-
 #include <algorithm>
 #include <limits>
 #include <fstream>
@@ -2495,10 +2493,10 @@ namespace IPMu
     {
         Session* s = Session::currentSession();
 
-        IPMu::RemoteRvCommand remoteRvCommand(s, "clearSession");
+        // RvSession::clear() sends the clearSession remote command
 
         s->clear();
-        s->askForRedraw();
+        //s->askForRedraw(); <-- now in clear() as well
     }
 
     NODE_IMPLEMENTATION(newSession, void)
