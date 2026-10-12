@@ -25,6 +25,7 @@ SET(_sources
     GLPipeline.cpp
     GLState.cpp
     GLRenderPrimitives.cpp
+    GLText.cpp
 )
 
 SET(_shaders
@@ -84,7 +85,7 @@ TARGET_INCLUDE_DIRECTORIES(
 
 TARGET_LINK_LIBRARIES(
   ${_target}
-  PUBLIC TwkApp TwkFB TwkGLText TwkUtil TwkAudio
+  PUBLIC TwkApp TwkFB TwkGLText TwkText TwkUtil TwkAudio
 )
 
 IF(RV_TARGET_WINDOWS)
@@ -98,6 +99,14 @@ IF(RV_TARGET_LINUX)
   TARGET_COMPILE_OPTIONS(
     ${_target}
     PRIVATE "-DVM_NO_GL"
+  )
+ENDIF()
+
+IF(RV_TARGET_LINUX)
+  # GLText.cpp looks up eglGetCurrentContext / glXGetCurrentContext with dlsym.
+  TARGET_LINK_LIBRARIES(
+    ${_target}
+    PRIVATE ${CMAKE_DL_LIBS}
   )
 ENDIF()
 
