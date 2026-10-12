@@ -16,6 +16,7 @@
 #include <TwkMath/Iostream.h>
 #include <TwkMath/Frustum.h>
 #include <TwkGLText/TwkGLText.h>
+#include <TwkGLF/GLText.h>
 #include <stl_ext/string_algo.h>
 
 namespace IPCore
@@ -31,20 +32,36 @@ namespace IPCore
 
         void Font::init() const
         {
-            if (m_name == "")
-                GLtext::init();
-            else
-                GLtext::init(m_name.c_str());
+            if (useFTGLText())
+            {
+                if (m_name == "")
+                    GLtext::init();
+                else
+                    GLtext::init(m_name.c_str());
+            }
             m_initialized = true;
         }
 
         void Font::setSize(unsigned int s) const
         {
             assert(m_initialized);
-            GLtext::size(s);
+            m_size = s;
+            if (useFTGLText())
+                GLtext::size(s);
+            else
+                m_text = TwkText::Font::load(m_name, s);
         }
 
-        void Font::setColor(float r, float g, float b, float a) const { GLtext::color(r, g, b, a); }
+        void Font::setColor(float r, float g, float b, float a) const
+        {
+            if (useFTGLText())
+                GLtext::color(r, g, b, a);
+        }
+
+        Box2f Font::boundsNL(const string& text, float space) const
+        {
+            return useFTGLText() ? GLtext::boundsNL(text.c_str(), space) : m_text.boundsNL(text, space);
+        }
 
         pair<float, float> Font::computeText(const string& text, string& t, float space, string origin) const
         {
@@ -64,9 +81,9 @@ namespace IPCore
                 pipes += "|,~`'\"yqj";
             }
 
-            Box2f pb = GLtext::boundsNL(pipes.c_str(), space);
+            Box2f pb = boundsNL(pipes, space);
             float h = pb.min.y - pb.max.y - globalDescenderHeight();
-            Box2f tb = GLtext::boundsNL(t.c_str(), space);
+            Box2f tb = boundsNL(t, space);
             float w = -tb.max.x;
 
             float xoffset, yoffset;
@@ -123,9 +140,9 @@ namespace IPCore
             return make_pair(xoffset, yoffset);
         }
 
-        float Font::globalAscenderHeight() const { return GLtext::globalAscenderHeight(); }
+        float Font::globalAscenderHeight() const { return useFTGLText() ? GLtext::globalAscenderHeight() : m_text.ascender(); }
 
-        float Font::globalDescenderHeight() const { return GLtext::globalDescenderHeight(); }
+        float Font::globalDescenderHeight() const { return useFTGLText() ? GLtext::globalDescenderHeight() : m_text.descender(); }
 
         size_t PolyLine::getType() const { return Command::PolyLine; }
 
@@ -614,7 +631,8 @@ namespace IPCore
             context.currentTexture->copyTo(fbo);
             fbo->bind();
 
-            glEnable(GL_TEXTURE_2D);
+            if (useFTGLText())
+                glEnable(GL_TEXTURE_2D);
             glEnable(GL_BLEND);
             glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -624,7 +642,8 @@ namespace IPCore
         void Text::cleanup(CommandContext& context)
         {
             glDisable(GL_BLEND);
-            glDisable(GL_TEXTURE_2D);
+            if (useFTGLText())
+                glDisable(GL_TEXTURE_2D);
 
             const GLFBO* fbo = context.currentRender;
             fbo->unbind();
@@ -658,16 +677,7 @@ namespace IPCore
             T.makeTranslation(Vec3f(x, y, 0.0f));
 
             GLState* glState = context.glState;
-            GLPipeline* glPipeline = glState->useGLProgram(defaultGLProgram());
-
-            glPipeline->setProjection(context.projMatrix);
-            glPipeline->setModelview(context.modelviewMatrix * S * T);
-
-            glPipeline->useCurrentProjectionGL2();
-            glPipeline->useCurrentModelviewGL2();
-
-            GLState::FixedFunctionPipeline FFP(glState);
-            FFP.setViewport(0, 0, w, h);
+            const Mat44f modelview = context.modelviewMatrix * S * T;
 
             string outtext;
             pair<float, float> loc = f->computeText(text, outtext, spacing, origin);
@@ -678,7 +688,31 @@ namespace IPCore
                 glScissor(context.stencilBox[0], context.stencilBox[1], context.stencilBox[2] - context.stencilBox[0],
                           context.stencilBox[3] - context.stencilBox[1]);
             }
-            GLtext::writeAtNL(loc.first, loc.second, outtext.c_str(), spacing);
+
+            if (useFTGLText())
+            {
+                GLPipeline* glPipeline = glState->useGLProgram(defaultGLProgram());
+
+                glPipeline->setProjection(context.projMatrix);
+                glPipeline->setModelview(modelview);
+
+                glPipeline->useCurrentProjectionGL2();
+                glPipeline->useCurrentModelviewGL2();
+
+                GLState::FixedFunctionPipeline FFP(glState);
+                FFP.setViewport(0, 0, w, h);
+
+                GLtext::writeAtNL(loc.first, loc.second, outtext.c_str(), spacing);
+            }
+            else
+            {
+                glViewport(0, 0, GLsizei(w), GLsizei(h));
+
+                TwkText::GlyphQuads quads;
+                f->textFont().layoutNL(outtext, loc.first, loc.second, spacing, quads);
+                drawText(quads, context.projMatrix, modelview, textColor, glState->vboList());
+            }
+
             if (context.hasStencil)
                 glDisable(GL_SCISSOR_TEST);
             delete f;

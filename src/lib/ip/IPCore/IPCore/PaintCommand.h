@@ -13,6 +13,7 @@
 #include <TwkGLF/GLFBO.h>
 #include <TwkGLF/GLRenderPrimitives.h>
 #include <TwkPaint/Path.h>
+#include <TwkText/Font.h>
 #include <IPCore/IPImage.h>
 #include <vector>
 
@@ -60,6 +61,7 @@ namespace IPCore
             Font(const std::string& name)
                 : m_name(name)
                 , m_initialized(false)
+                , m_size(0)
             {
             }
 
@@ -75,9 +77,20 @@ namespace IPCore
             float globalAscenderHeight() const;
             float globalDescenderHeight() const;
 
+            //
+            //  The font at the current size, for drawing with TwkGLF::drawText()
+            //  (unless TwkGLF::useFTGLText()).
+            //
+
+            const TwkText::Font& textFont() const { return m_text; }
+
         private:
+            TwkMath::Box2f boundsNL(const std::string& text, float space) const;
+
             std::string m_name;
             mutable bool m_initialized;
+            mutable unsigned int m_size;
+            mutable TwkText::Font m_text;
             friend class DeclareFonts;
         };
 

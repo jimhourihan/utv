@@ -13,6 +13,7 @@
 #include <TwkGLF/BasicGLProgram.h>
 #include <TwkGLF/GLRenderPrimitives.h>
 #include <TwkGLText/TwkGLText.h>
+#include <TwkGLF/GLText.h>
 #include <TwkApp/VideoDevice.h>
 #include <TwkMath/Frustum.h>
 #include <TwkMath/Math.h>
@@ -222,9 +223,14 @@ namespace IPCore
             renderprimitives.setupAndRender();
         }
 
-        float textWidth(const string& text)
+        //
+        //  Text is measured with font, or with TwkGLText when font is
+        //  nullptr (RV_TEXT_RENDERER=ftgl).
+        //
+
+        float textWidth(const string& text, const TwkText::Font* font)
         {
-            const Box2f bounds = GLtext::bounds(text);
+            const Box2f bounds = font ? font->bounds(text) : GLtext::bounds(text);
             return bounds.max.x - bounds.min.x;
         }
 
@@ -235,9 +241,9 @@ namespace IPCore
         //  only cut between characters, never inside one.
         //
 
-        string fitText(const string& text, float maxWidth)
+        string fitText(const string& text, float maxWidth, const TwkText::Font* font)
         {
-            if (textWidth(text) <= maxWidth)
+            if (textWidth(text, font) <= maxWidth)
                 return text;
 
             vector<size_t> starts; // byte offset of each character
@@ -258,7 +264,7 @@ namespace IPCore
             {
                 const string shortened = text.substr(0, starts[(keep + 1) / 2]) + "..." + text.substr(starts[count - keep / 2]);
 
-                if (textWidth(shortened) <= maxWidth)
+                if (textWidth(shortened, font) <= maxWidth)
                     return shortened;
             }
 
@@ -410,14 +416,33 @@ namespace IPCore
         strokePath(glState, path, outlineWidth * scale);
 
         //
-        //  Label, centred in its row. TwkGLText draws with the fixed
-        //  function pipeline, so load the same matrices into it (as
-        //  PaintCommand does for text), and restore them afterwards. The
-        //  text size is shared with the UI's text drawing, so restore it.
+        //  Label, centred in its row.
         //
 
-        if (!m_label.empty())
+        if (!m_label.empty() && !useFTGLText())
         {
+            const TwkText::Font font = TwkText::Font::load("", unsigned(labelPointSize * scale + 0.5f));
+            const string label = fitText(m_label, m_imageWidth, &font);
+            const float ascender = font.ascender();
+            const float descender = font.descender(); // negative
+            const float rowY0 = panelY0 + paddingBottom * scale;
+            const float x = imageX0 + (m_imageWidth - textWidth(label, &font)) * 0.5f;
+            const float y = rowY0 + (labelHeight - (ascender - descender)) * 0.5f - descender;
+
+            TwkText::GlyphQuads quads;
+            font.layout(label, x, y, quads);
+            glViewport(0, 0, width, height);
+            drawText(quads, projection, Mat44f(), Col4f(foregroundGrey, foregroundGrey, foregroundGrey, m_opacity), glState->vboList());
+        }
+        else if (!m_label.empty())
+        {
+            //
+            //  TwkGLText draws with the fixed function pipeline, so load the
+            //  same matrices into it (as PaintCommand does for text), and
+            //  restore them afterwards. The text size is shared with the
+            //  UI's text drawing, so restore it.
+            //
+
             glMatrixMode(GL_PROJECTION);
             glPushMatrix();
             glMatrixMode(GL_MODELVIEW);
@@ -434,11 +459,11 @@ namespace IPCore
                 const int previousSize = GLtext::size();
                 GLtext::size(int(labelPointSize * scale + 0.5f));
 
-                const string label = fitText(m_label, m_imageWidth);
+                const string label = fitText(m_label, m_imageWidth, nullptr);
                 const float ascender = GLtext::globalAscenderHeight();
                 const float descender = GLtext::globalDescenderHeight(); // negative
                 const float rowY0 = panelY0 + paddingBottom * scale;
-                const float x = imageX0 + (m_imageWidth - textWidth(label)) * 0.5f;
+                const float x = imageX0 + (m_imageWidth - textWidth(label, nullptr)) * 0.5f;
                 const float y = rowY0 + (labelHeight - (ascender - descender)) * 0.5f - descender;
 
                 GLtext::color(foregroundGrey, foregroundGrey, foregroundGrey, m_opacity);
