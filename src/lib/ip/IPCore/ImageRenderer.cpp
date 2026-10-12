@@ -934,10 +934,16 @@ namespace IPCore
             IPCore::Application::setOptionValue<int>("maxTextureSize", maxt);
         }
 
-        if (m_fragmentProgram)
+        //
+        //  GL_MAX_TEXTURE_COORDS is a fixed-function limit that core profile
+        //  contexts don't have; GL_MAX_TEXTURE_IMAGE_UNITS exists in both.
+        //
+
+        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &iunits);
+        TWK_GLDEBUG;
+
+        if (m_fragmentProgram && !TwkGLF::isCoreProfile())
         {
-            glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &iunits);
-            TWK_GLDEBUG;
             glGetIntegerv(GL_MAX_TEXTURE_COORDS, &tcoords);
             TWK_GLDEBUG;
         }
@@ -1001,13 +1007,18 @@ namespace IPCore
             // buffer" << endl;
         }
 
-        if (!m_fragmentProgram)
+        //
+        //  GL_ARB_fragment_program (assembly programs) never became core,
+        //  so core profile contexts don't have it; RV uses GLSL there.
+        //
+
+        if (!m_fragmentProgram && !TwkGLF::isCoreProfile())
         {
             cerr << "WARNING: GPU lacks fragment program -- many features are "
                     "disabled"
                  << endl;
         }
-        else if (m_ALUinsnLimit < 32)
+        else if (m_fragmentProgram && m_ALUinsnLimit < 32)
         {
             cerr << "WARNING: GPU only supports " << m_ALUinsnLimit
                  << " ALU instructions. Some features may fail if used "
