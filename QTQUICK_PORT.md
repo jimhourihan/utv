@@ -503,7 +503,7 @@ still runs in the compatibility context, so MuGL keeps working. Only the
 last step switches the context.
 
 Each step is checked with `utvio` renders compared against the previous
-commit with `rmsImageDiff` (plain, scaled, resized, stack, layout, an
+commit with `rmsImageDiff -f -cmp` (plain, scaled, resized, stack, layout, an
 annotated session, and 8/16-bit, half and float images with 1, 2 and 3
 channels), and with standalone GL programs where a code path doesn't run
 in macOS's 2.1 context. The viewer-only paths (`MetalView`, `GLView`,
@@ -520,7 +520,7 @@ and Windows are first checked by CI.
 | Extension queries that work in core contexts: `TwkGLF::glExtensions()` (`glGetStringi` on GL 3.0+), `TwkGLF::hasExtension()` with a table of core-promoted extensions; `TWK_GL_SUPPORTS` uses it on every platform | `7df3e36e` | A macOS 4.1 core context lists only 43 extensions, without `ARB_sync`, `ARB_texture_rectangle`, `ARB_pixel_buffer_object` or float textures |
 | Numeric internal format `3` replaced with `GL_RGB8` | `3a373b2d` | |
 | A VAO for every draw in `RenderPrimitives` on GL 3.0+ | `6c375aef` | Made per draw (a VAO belongs to one context) and the previous binding restored. macOS's 2.1 context skips it |
-| Core names for the framebuffer and renderbuffer functions and `glActiveTexture`; the `glBlitFramebufferEXT` stub in `utvio`'s `glfix.c` removed | (pending) | Needs GL 3.0 or `ARB_framebuffer_object` (macOS 2.1 has it). A driver with only `EXT_framebuffer_object` would no longer work |
+| Core names for the framebuffer and renderbuffer functions and `glActiveTexture`; the `glBlitFramebufferEXT` stub in `utvio`'s `glfix.c` removed | `54d0562b` | Needs GL 3.0 or `ARB_framebuffer_object` (macOS 2.1 has it). A driver with only `EXT_framebuffer_object` would no longer work |
 | `GL_APPLE_` extensions in a macOS core context checked (2026-10-12, Apple M1 Pro, 4.1 Metal) | | `client_storage`, `texture_range`, `rgb_422` and `row_bytes` remain, so the upload fast path survives. `ycbcr_422` and `float_pixels` are gone; core has float textures |
 
 ##### Remaining
@@ -549,10 +549,15 @@ and Windows are first checked by CI.
 
 Problems found along the way, not caused by these steps:
 
-- Annotation text doesn't render in `utvio` output, not even with the
-  code from before the first step. (Possibly the hand-written test session
-  is missing something the annotate tool writes; not yet checked against
-  a session saved from the viewer.)
+- Text annotations without `startFrame` / `duration` properties were never
+  drawn. OpenRV's SG-39984 fix (`0fbb55ab`) gave pen strokes fallbacks (the
+  frame in the component name, one frame) but left text at 0 and 0, which
+  counts as before every frame. The annotate tool writes both properties,
+  so this hit sessions saved before they existed and hand-written ones.
+  Fixed in `PaintIPNode::compileTextComponent` (2026-10-12).
+- `rmsImageDiff -cmp` printed "Images are NOT matched." but exited with 0;
+  `main()` ignored the comparison result. Fixed (2026-10-12). The step
+  checks above were re-run reading the printed result, and all matched.
 - `utvio -debug gpu` doesn't print the renderer's GL capability report.
 
 #### Text rendering
@@ -588,23 +593,44 @@ fourth), generated from FreeType outlines with `msdfgen` (MIT).
     context; glyph bitmaps can be shared.
   - `PaintCommand` and `HoverPreviewOverlayGL` move to it, which removes
     their fixed-function setup.
-  - `GLtext` stays on FTGL for MuGL and `rvprof` at first. Later it can be
+  - `GLtext` stays on FTGL for MuGL at first. Later it can be
     reimplemented on the new code (in the compatibility context it can
     read the fixed-function matrices), removing FTGL and the reason for
     the state saving above.
+  - `rvprof` is a developer tool with no compatibility requirement: it can
+    move to the new code or be rewritten.
 - Chinese text: TwkGLText already decodes UTF-8 (with `utf8::unchecked`,
   so invalid UTF-8 is undefined behaviour), but the embedded fonts (Luxi
   Sans by default, Courier, the Tweak font) have no CJK glyphs and there is
   no font fallback. MTSDF handles complex glyphs with larger cells (about
   48-64 px per em for CJK, against about 32 for Latin).
-- Open decisions:
-  - fonts: bundle a CJK font (Noto Sans CJK, OFL, about 16 MB per weight,
-    with regional variants for Chinese, Japanese and Korean) or use system
-    fonts with fallback (CoreText, DirectWrite, fontconfig), which can make
-    `utvio` output differ between machines
-  - text shaping: Chinese needs almost none, but Arabic, Hebrew,
-    Devanagari and Thai need HarfBuzz and bidirectional text. Build layout
-    on HarfBuzz from the start or not
+- Decided (2026-10-12):
+  - shaping with HarfBuzz from the start (MIT; Homebrew on macOS and
+    Linux, OpenUTVDeps on Windows). It also gives correct kerning and
+    ligatures for Latin
+  - fonts: the embedded Latin default stays; other characters use system
+    font fallback (CoreText, DirectWrite, fontconfig); a session or
+    environment setting can name a font file for reproducible `utvio`
+    output
+  - `msdfgen` core vendored into `src/pub` (MIT, no dependencies)
+  - bidirectional text (right-to-left) later; it slots in before shaping
+    (SheenBidi, Apache-2.0, is the likely choice)
+  - first version covers the renderer's text only (annotations, hover
+    label); `GLtext` for MuGL is a later step
+  - atlas: pages of 2048x2048 RGBA8 added as needed, no eviction at
+    first, distance range about 4-6 px, cells about 48 px per em (larger
+    for complex glyphs if needed)
+  - glyphs generated synchronously on first use (`utvio` needs every glyph
+    of the frame it renders)
+  - no global state in the layout API (render thread later); atlas
+    textures per GL context, glyph bitmaps shared
+  - code: layout and atlas in a new GL-free library (e.g.
+    `src/lib/graphics/TwkText`); the GL draw function in TwkGLF next to
+    `RenderPrimitives`
+- Requirement: annotations in existing sessions keep their position.
+  The new code reproduces FTGL's conventions (`ptsize = size * 10000`,
+  `scale = 1/800`, baseline origin, line spacing, `origin` modes,
+  ascender/descender metrics).
 - Expected output change: glyph positions, kerning and anti-aliasing will
   differ slightly from FTGL's, which is within the "reasonably small
   differences" `utvio` allows.
