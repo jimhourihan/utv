@@ -441,7 +441,15 @@ namespace Rv
             glBindFramebuffer(GL_FRAMEBUFFER, QOpenGLContext::currentContext()->defaultFramebufferObject());
             TWK_GLDEBUG;
 
-            glPushAttrib(GL_COLOR_BUFFER_BIT);
+            //
+            //  Restore the color mask and clear color by hand rather than
+            //  with glPushAttrib(), which core profile contexts don't have.
+            //
+
+            GLboolean colorMask[4];
+            GLfloat clearColor[4];
+            glGetBooleanv(GL_COLOR_WRITEMASK, colorMask);
+            glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor);
             TWK_GLDEBUG;
             glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
             TWK_GLDEBUG;
@@ -449,7 +457,8 @@ namespace Rv
             TWK_GLDEBUG;
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             TWK_GLDEBUG;
-            glPopAttrib();
+            glColorMask(colorMask[0], colorMask[1], colorMask[2], colorMask[3]);
+            glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
             TWK_GLDEBUG;
         }
         else
