@@ -411,12 +411,6 @@ inline void getUniformGLInt(GLuint p, const unsigned int loc, GLint* data)
     TWK_GLDEBUG;
 }
 
-void glJitterFrustum(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble near, GLdouble far, GLdouble pixdx,
-                     GLdouble pixdy, GLdouble eyedx, GLdouble eyedy, GLdouble focus);
-
-void glJitterPerspective(GLdouble fovy, GLdouble aspect, GLdouble near, GLdouble far, GLdouble pixdx, GLdouble pixdy, GLdouble eyedx,
-                         GLdouble eyedy, GLdouble focus);
-
 bool glSupportsExtension(const char*);
 
 #if !defined(TWK_USE_GLEW) && defined(WIN32)

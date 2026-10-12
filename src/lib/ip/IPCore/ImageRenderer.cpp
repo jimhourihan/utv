@@ -3131,10 +3131,6 @@ namespace IPCore
 
                 glActiveTextureARB(GL_TEXTURE0_ARB + plane.textureUnit);
                 TWK_GLDEBUG;
-                glEnable(plane.tile->target);
-                TWK_GLDEBUG;
-                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-                TWK_GLDEBUG;
                 glBindTexture(plane.tile->target, id);
                 TWK_GLDEBUG;
                 glTexParameteri(plane.tile->target, GL_TEXTURE_MIN_FILTER, filterMode);
@@ -3327,9 +3323,6 @@ namespace IPCore
         const bool merge = context.mergeRender;
         image->touched = true;
 
-        glColor4f(1.0, 1.0, 1.0, 1.0);
-        TWK_GLDEBUG; // IS THIS NEEDED?
-
         GLPipeline* glPipeline = m_glState->activeGLPipeline();
 
         const IPImage::Matrix& PM = img->projectionMatrix;
@@ -3438,9 +3431,6 @@ namespace IPCore
         const float x1 = a / 2.0f;
         const float y0 = -0.5;
         const float y1 = 0.5;
-
-        glColor4f(1.0, 1.0, 1.0, 1.0);
-        TWK_GLDEBUG; // NEEDED?
 
         assert(img->children != NULL);
 
@@ -4758,8 +4748,6 @@ namespace IPCore
         const size_t totalBytes = iw * ih * d->pixelSize;
 
         GLPushClientAttrib attr1(GL_CLIENT_ALL_ATTRIB_BITS);
-        glEnable(d->target);
-        TWK_GLDEBUG;
 
         //
         //  TODO: WE NEED TO CHECK ON THIS -- IS IT STILL TRUE?

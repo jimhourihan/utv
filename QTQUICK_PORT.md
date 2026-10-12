@@ -528,9 +528,30 @@ can be merged on its own:
 
 1. `GL_QUADS` to triangle fans in `RenderPrimitives`, plus the one
    `glBegin(GL_QUADS)` in `TwkGLF/GL.cpp`.
-1. Remove the renderer's own fixed-function calls (`glTexEnvi`,
-   `glColor4f` in `ImageRenderer.cpp`, `glMatrixMode` in `GLPipeline.cpp`).
-   The `TwkGLF/GL.h` helpers stay for MuGL.
+1. Remove the renderer's own fixed-function calls that have no effect
+   with shaders bound: `glTexEnvi`, `glColor4f` and the texture-target
+   `glEnable`s in `ImageRenderer.cpp`, and the unused `glJitterFrustum` /
+   `glJitterPerspective` in `TwkGLF/GL.cpp`. The `TwkGLF/GL.h` helpers
+   stay for MuGL.
+1. Text. Annotation text (`PaintCommand` `Text`) and the hover-preview
+   label draw with TwkGLText (`src/lib/ui/TwkGLText`), which is built on
+   FTGL and uses the fixed-function pipeline: `glRasterPos`,
+   `glPixelTransfer`, `glPixelZoom`, the matrix stack, and FTGL's own
+   immediate-mode drawing. Around it are `GLState::FixedFunctionPipeline`
+   (unbinds the shader), `GLPipeline::useCurrentProjectionGL2()` /
+   `useCurrentModelviewGL2()` (load the fixed-function matrices),
+   `glEnable(GL_TEXTURE_2D)`, and the matrix push/pop in
+   `HoverPreviewOverlayGL.cpp`. The renderer's text needs a shader-based
+   replacement (e.g. FreeType glyphs in a texture atlas). MuGL's text
+   (`MuGLText`, `gltext.mud`) can stay on TwkGLText until the HUD goes.
+1. State saving. `ImageRenderer.cpp` wraps rendering and uploads in
+   `GLPushAttrib(GL_ALL_ATTRIB_BITS)` and
+   `GLPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS)` (lines ~1290, 2885,
+   2994, 4541, 4760), and `Session.cpp` around the `render` event. Their
+   comments say they exist so FTGL text (the Mu HUD's) still renders after
+   the image. Core removes both. They go once nothing draws with FTGL after
+   the renderer, or are replaced by explicitly restoring the state the
+   renderer changes (pixel store, blend, scissor, bound textures).
 1. `GL_RED`/`GL_RG` plus texture swizzles instead of luminance formats,
    where the context supports them.
 1. Bind a VAO on GL 3.0+ contexts.
