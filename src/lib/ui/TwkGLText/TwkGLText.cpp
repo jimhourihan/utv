@@ -117,6 +117,14 @@ namespace TwkGLText
 
     Context GLtext::getContext()
     {
+        //
+        //  The thread key is created by newContext(); make sure it exists
+        //  when getContext() is the first call (reading an uncreated key is
+        //  undefined).
+        //
+
+        pthread_once(&threadInit, thread_once);
+
         if (Context existing_ctx = pthread_getspecific(threadKey))
         {
             return existing_ctx;
