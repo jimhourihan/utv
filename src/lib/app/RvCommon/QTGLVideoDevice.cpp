@@ -88,7 +88,7 @@ namespace Rv
 
             GLint widgetFBO = m_view->defaultFramebufferObject();
             if (widgetFBO != 0)
-                glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, widgetFBO);
+                glBindFramebuffer(GL_FRAMEBUFFER, widgetFBO);
             TWK_GLDEBUG;
         }
 

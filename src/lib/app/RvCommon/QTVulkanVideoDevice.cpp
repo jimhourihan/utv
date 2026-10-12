@@ -352,8 +352,8 @@ namespace Rv
             m_fbo = new TwkGLF::GLFBO(newW, newH, GL_RGBA16F_ARB);
             m_fbo->attachColorTexture(GL_TEXTURE_RECTANGLE_ARB, m_fboColorTex);
 
-            GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-            if (status != GL_FRAMEBUFFER_COMPLETE_EXT)
+            GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+            if (status != GL_FRAMEBUFFER_COMPLETE)
                 cerr << "ERROR: QTVulkanVideoDevice: FBO incomplete: 0x" << hex << status << dec << endl;
 
             m_fboWidth = newW;
@@ -454,7 +454,7 @@ namespace Rv
     {
         if (m_drawFbo[slot])
         {
-            glDeleteFramebuffersEXT(1, &m_drawFbo[slot]);
+            glDeleteFramebuffers(1, &m_drawFbo[slot]);
             m_drawFbo[slot] = 0;
         }
         if (m_glSharedTexture[slot])
@@ -513,10 +513,10 @@ namespace Rv
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        glGenFramebuffersEXT(1, &m_cpuFlipFbo);
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_cpuFlipFbo);
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, m_cpuFlipTex, 0);
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+        glGenFramebuffers(1, &m_cpuFlipFbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_cpuFlipFbo);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_cpuFlipTex, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         m_cpuFlipWidth = w;
         m_cpuFlipHeight = h;
@@ -526,7 +526,7 @@ namespace Rv
     {
         if (m_cpuFlipFbo)
         {
-            glDeleteFramebuffersEXT(1, &m_cpuFlipFbo);
+            glDeleteFramebuffers(1, &m_cpuFlipFbo);
             m_cpuFlipFbo = 0;
         }
         if (m_cpuFlipTex)
@@ -554,10 +554,10 @@ namespace Rv
 
         // Y-flip blit (GL bottom-left -> Vulkan top-left) into the RGB10_A2 target,
         // so glReadPixels below reads top-down and packs to the swapchain layout.
-        glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, fbo->fboID());
-        glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, m_cpuFlipFbo);
-        glBlitFramebufferEXT(0, 0, w, h, 0, h, w, 0, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-        glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, m_cpuFlipFbo);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo->fboID());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_cpuFlipFbo);
+        glBlitFramebuffer(0, 0, w, h, 0, h, w, 0, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, m_cpuFlipFbo);
 
         // GL-packed readback: glReadPixels stalls until the flip blit finishes, but
         // the driver packs directly to the swapchain bit layout, so there is no
@@ -566,7 +566,7 @@ namespace Rv
         glReadPixels(0, 0, w, h, readFormat, GL_UNSIGNED_INT_2_10_10_10_REV, m_cpuPackedScratch.data());
         m_window->presentPixelData(m_cpuPackedScratch.data(), w, h);
 
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo->fboID()); // restore
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo->fboID()); // restore
     }
 
     //--------------------------------------------------------------------------
@@ -722,25 +722,25 @@ namespace Rv
         GLuint readFbo = fbo->fboID();
         if (!m_drawFbo[slot])
         {
-            glGenFramebuffersEXT(1, &m_drawFbo[slot]);
-            glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, m_drawFbo[slot]);
-            glFramebufferTexture2DEXT(GL_DRAW_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, m_glSharedTexture[slot], 0);
+            glGenFramebuffers(1, &m_drawFbo[slot]);
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_drawFbo[slot]);
+            glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_glSharedTexture[slot], 0);
         }
         else
         {
-            glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, m_drawFbo[slot]);
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_drawFbo[slot]);
         }
 
         GLboolean scissorWasEnabled = glIsEnabled(GL_SCISSOR_TEST);
         if (scissorWasEnabled)
             glDisable(GL_SCISSOR_TEST);
 
-        glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, readFbo);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, readFbo);
 
         // Note: GL origin is bottom-left, Vulkan origin is top-left. We need to flip Y.
-        glBlitFramebufferEXT(0, 0, w, h, 0, h, w, 0, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        glBlitFramebuffer(0, 0, w, h, 0, h, w, 0, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, readFbo); // restore
+        glBindFramebuffer(GL_FRAMEBUFFER, readFbo); // restore
 
         if (scissorWasEnabled)
             glEnable(GL_SCISSOR_TEST);

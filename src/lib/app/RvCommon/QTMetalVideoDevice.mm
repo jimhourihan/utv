@@ -293,8 +293,8 @@ namespace Rv
             // attachColorTexture stores owner=false; we retain the texID and
             // delete it ourselves on the next resize or in the destructor.
 
-            GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-            if (status != GL_FRAMEBUFFER_COMPLETE_EXT)
+            GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+            if (status != GL_FRAMEBUFFER_COMPLETE)
             {
                 std::cerr << "[QTMetalVideoDevice] FBO incomplete: 0x"
                           << std::hex << status << std::dec << "\n";
@@ -548,8 +548,8 @@ namespace Rv
             TwkGLF::GLFBO* iofbo = new TwkGLF::GLFBO(w, h, format.glInternalFormat);
             iofbo->attachColorTexture(GL_TEXTURE_RECTANGLE_ARB, tex);
 
-            GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-            if (status != GL_FRAMEBUFFER_COMPLETE_EXT)
+            GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+            if (status != GL_FRAMEBUFFER_COMPLETE)
             {
                 std::cerr << "[QTMetalVideoDevice] IOSurface FBO incomplete: 0x"
                           << std::hex << status << std::dec << " — CPU fallback\n";
@@ -620,11 +620,11 @@ namespace Rv
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        glGenFramebuffersEXT(1, &m_cpuFlipFbo);
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_cpuFlipFbo);
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
+        glGenFramebuffers(1, &m_cpuFlipFbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_cpuFlipFbo);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                                   GL_TEXTURE_2D, m_cpuFlipTex, 0);
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         m_cpuFlipWidth  = w;
         m_cpuFlipHeight = h;
@@ -634,7 +634,7 @@ namespace Rv
     {
         if (m_cpuFlipFbo)
         {
-            glDeleteFramebuffersEXT(1, &m_cpuFlipFbo);
+            glDeleteFramebuffers(1, &m_cpuFlipFbo);
             m_cpuFlipFbo = 0;
         }
         if (m_cpuFlipTex)
@@ -678,7 +678,7 @@ namespace Rv
             bool blitOk = true;
 
             // Ensure scissor test is disabled during presentation blit and alpha clear.
-            // glBlitFramebufferEXT and glClear are both constrained by GL_SCISSOR_TEST
+            // glBlitFramebuffer and glClear are both constrained by GL_SCISSOR_TEST
             // if enabled by prior overlay/paint passes.
             GLboolean scissorWasEnabled = glIsEnabled(GL_SCISSOR_TEST);
             if (scissorWasEnabled)
@@ -689,14 +689,14 @@ namespace Rv
             // float->10-bit conversion; EDR keeps values above 1.0.
             // Swapped destination Y (h -> 0) flips GL's bottom-left origin to the
             // IOSurface/CALayer top-left origin — no CPU y-flip needed.
-            glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, fbo->fboID());
-            glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, ioFbo->fboID());
-            glBlitFramebufferEXT(0, 0, w, h,
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo->fboID());
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, ioFbo->fboID());
+            glBlitFramebuffer(0, 0, w, h,
                                  0, h, w, 0,
                                  GL_COLOR_BUFFER_BIT, GL_NEAREST);
             if (glGetError() != GL_NO_ERROR)
             {
-                std::cerr << "[QTMetalVideoDevice] glBlitFramebufferEXT failed — "
+                std::cerr << "[QTMetalVideoDevice] glBlitFramebuffer failed — "
                              "falling back to CPU readback\n";
                 latchInteropFailure();
                 blitOk = false;
@@ -719,7 +719,7 @@ namespace Rv
                 glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
                 // Restore the render FBO as the active target.
-                glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo->fboID());
+                glBindFramebuffer(GL_FRAMEBUFFER, fbo->fboID());
 
                 if (scissorWasEnabled)
                     glEnable(GL_SCISSOR_TEST);
@@ -772,9 +772,9 @@ namespace Rv
 
         // Y-flip blit (GL bottom-left → IOSurface top-left) into the target in
         // the presentation format (10-bit quantisation, or half float for EDR).
-        glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, fbo->fboID());
-        glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, m_cpuFlipFbo);
-        glBlitFramebufferEXT(0, 0, w, h,  0, h, w, 0,  GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo->fboID());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_cpuFlipFbo);
+        glBlitFramebuffer(0, 0, w, h,  0, h, w, 0,  GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
         // Force alpha to fully opaque (A=3, 2-bit max). IPCore clears the render
         // FBO with alpha=0 (ImageRenderer::clearBackgroundToBlack); the blit copies
@@ -791,7 +791,7 @@ namespace Rv
         // On macOS GL-on-Metal, glReadPixels does not implicitly synchronise the
         // Metal command stream — glFinish() is required to commit the blit before
         // the readback samples the flip FBO.
-        glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, m_cpuFlipFbo);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, m_cpuFlipFbo);
         glFinish();
 
         // Read straight into the IOSurface pixel layout (see ensureCpuFallbackTarget).
@@ -805,13 +805,13 @@ namespace Rv
         {
             std::cerr << "ERROR: [QTMetalVideoDevice] bad_alloc in CPU fallback ("
                       << w << "x" << h << ")\n";
-            glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo->fboID());
+            glBindFramebuffer(GL_FRAMEBUFFER, fbo->fboID());
             return;
         }
         glReadPixels(0, 0, w, h, format.glFormat, format.glType,
                      m_cpuPackedScratch.data());
 
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo->fboID());
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo->fboID());
         m_view->presentPixelData(m_cpuPackedScratch.data(), w, h);
     }
 

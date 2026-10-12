@@ -490,83 +490,124 @@ first as a stepping stone that would be preferred.
 
 #### GL 3.2+ core profile as the stepping stone
 
-What the core profile removes, counted in `src/lib/ip`,
-`src/lib/graphics` and `src/lib/base` (2026-10-12):
+The renderer was already close to core: the GLSL function library
+(`IPCore/glsl`, about 135 files) uses no removed built-ins, the generator in
+`ShaderProgram.cpp` writes `#version 150` with `in`/`out`, its own
+`FragColor`, matrix uniforms and vertex attributes whenever the context
+has GLSL 1.50 (its `varying`/`attribute` branch is only for the macOS 2.1
+context), and drawing uses VBOs and `glVertexAttribPointer`. Rectangle
+textures and pixel buffer objects are core and need no change.
 
-- The shaders are already core-ready. The GLSL function library
-  (`IPCore/glsl`, about 135 files) uses no removed built-ins, and the
-  generator in `ShaderProgram.cpp` already writes two dialects: with GLSL
-  1.50 or later (Linux and Windows today) it writes `#version 150` with
-  `in`/`out`, its own `FragColor` output, matrix uniforms instead of the
-  built-in matrices, and vertex attributes. The `varying`/`attribute` code
-  is only the GLSL 1.20 branch, which macOS uses because its compatibility
-  context is GL 2.1.
-- Drawing already uses VBOs and `glVertexAttribPointer`
-  (`TwkGLF/GLRenderPrimitives.cpp`).
-- No vertex array objects are used anywhere. Core requires one to be
-  bound for every draw, so at least one VAO per context.
-- `GL_LUMINANCE` / `GL_LUMINANCE_ALPHA` (about 15 uses) become `GL_RED`
-  / `GL_RG` with texture swizzles.
-- `GL_QUADS` (11 uses, in `ImageRenderer`, `PaintCommand`,
-  `GLRenderPrimitives`, `GLVideoDevice`, `HoverPreviewOverlayGL`, `GL.cpp`)
-  become triangles. Nearly all go through `RenderPrimitives` and draw one
-  4-vertex quad, so most of this is one change there (`GL_TRIANGLE_FAN`).
-- Fixed-function calls (matrix stack, `glBegin`/`glVertex`,
-  `glPushAttrib`, `glTexEnvi`, ...) are only in `TwkGLF/GL.cpp`,
-  `GLPipeline.cpp`, `TwkGLF/GL.h` and `HoverPreviewOverlayGL.cpp`, about
-  35 calls in all.
-- `GL_APPLE_` extensions (9 uses). A macOS core context still has
-  `APPLE_client_storage` and `APPLE_texture_range` (see step 5 below).
-- `GL_TEXTURE_RECTANGLE` (24 uses) and pixel buffer objects are still
-  core and need no change.
+The work is split so that each step can be merged on its own while RV
+still runs in the compatibility context, so MuGL keeps working. Only the
+last step switches the context.
 
-Everything above except the context switch can be done while still
-running in the compatibility context, so MuGL keeps working, and each step
-can be merged on its own:
+Each step is checked with `utvio` renders compared against the previous
+commit with `rmsImageDiff` (plain, scaled, resized, stack, layout, an
+annotated session, and 8/16-bit, half and float images with 1, 2 and 3
+channels), and with standalone GL programs where a code path doesn't run
+in macOS's 2.1 context. The viewer-only paths (`MetalView`, `GLView`,
+`VulkanView`, hover preview, desktop output) need a manual check, and Linux
+and Windows are first checked by CI.
 
-1. `GL_QUADS` to triangle fans in `RenderPrimitives`, plus the one
-   `glBegin(GL_QUADS)` in `TwkGLF/GL.cpp`.
-1. Remove the renderer's own fixed-function calls that have no effect
-   with shaders bound: `glTexEnvi`, `glColor4f` and the texture-target
-   `glEnable`s in `ImageRenderer.cpp`, and the unused `glJitterFrustum` /
-   `glJitterPerspective` in `TwkGLF/GL.cpp`. The `TwkGLF/GL.h` helpers
-   stay for MuGL.
-1. Text. Annotation text (`PaintCommand` `Text`) and the hover-preview
-   label draw with TwkGLText (`src/lib/ui/TwkGLText`), which is built on
-   FTGL and uses the fixed-function pipeline: `glRasterPos`,
-   `glPixelTransfer`, `glPixelZoom`, the matrix stack, and FTGL's own
-   immediate-mode drawing. Around it are `GLState::FixedFunctionPipeline`
-   (unbinds the shader), `GLPipeline::useCurrentProjectionGL2()` /
-   `useCurrentModelviewGL2()` (load the fixed-function matrices),
-   `glEnable(GL_TEXTURE_2D)`, and the matrix push/pop in
-   `HoverPreviewOverlayGL.cpp`. The renderer's text needs a shader-based
-   replacement (e.g. FreeType glyphs in a texture atlas). MuGL's text
-   (`MuGLText`, `gltext.mud`) can stay on TwkGLText until the HUD goes.
+##### Done
+
+| Step | Commit | Notes |
+| --- | --- | --- |
+| `GL_QUADS` drawn as `GL_TRIANGLE_FAN` (11 call sites, mostly through `RenderPrimitives`); unused `glDrawBox` removed | `21f008a4` | |
+| No-op fixed-function calls removed from the renderer: `glTexEnvi`, `glColor4f`, texture-target `glEnable`s; unused `glJitterFrustum` / `glJitterPerspective` removed | `5e5709c9` | The `TwkGLF/GL.h` helpers stay for MuGL |
+| `GL_RED` / `GL_RG` with texture swizzles instead of luminance formats | `cd78427e` | Needs GL 3.0 (or `ARB_texture_rg`) and GL 3.3 (or a swizzle extension). macOS's 2.1 context has no swizzle, so it keeps luminance until the switch; Linux and Windows use the new path. `RV_RENDERING_USE_TEXTURE_SWIZZLE=0` turns it off |
+| Extension queries that work in core contexts: `TwkGLF::glExtensions()` (`glGetStringi` on GL 3.0+), `TwkGLF::hasExtension()` with a table of core-promoted extensions; `TWK_GL_SUPPORTS` uses it on every platform | `7df3e36e` | A macOS 4.1 core context lists only 43 extensions, without `ARB_sync`, `ARB_texture_rectangle`, `ARB_pixel_buffer_object` or float textures |
+| Numeric internal format `3` replaced with `GL_RGB8` | `3a373b2d` | |
+| A VAO for every draw in `RenderPrimitives` on GL 3.0+ | `6c375aef` | Made per draw (a VAO belongs to one context) and the previous binding restored. macOS's 2.1 context skips it |
+| Core names for the framebuffer and renderbuffer functions and `glActiveTexture`; the `glBlitFramebufferEXT` stub in `utvio`'s `glfix.c` removed | (pending) | Needs GL 3.0 or `ARB_framebuffer_object` (macOS 2.1 has it). A driver with only `EXT_framebuffer_object` would no longer work |
+| `GL_APPLE_` extensions in a macOS core context checked (2026-10-12, Apple M1 Pro, 4.1 Metal) | | `client_storage`, `texture_range`, `rgb_422` and `row_bytes` remain, so the upload fast path survives. `ycbcr_422` and `float_pixels` are gone; core has float textures |
+
+##### Remaining
+
+1. Text: replace the renderer's FTGL text with MTSDF (decided
+   2026-10-12). See "Text rendering" below.
 1. State saving. `ImageRenderer.cpp` wraps rendering and uploads in
    `GLPushAttrib(GL_ALL_ATTRIB_BITS)` and
-   `GLPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS)` (lines ~1290, 2885,
-   2994, 4541, 4760), and `Session.cpp` around the `render` event. Their
-   comments say they exist so FTGL text (the Mu HUD's) still renders after
-   the image. Core removes both. They go once nothing draws with FTGL after
-   the renderer, or are replaced by explicitly restoring the state the
-   renderer changes (pixel store, blend, scissor, bound textures).
-1. `GL_RED`/`GL_RG` plus texture swizzles instead of luminance formats,
-   where the context supports them (GL 3.0 or `ARB_texture_rg`, and GL 3.3
-   or a swizzle extension). The swizzles (R, R, R, 1) and (R, R, R, G)
-   sample exactly like luminance and luminance-alpha, so shaders don't
-   change. macOS's 2.1 context has `ARB_texture_rg` but no swizzle, so
-   macOS keeps the luminance formats until the switch to core; Linux and
-   Windows use the new path now. `RV_RENDERING_USE_TEXTURE_SWIZZLE=0`
-   turns it off.
-1. Bind a VAO on GL 3.0+ contexts.
-1. The `GL_APPLE_` extensions in a macOS core context (checked
-   2026-10-12, Apple M1 Pro, 4.1 Metal): `client_storage`,
-   `texture_range`, `rgb_422` and `row_bytes` are still available, so the
-   upload fast path survives. `ycbcr_422` and `float_pixels` are gone;
-   core has float textures, and `rgb_422` replaces `ycbcr_422`. What's
-   left is measuring upload speed in a core context.
-1. Switch the context to core. This is the step that needs the HUD
-   decision (and the `utvio` work below).
+   `GLPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS)` (five places), and
+   `Session.cpp` wraps the `render` event in a sixth. A comment says they
+   exist so FTGL text (the Mu HUD's) renders correctly after the image.
+   Core removes both. They go once nothing draws with FTGL after the
+   renderer, or are replaced by restoring the state the renderer changes
+   (pixel store, blend, scissor, bound textures).
+1. Measure texture upload speed in a macOS core context, against the 2.1
+   context (constraint 4).
+1. Switch the context to core:
+   - viewer: `GLView`'s `QSurfaceFormat`, the offscreen GL context behind
+     `MetalView` (`QTMetalVideoDevice.mm`) and behind `VulkanView`
+   - `utvio`: `TwkGLFFBO/FBOVideoDevice.cpp` for GLX, EGL, CGL and WGL
+     (see "Offscreen rendering" above)
+   - the shader generator switches to its GLSL 1.50 branch by itself
+   - this is the step that needs the HUD decision: the Mu HUD, MuGL and
+     render-event drawing can't run in a core context (or, with option D,
+     only the new app uses core)
+
+Problems found along the way, not caused by these steps:
+
+- Annotation text doesn't render in `utvio` output, not even with the
+  code from before the first step. (Possibly the hand-written test session
+  is missing something the annotate tool writes; not yet checked against
+  a session saved from the viewer.)
+- `utvio -debug gpu` doesn't print the renderer's GL capability report.
+
+#### Text rendering
+
+Decided 2026-10-12: replace FTGL with multi-channel signed distance
+field text (MTSDF: three distance channels plus a true distance in the
+fourth), generated from FreeType outlines with `msdfgen` (MIT).
+
+- Today: annotation text (`PaintCommand` `Text`) and the hover-preview
+  label draw with TwkGLText (`src/lib/ui/TwkGLText`), built on FTGL
+  (`FTTextureFont`/`FTPixmapFont`) and the fixed-function pipeline:
+  `glRasterPos`, `glPixelTransfer`, `glPixelZoom`, the matrix stack, and
+  FTGL's own immediate-mode drawing. Around it are
+  `GLState::FixedFunctionPipeline` (unbinds the shader),
+  `GLPipeline::useCurrentProjectionGL2()` / `useCurrentModelviewGL2()`,
+  `glEnable(GL_TEXTURE_2D)`, and the matrix push/pop in
+  `HoverPreviewOverlayGL.cpp`.
+- The `GLtext` API in use is small: choose a font (`init`, `init(name)`)
+  and size, set a colour, measure (`bounds`, `boundsNL`), font metrics
+  (`globalAscenderHeight`, `globalDescenderHeight`), draw (`writeAt`,
+  `writeAtNL`), and per-GL-context state (`newContext`, `setContext`,
+  `deleteContext`, `clear`, used by `GLVideoDevice` and `rvprof`). Users:
+  `PaintCommand`, `HoverPreviewOverlayGL`, `MuGLText` (the Mu `gltext`
+  module), `GLVideoDevice`, `rvprof`.
+- Plan:
+  - layout with no GL in it: font loading, metrics, glyph quads and the
+    CPU side of the glyph atlas (MTSDF generated on demand, since CJK
+    fonts have about 30,000 glyphs). Usable unchanged by a Vulkan or
+    Metal renderer later.
+  - one small draw function per backend; for GL, through
+    `RenderPrimitives` with a shader, taking the matrix and colour as
+    arguments instead of global state. Atlas textures exist per GL
+    context; glyph bitmaps can be shared.
+  - `PaintCommand` and `HoverPreviewOverlayGL` move to it, which removes
+    their fixed-function setup.
+  - `GLtext` stays on FTGL for MuGL and `rvprof` at first. Later it can be
+    reimplemented on the new code (in the compatibility context it can
+    read the fixed-function matrices), removing FTGL and the reason for
+    the state saving above.
+- Chinese text: TwkGLText already decodes UTF-8 (with `utf8::unchecked`,
+  so invalid UTF-8 is undefined behaviour), but the embedded fonts (Luxi
+  Sans by default, Courier, the Tweak font) have no CJK glyphs and there is
+  no font fallback. MTSDF handles complex glyphs with larger cells (about
+  48-64 px per em for CJK, against about 32 for Latin).
+- Open decisions:
+  - fonts: bundle a CJK font (Noto Sans CJK, OFL, about 16 MB per weight,
+    with regional variants for Chinese, Japanese and Korean) or use system
+    fonts with fallback (CoreText, DirectWrite, fontconfig), which can make
+    `utvio` output differ between machines
+  - text shaping: Chinese needs almost none, but Arabic, Hebrew,
+    Devanagari and Thai need HarfBuzz and bidirectional text. Build layout
+    on HarfBuzz from the start or not
+- Expected output change: glyph positions, kerning and anti-aliasing will
+  differ slightly from FTGL's, which is within the "reasonably small
+  differences" `utvio` allows.
 
 So the renderer itself is a modest port. What can't move to core is
 everything that draws in the render events: the Mu HUD and MuGL (238

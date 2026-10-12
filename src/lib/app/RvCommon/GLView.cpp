@@ -438,7 +438,7 @@ namespace Rv
             // Even on Qt6/QOpenGLWidget, we need to call
             // glBindFramebuffer(); it otherwise complains and fails
             // on glClear() on macOS
-            glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, QOpenGLContext::currentContext()->defaultFramebufferObject());
+            glBindFramebuffer(GL_FRAMEBUFFER, QOpenGLContext::currentContext()->defaultFramebufferObject());
             TWK_GLDEBUG;
 
             glPushAttrib(GL_COLOR_BUFFER_BIT);

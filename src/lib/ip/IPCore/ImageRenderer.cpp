@@ -3184,7 +3184,7 @@ namespace IPCore
                 if (timer)
                     m_profilingState.fenceWaitTime += timer->elapsed() - start;
 
-                glActiveTextureARB(GL_TEXTURE0_ARB + plane.textureUnit);
+                glActiveTexture(GL_TEXTURE0 + plane.textureUnit);
                 TWK_GLDEBUG;
                 glBindTexture(plane.tile->target, id);
                 TWK_GLDEBUG;
@@ -3458,7 +3458,7 @@ namespace IPCore
         renderprimitives.setupAndRender();
         TWK_GLDEBUG;
 
-        glActiveTextureARB(GL_TEXTURE0_ARB);
+        glActiveTexture(GL_TEXTURE0);
     }
 
     void ImageRenderer::assignMemberImages(const IPImage* img, const ImageRenderer::ActiveImageVector& activeImages)
@@ -3594,7 +3594,7 @@ namespace IPCore
 
         renderprimitives.setupAndRender();
 
-        glActiveTextureARB(GL_TEXTURE0_ARB);
+        glActiveTexture(GL_TEXTURE0);
         TWK_GLDEBUG;
     }
 

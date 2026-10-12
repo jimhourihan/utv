@@ -13,7 +13,7 @@
 ```
 RGBA16F render FBO
        │
-       │  glBlitFramebufferEXT (GPU: float→RGB10_A2, Y-flip)
+       │  glBlitFramebuffer (GPU: float→RGB10_A2, Y-flip)
        ▼
 IOSurface-backed GL_RGB10_A2 FBO  ← backed by IOSurface memory directly
        │
@@ -64,7 +64,7 @@ thread.
 ```
 RGBA16F render FBO
        │
-       │  glBlitFramebufferEXT (GPU: float→RGB10_A2, Y-flip)  ← same GPU op as fast path
+       │  glBlitFramebuffer (GPU: float→RGB10_A2, Y-flip)  ← same GPU op as fast path
        ▼
 Persistent GL_RGB10_A2 flip FBO  (not IOSurface-backed)
        │

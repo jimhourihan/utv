@@ -516,7 +516,7 @@ namespace TwkGLF
 
         for (int i = 0; i < numFBOs; ++i)
         {
-            if (glGenFramebuffersEXT != nullptr)
+            if (glGenFramebuffers != nullptr)
             {
                 m_fbos.push_back(new GLFBO(w, h, m_alpha ? GL_RGBA16F_ARB : GL_RGB16F_ARB));
                 m_fbos.back()->newColorRenderBuffer();

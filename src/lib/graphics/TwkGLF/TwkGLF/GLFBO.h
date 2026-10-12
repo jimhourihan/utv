@@ -215,12 +215,12 @@ namespace TwkGLF
         Attachment attachPackedDepthStencilBuffer(GLuint);
 
         //
-        //  FBO operations bind and unbind accept: GL_FRAMEBUFFER_EXT,
-        //  GL_DRAW_FRAMEBUFFER_EXT, GL_READ_FRAMEBUFFER_EXT
+        //  FBO operations bind and unbind accept: GL_FRAMEBUFFER,
+        //  GL_DRAW_FRAMEBUFFER, GL_READ_FRAMEBUFFER
         //
 
-        void bind(GLenum kind = GL_FRAMEBUFFER_EXT) const;
-        void unbind(GLenum kind = GL_FRAMEBUFFER_EXT) const;
+        void bind(GLenum kind = GL_FRAMEBUFFER) const;
+        void unbind(GLenum kind = GL_FRAMEBUFFER) const;
 
         //
         //  Binding the texture means you're going to use it as a texture

@@ -34,13 +34,13 @@ namespace TwkGLF
     {
         TWK_GLDEBUG;
 
-        if (glGenFramebuffersEXT != nullptr)
+        if (glGenFramebuffers != nullptr)
         {
-            glGenFramebuffersEXT(1, &m_id);
+            glGenFramebuffers(1, &m_id);
             TWK_GLDEBUG;
-            if (glBindFramebufferEXT != nullptr)
+            if (glBindFramebuffer != nullptr)
             {
-                glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_id);
+                glBindFramebuffer(GL_FRAMEBUFFER, m_id);
                 TWK_GLDEBUG;
             }
         }
@@ -87,19 +87,19 @@ namespace TwkGLF
     {
         if (m_id && m_ownsFBOHandle)
         {
-            if (glBindFramebufferEXT != nullptr)
+            if (glBindFramebuffer != nullptr)
             {
-                glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 TWK_GLDEBUG;
             }
-            if (glBindRenderbufferEXT != nullptr)
+            if (glBindRenderbuffer != nullptr)
             {
-                glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
+                glBindRenderbuffer(GL_RENDERBUFFER, 0);
                 TWK_GLDEBUG;
             }
-            if (glDeleteFramebuffersEXT != nullptr)
+            if (glDeleteFramebuffers != nullptr)
             {
-                glDeleteFramebuffersEXT(1, &m_id);
+                glDeleteFramebuffers(1, &m_id);
                 TWK_GLDEBUG;
             }
 
@@ -116,7 +116,7 @@ namespace TwkGLF
                     }
                     else
                     {
-                        glDeleteRenderbuffersEXT(1, &a.id);
+                        glDeleteRenderbuffers(1, &a.id);
                         TWK_GLDEBUG;
                     }
                 }
@@ -174,7 +174,7 @@ namespace TwkGLF
                 const Attachment& a = m_attachments[q];
                 GLuint apoint = a.attachPoint;
 
-                if (apoint >= GL_COLOR_ATTACHMENT0_EXT && apoint < GL_COLOR_ATTACHMENT0_EXT + m_colorCount)
+                if (apoint >= GL_COLOR_ATTACHMENT0 && apoint < GL_COLOR_ATTACHMENT0 + m_colorCount)
                 {
                     if (count == i)
                         return &a;
@@ -270,9 +270,9 @@ namespace TwkGLF
     {
         bind();
 
-        glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + m_colorCount, GL_RENDERBUFFER_EXT, id);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + m_colorCount, GL_RENDERBUFFER, id);
 
-        m_attachments.push_back(Attachment(id, GL_COLOR_ATTACHMENT0_EXT + m_colorCount, GL_UNSIGNED_BYTE, false, false, false, false));
+        m_attachments.push_back(Attachment(id, GL_COLOR_ATTACHMENT0 + m_colorCount, GL_UNSIGNED_BYTE, false, false, false, false));
         m_colorCount++;
 
         // avoid checking gl status unless in debug mode
@@ -289,23 +289,23 @@ namespace TwkGLF
         TWK_GLDEBUG;
 
         GLuint id;
-        glGenRenderbuffersEXT(1, &id);
+        glGenRenderbuffers(1, &id);
         TWK_GLDEBUG;
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, id);
+        glBindRenderbuffer(GL_RENDERBUFFER, id);
         TWK_GLDEBUG;
 
         if (m_samples > 1)
         {
-            glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, m_samples, m_colorFormat, m_width, m_height);
+            glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_samples, m_colorFormat, m_width, m_height);
             TWK_GLDEBUG;
         }
         else
         {
-            glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, m_colorFormat, m_width, m_height);
+            glRenderbufferStorage(GL_RENDERBUFFER, m_colorFormat, m_width, m_height);
             TWK_GLDEBUG;
         }
 
-        glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + m_colorCount, GL_RENDERBUFFER_EXT, id);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + m_colorCount, GL_RENDERBUFFER, id);
         TWK_GLDEBUG;
 
         // avoid checking gl status unless in debug mode
@@ -313,7 +313,7 @@ namespace TwkGLF
         check();
 #endif
 
-        m_attachments.push_back(Attachment(id, m_colorCount + GL_COLOR_ATTACHMENT0_EXT, GL_UNSIGNED_BYTE, false));
+        m_attachments.push_back(Attachment(id, m_colorCount + GL_COLOR_ATTACHMENT0, GL_UNSIGNED_BYTE, false));
         m_colorCount++;
 
         return m_attachments.back();
@@ -323,11 +323,10 @@ namespace TwkGLF
     {
         bind();
 
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + m_colorCount, target, id, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + m_colorCount, target, id, 0);
         TWK_GLDEBUG;
 
-        m_attachments.push_back(
-            Attachment(id, GL_COLOR_ATTACHMENT0_EXT + m_colorCount, target, GL_UNSIGNED_BYTE, true, false, false, false));
+        m_attachments.push_back(Attachment(id, GL_COLOR_ATTACHMENT0 + m_colorCount, target, GL_UNSIGNED_BYTE, true, false, false, false));
         m_colorCount++;
 
         // avoid checking gl status unless in debug mode
@@ -378,9 +377,9 @@ namespace TwkGLF
 
         glBindTexture(target, 0);
 
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + m_colorCount, target, id, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + m_colorCount, target, id, 0);
 
-        m_attachments.push_back(Attachment(id, GL_COLOR_ATTACHMENT0_EXT + m_colorCount, target, type, true));
+        m_attachments.push_back(Attachment(id, GL_COLOR_ATTACHMENT0 + m_colorCount, target, type, true));
         m_colorCount++;
 
         // avoid checking gl status unless in debug mode
@@ -396,34 +395,34 @@ namespace TwkGLF
         bind();
 
         GLuint id;
-        glGenRenderbuffersEXT(1, &id);
+        glGenRenderbuffers(1, &id);
         TWK_GLDEBUG;
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, id);
+        glBindRenderbuffer(GL_RENDERBUFFER, id);
         TWK_GLDEBUG;
 
         if (m_samples > 1)
         {
-            glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, m_samples, GL_DEPTH24_STENCIL8_EXT, m_width, m_height);
+            glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_samples, GL_DEPTH24_STENCIL8, m_width, m_height);
             TWK_GLDEBUG;
         }
         else
         {
-            glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8_EXT, m_width, m_height);
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_width, m_height);
             TWK_GLDEBUG;
         }
 
-        glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, id);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, id);
         TWK_GLDEBUG;
 
-        glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, id);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, id);
         TWK_GLDEBUG;
 
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
         TWK_GLDEBUG;
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         TWK_GLDEBUG;
 
-        m_attachments.push_back(Attachment(id, GL_STENCIL_ATTACHMENT_EXT, 0, GL_UNSIGNED_BYTE, false, true, true, true));
+        m_attachments.push_back(Attachment(id, GL_STENCIL_ATTACHMENT, 0, GL_UNSIGNED_BYTE, false, true, true, true));
         TWK_GLDEBUG;
         // avoid checking gl status unless in debug mode
 #ifdef NDEBUG
@@ -437,11 +436,11 @@ namespace TwkGLF
     {
         bind();
 
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, id, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, id, 0);
         TWK_GLDEBUG;
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, id, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, id, 0);
         TWK_GLDEBUG;
-        m_attachments.push_back(Attachment(id, GL_STENCIL_ATTACHMENT_EXT, 0, GL_UNSIGNED_BYTE, false, true, true, false));
+        m_attachments.push_back(Attachment(id, GL_STENCIL_ATTACHMENT, 0, GL_UNSIGNED_BYTE, false, true, true, false));
         // avoid checking gl status unless in debug mode
 #ifdef NDEBUG
         check();
@@ -453,13 +452,13 @@ namespace TwkGLF
     void GLFBO::bind(GLenum kind) const
     {
         waitForExternalReadback();
-        glBindFramebufferEXT(kind, fboID());
+        glBindFramebuffer(kind, fboID());
         TWK_GLDEBUG;
     }
 
     void GLFBO::unbind(GLenum kind) const
     {
-        glBindFramebufferEXT(kind, 0);
+        glBindFramebuffer(kind, 0);
         TWK_GLDEBUG;
     }
 
@@ -471,9 +470,9 @@ namespace TwkGLF
 
         bind();
 
-        GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+        GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
         TWK_GLDEBUG;
-        if (status != GL_FRAMEBUFFER_COMPLETE_EXT)
+        if (status != GL_FRAMEBUFFER_COMPLETE)
         {
             //
             //  NOTE: This is not an error so gluErrorString() will not produce
@@ -535,10 +534,10 @@ namespace TwkGLF
         const GLint dstX1 = destinationGLFBO->width();
         const GLint dstY1 = destinationGLFBO->height();
 
-        bind(GL_READ_FRAMEBUFFER_EXT);
-        destinationGLFBO->bind(GL_DRAW_FRAMEBUFFER_EXT);
+        bind(GL_READ_FRAMEBUFFER);
+        destinationGLFBO->bind(GL_DRAW_FRAMEBUFFER);
 
-        glBlitFramebufferEXT(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
+        glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
 
         HOP_CALL(glFinish();)
     }
@@ -561,10 +560,10 @@ namespace TwkGLF
         const GLint dstX1 = dstX0 + dstW * dw;
         const GLint dstY1 = dstY0 + dstH * dh;
 
-        bind(GL_READ_FRAMEBUFFER_EXT);
-        destinationGLFBO->bind(GL_DRAW_FRAMEBUFFER_EXT);
+        bind(GL_READ_FRAMEBUFFER);
+        destinationGLFBO->bind(GL_DRAW_FRAMEBUFFER);
 
-        glBlitFramebufferEXT(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
+        glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
         TWK_GLDEBUG;
     }
 

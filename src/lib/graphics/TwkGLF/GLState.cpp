@@ -101,7 +101,7 @@ namespace TwkGLF
 
     void GLState::clearState()
     {
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         TWK_GLDEBUG;
         m_state.clear();
     }
