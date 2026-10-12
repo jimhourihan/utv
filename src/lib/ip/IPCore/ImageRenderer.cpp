@@ -759,8 +759,14 @@ namespace IPCore
         GLint maxva;
         glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxva);
         TWK_GLDEBUG;
-        GLint maxtu;
-        glGetIntegerv(GL_MAX_TEXTURE_UNITS, &maxtu);
+        //
+        //  GL_MAX_TEXTURE_UNITS is the fixed-function limit; core profile
+        //  contexts don't have it.
+        //
+
+        GLint maxtu = 0;
+        if (!TwkGLF::isCoreProfile())
+            glGetIntegerv(GL_MAX_TEXTURE_UNITS, &maxtu);
         TWK_GLDEBUG;
         GLint maxdb;
         glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxdb);

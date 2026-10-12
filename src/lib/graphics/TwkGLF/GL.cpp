@@ -211,6 +211,43 @@ namespace TwkGLF
         sscanf(version.c_str(), "%d.%d", &major, &minor);
     }
 
+    bool isCoreProfile()
+    {
+        //
+        //  Values from GL 3.0 / 3.2, which Apple's GL 2.1 headers lack.
+        //
+
+        const GLenum contextFlags = 0x821E;       // GL_CONTEXT_FLAGS
+        const GLint forwardCompatibleBit = 0x1;   // GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT
+        const GLenum contextProfileMask = 0x9126; // GL_CONTEXT_PROFILE_MASK
+        const GLint coreProfileBit = 0x1;         // GL_CONTEXT_CORE_PROFILE_BIT
+
+        int major, minor;
+        glVersion(major, minor);
+
+        if (major < 3)
+            return false;
+
+        if (major == 3 && minor < 2)
+        {
+            GLint flags = 0;
+            glGetIntegerv(contextFlags, &flags);
+            return (flags & forwardCompatibleBit) != 0;
+        }
+
+#if defined(PLATFORM_DARWIN)
+        //
+        //  macOS only has core profile contexts above GL 2.1.
+        //
+
+        return true;
+#else
+        GLint mask = 0;
+        glGetIntegerv(contextProfileMask, &mask);
+        return (mask & coreProfileBit) != 0;
+#endif
+    }
+
     vector<string> glExtensions()
     {
         vector<string> extensions;

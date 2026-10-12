@@ -191,6 +191,14 @@ namespace TwkGLF
     void glVersion(int& major, int& minor);
 
     //
+    //  True if the current context is a core profile context (or a
+    //  forward-compatible GL 3.0 / 3.1 one), where the fixed-function
+    //  pipeline and its state and limits don't exist.
+    //
+
+    bool isCoreProfile();
+
+    //
     //  The current context's extensions. GL 3.0 and later read them with
     //  glGetStringi(): glGetString(GL_EXTENSIONS) is an error in a core
     //  profile context.
