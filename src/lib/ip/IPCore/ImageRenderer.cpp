@@ -4334,7 +4334,7 @@ namespace IPCore
                 d->internalFormat = GL_RGB16;
                 break;
             default:
-                d->internalFormat = 3;
+                d->internalFormat = GL_RGB8;
                 break;
             }
 
