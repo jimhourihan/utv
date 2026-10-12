@@ -43,7 +43,7 @@ namespace
             }
             catch (const std::exception& e)
             {
-                std::cout << "ERROR: Unable to get the frame from the pen component: " << e.what() << "'\n";
+                std::cout << "ERROR: Unable to get the frame from the paint component: " << e.what() << "'\n";
             }
         }
 
@@ -366,8 +366,14 @@ namespace IPCore
         const int debug = debugP && debugP->size() ? debugP->front() : 0;
         const int eye = eyeP && eyeP->size() ? eyeP->front() : 2;
 
-        const int startFrame = (startFrameP != nullptr && startFrameP->size() != 0) ? startFrameP->front() : 0;
-        const int duration = (durationP != nullptr && durationP->size() != 0) ? durationP->front() : 0;
+        //
+        //  Same fallbacks as pen strokes: text written before these
+        //  properties existed is shown on the frame in its name
+        //  ("text:id:frame:user") for one frame.
+        //
+
+        const int startFrame = (startFrameP != nullptr && startFrameP->size() != 0) ? startFrameP->front() : getStartFrame(*c);
+        const int duration = (durationP != nullptr && durationP->size() != 0) ? durationP->front() : 1;
 
         p.ptsize = size * 100.0 * 100.0;
         p.scale = 1.0 / 80.0 / 10.0 * scale;
