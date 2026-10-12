@@ -1036,6 +1036,7 @@ namespace IPCore
         static bool m_drawPixelsOnly;
         static bool m_defaultAllowPBOs;
         static bool m_ycbcrApple;
+        static bool m_textureSwizzle;
         static bool m_debugGpu;
         static bool m_nonPowerOf2;
         static bool m_softwareGLRenderer;

@@ -252,9 +252,11 @@ namespace TwkGLF
             size *= 4;
             break;
         case GL_LUMINANCE_ALPHA:
+        case GL_RG:
             size *= 2;
             break;
         case GL_LUMINANCE:
+        case GL_RED:
         default:
             break;
         }

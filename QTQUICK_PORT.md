@@ -515,10 +515,8 @@ What the core profile removes, counted in `src/lib/ip`,
   `glPushAttrib`, `glTexEnvi`, ...) are only in `TwkGLF/GL.cpp`,
   `GLPipeline.cpp`, `TwkGLF/GL.h` and `HoverPreviewOverlayGL.cpp`, about
   35 calls in all.
-- `GL_APPLE_` extensions (9 uses). To check: macOS doesn't expose
-  `APPLE_client_storage` / `APPLE_texture_range` in core contexts, and
-  they may be part of the macOS upload fast path, which matters for
-  constraint 4.
+- `GL_APPLE_` extensions (9 uses). A macOS core context still has
+  `APPLE_client_storage` and `APPLE_texture_range` (see step 5 below).
 - `GL_TEXTURE_RECTANGLE` (24 uses) and pixel buffer objects are still
   core and need no change.
 
@@ -553,10 +551,20 @@ can be merged on its own:
    the renderer, or are replaced by explicitly restoring the state the
    renderer changes (pixel store, blend, scissor, bound textures).
 1. `GL_RED`/`GL_RG` plus texture swizzles instead of luminance formats,
-   where the context supports them.
+   where the context supports them (GL 3.0 or `ARB_texture_rg`, and GL 3.3
+   or a swizzle extension). The swizzles (R, R, R, 1) and (R, R, R, G)
+   sample exactly like luminance and luminance-alpha, so shaders don't
+   change. macOS's 2.1 context has `ARB_texture_rg` but no swizzle, so
+   macOS keeps the luminance formats until the switch to core; Linux and
+   Windows use the new path now. `RV_RENDERING_USE_TEXTURE_SWIZZLE=0`
+   turns it off.
 1. Bind a VAO on GL 3.0+ contexts.
-1. Measure what the macOS upload path loses without the `GL_APPLE_`
-   extensions.
+1. The `GL_APPLE_` extensions in a macOS core context (checked
+   2026-10-12, Apple M1 Pro, 4.1 Metal): `client_storage`,
+   `texture_range`, `rgb_422` and `row_bytes` are still available, so the
+   upload fast path survives. `ycbcr_422` and `float_pixels` are gone;
+   core has float textures, and `rgb_422` replaces `ycbcr_422`. What's
+   left is measuring upload speed in a core context.
 1. Switch the context to core. This is the step that needs the HUD
    decision (and the `utvio` work below).
 
@@ -715,8 +723,8 @@ HUD toggles, no Phase 1), and the current app is left as it is.
 - `QQuickGraphicsDevice::fromDeviceObjects()` with an RV-owned
   `VkDevice`, on MoltenVK as well as native Vulkan.
 - MoltenVK EDR / HDR10 / HLG colour spaces against the current `MetalView`.
-- Whether macOS GL core contexts lose `APPLE_client_storage` /
-  `APPLE_texture_range`, and what that does to upload speed.
+- Upload speed on macOS in a core context. (It keeps
+  `APPLE_client_storage` / `APPLE_texture_range`; checked 2026-10-12.)
 - Mesa lavapipe for machines without a GPU driver (Windows, Linux VMs).
 - Vulkan samplers with unnormalized coordinates (needed for texture
   rectangle semantics) have limits: no mipmaps, clamp-to-edge or border

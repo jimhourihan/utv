@@ -120,6 +120,44 @@ namespace IPCore
     //  DMA) instead of GL_RGB16F/GL_RGB32F (per-pixel driver expansion on
     //  upload). Set RV_EXPAND_RGB_TO_RGBA=0 to restore the legacy RGB path.
     static ENVVAR_BOOL(evExpandRGBToRGBA, "RV_EXPAND_RGB_TO_RGBA", true);
+    static ENVVAR_BOOL(evTextureSwizzle, "RV_RENDERING_USE_TEXTURE_SWIZZLE", true);
+
+#ifndef GL_TEXTURE_SWIZZLE_RGBA
+#define GL_TEXTURE_SWIZZLE_RGBA 0x8E46
+#endif
+
+    //
+    //  GL_RED / GL_RG textures stand in for GL_LUMINANCE /
+    //  GL_LUMINANCE_ALPHA (see initializeTextureFormat()). The swizzle makes
+    //  them sample as (L, L, L, 1) and (L, L, L, A), so shaders are
+    //  unchanged. Swizzle is texture object state, so other formats get the
+    //  identity swizzle in case the texture held a red or RG image before.
+    //  Call with the texture bound, after it is created.
+    //
+
+    static void setTextureSwizzle(const ImageRenderer::TextureDescription* d, bool enabled)
+    {
+        if (!enabled)
+            return;
+
+        GLint swizzle[] = {GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA};
+
+        if (d->format == GL_RED)
+        {
+            swizzle[1] = GL_RED;
+            swizzle[2] = GL_RED;
+            swizzle[3] = GL_ONE;
+        }
+        else if (d->format == GL_RG)
+        {
+            swizzle[1] = GL_RED;
+            swizzle[2] = GL_RED;
+            swizzle[3] = GL_GREEN;
+        }
+
+        glTexParameteriv(d->target, GL_TEXTURE_SWIZZLE_RGBA, swizzle);
+        TWK_GLDEBUG;
+    }
 
 #define NOT_A_FRAME (std::numeric_limits<int>::min())
 #define NOT_A_COORDINATE (GLuint(-1))
@@ -279,6 +317,7 @@ namespace IPCore
     bool ImageRenderer::m_defaultAllowPBOs = true;
     bool ImageRenderer::m_fragmentProgram = true;
     bool ImageRenderer::m_ycbcrApple = false;
+    bool ImageRenderer::m_textureSwizzle = false;
     bool ImageRenderer::m_debugGpu = false;
     bool ImageRenderer::m_softwareGLRenderer = false;
     int ImageRenderer::m_ALUinsnLimit = 0;
@@ -850,6 +889,22 @@ namespace IPCore
         m_fragmentProgram = TWK_GL_SUPPORTS("GL_ARB_fragment_program");
         m_nonPowerOf2 = TWK_GL_SUPPORTS("GL_ARB_texture_non_power_of_two");
         m_ycbcrApple = TWK_GL_SUPPORTS("GL_APPLE_ycbcr_422");
+
+        //
+        //  One and two channel images use GL_RED / GL_RG textures with a
+        //  swizzle instead of GL_LUMINANCE / GL_LUMINANCE_ALPHA, which the
+        //  core profile removes. That needs GL 3.0 (or ARB_texture_rg) for
+        //  the formats and GL 3.3 (or a swizzle extension) for the swizzle.
+        //  The macOS compatibility context is GL 2.1 with no swizzle, so it
+        //  keeps the luminance formats.
+        //
+
+        int glMajor = 0, glMinor = 0;
+        sscanf(glver.c_str(), "%d.%d", &glMajor, &glMinor);
+        const bool hasRG = glMajor >= 3 || TWK_GL_SUPPORTS("GL_ARB_texture_rg");
+        const bool hasSwizzle = glMajor > 3 || (glMajor == 3 && glMinor >= 3) || TWK_GL_SUPPORTS("GL_ARB_texture_swizzle")
+                                || TWK_GL_SUPPORTS("GL_EXT_texture_swizzle");
+        m_textureSwizzle = hasRG && hasSwizzle && evTextureSwizzle.getValue();
 
         if (m_fragmentProgram)
         {
@@ -4208,30 +4263,30 @@ namespace IPCore
                 //
                 d->format = GL_RGBA;
                 d->internalFormat = GL_RGBA8;
-                d->format = GL_LUMINANCE_ALPHA;
+                d->format = m_textureSwizzle ? GL_RG : GL_LUMINANCE_ALPHA;
                 d->internalFormat = GL_RGBA8;
                 d->channels = 4;
                 d->channelType = GL_UNSIGNED_BYTE;
                 d->width /= 2;
                 break;
             default:
-                d->format = GL_LUMINANCE;
+                d->format = m_textureSwizzle ? GL_RED : GL_LUMINANCE;
                 switch (d->channelType)
                 {
                 case GL_HALF_FLOAT_ARB:
                     if (m_softwareGLRenderer)
-                        d->internalFormat = GL_LUMINANCE32F_ARB;
+                        d->internalFormat = m_textureSwizzle ? GL_R32F : GL_LUMINANCE32F_ARB;
                     else
-                        d->internalFormat = GL_LUMINANCE16F_ARB;
+                        d->internalFormat = m_textureSwizzle ? GL_R16F : GL_LUMINANCE16F_ARB;
                     break;
                 case GL_FLOAT:
-                    d->internalFormat = GL_LUMINANCE32F_ARB;
+                    d->internalFormat = m_textureSwizzle ? GL_R32F : GL_LUMINANCE32F_ARB;
                     break;
                 case GL_UNSIGNED_SHORT:
-                    d->internalFormat = GL_LUMINANCE16;
+                    d->internalFormat = m_textureSwizzle ? GL_R16 : GL_LUMINANCE16;
                     break;
                 default:
-                    d->internalFormat = GL_LUMINANCE8;
+                    d->internalFormat = m_textureSwizzle ? GL_R8 : GL_LUMINANCE8;
                     break;
                 }
                 break;
@@ -4239,24 +4294,24 @@ namespace IPCore
             break;
 
         case 2:
-            d->format = GL_LUMINANCE_ALPHA;
+            d->format = m_textureSwizzle ? GL_RG : GL_LUMINANCE_ALPHA;
 
             switch (d->channelType)
             {
             case GL_HALF_FLOAT_ARB:
                 if (m_softwareGLRenderer)
-                    d->internalFormat = GL_LUMINANCE_ALPHA32F_ARB;
+                    d->internalFormat = m_textureSwizzle ? GL_RG32F : GL_LUMINANCE_ALPHA32F_ARB;
                 else
-                    d->internalFormat = GL_LUMINANCE_ALPHA16F_ARB;
+                    d->internalFormat = m_textureSwizzle ? GL_RG16F : GL_LUMINANCE_ALPHA16F_ARB;
                 break;
             case GL_FLOAT:
-                d->internalFormat = GL_LUMINANCE_ALPHA32F_ARB;
+                d->internalFormat = m_textureSwizzle ? GL_RG32F : GL_LUMINANCE_ALPHA32F_ARB;
                 break;
             case GL_UNSIGNED_SHORT:
-                d->internalFormat = GL_LUMINANCE16_ALPHA16;
+                d->internalFormat = m_textureSwizzle ? GL_RG16 : GL_LUMINANCE16_ALPHA16;
                 break;
             default:
-                d->internalFormat = GL_LUMINANCE8_ALPHA8;
+                d->internalFormat = m_textureSwizzle ? GL_RG8 : GL_LUMINANCE8_ALPHA8;
                 break;
             }
             break;
@@ -4562,6 +4617,7 @@ namespace IPCore
                      tex->format,         // data format
                      tex->channelType,    // data type
                      p);                  // data
+        setTextureSwizzle(tex, m_textureSwizzle);
 
         TWK_GLDEBUG;
 
@@ -4606,6 +4662,7 @@ namespace IPCore
                      tex->format,         // data format
                      tex->channelType,    // data type
                      p);                  // data
+        setTextureSwizzle(tex, m_textureSwizzle);
 
         TWK_GLDEBUG;
 
@@ -4648,6 +4705,7 @@ namespace IPCore
                      tex->format,         // data format
                      tex->channelType,    // data type
                      p);                  // data
+        setTextureSwizzle(tex, m_textureSwizzle);
 
         TWK_GLDEBUG;
 
@@ -4880,6 +4938,7 @@ namespace IPCore
                              d->format,         // data format
                              d->channelType,    // data type
                              NULL);             // data
+                setTextureSwizzle(d, m_textureSwizzle);
                 TWK_GLDEBUG;
                 HOP_CALL(glFinish();)
             }
@@ -4973,6 +5032,7 @@ namespace IPCore
                              d->format,         // data format
                              d->channelType,    // data type
                              p);                // data
+                setTextureSwizzle(d, m_textureSwizzle);
 
                 TWK_GLDEBUG;
             }
