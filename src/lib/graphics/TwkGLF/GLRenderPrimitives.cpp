@@ -57,11 +57,16 @@ namespace TwkGLF
         case GL_TRIANGLES:
             m_verticesPerPrimitive = 3;
             break;
-        case GL_QUADS:
-            m_verticesPerPrimitive = 4;
-            break;
         case GL_POINTS:
             m_verticesPerPrimitive = 1;
+            break;
+        default:
+            //
+            //  Strips, fans and loops: each primitive uses an equal share of
+            //  the vertices. GL_QUADS is not used: the core profile removes
+            //  it, so draw a quad as a GL_TRIANGLE_FAN of the same vertices.
+            //
+            m_verticesPerPrimitive = m_primitiveData.m_primitiveNo ? m_primitiveData.m_vertexNo / m_primitiveData.m_primitiveNo : 0;
             break;
         }
     }

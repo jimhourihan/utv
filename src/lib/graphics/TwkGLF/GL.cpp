@@ -241,54 +241,6 @@ bool glSupportsExtension(const char* extstring)
     return temp != NULL;                            // Return false.
 }
 
-void glDrawBox(const Box3f& bbox)
-{
-    Vec3f a(bbox.min.x, bbox.min.y, bbox.min.z);
-    Vec3f b(bbox.min.x, bbox.min.y, bbox.max.z);
-    Vec3f c(bbox.min.x, bbox.max.y, bbox.min.z);
-    Vec3f d(bbox.min.x, bbox.max.y, bbox.max.z);
-    Vec3f e(bbox.max.x, bbox.min.y, bbox.min.z);
-    Vec3f f(bbox.max.x, bbox.min.y, bbox.max.z);
-    Vec3f g(bbox.max.x, bbox.max.y, bbox.min.z);
-    Vec3f h(bbox.max.x, bbox.max.y, bbox.max.z);
-
-    glBegin(GL_QUADS);
-
-    glNormal3f(0, 0, -1);
-    glVertex(a);
-    glVertex(e);
-    glVertex(g);
-    glVertex(c);
-    glNormal3f(-1, 0, 0);
-    glVertex(a);
-    glVertex(c);
-    glVertex(d);
-    glVertex(b);
-    glNormal3f(0, -1, 0);
-    glVertex(a);
-    glVertex(b);
-    glVertex(f);
-    glVertex(e);
-
-    glNormal3f(0, 1, 0);
-    glVertex(h);
-    glVertex(d);
-    glVertex(c);
-    glVertex(g);
-    glNormal3f(1, 0, 0);
-    glVertex(h);
-    glVertex(g);
-    glVertex(e);
-    glVertex(f);
-    glNormal3f(0, 0, 1);
-    glVertex(h);
-    glVertex(f);
-    glVertex(b);
-    glVertex(d);
-
-    glEnd();
-}
-
 #define PI_ 3.14159265358979323846
 
 //

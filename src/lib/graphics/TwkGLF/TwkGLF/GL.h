@@ -411,8 +411,6 @@ inline void getUniformGLInt(GLuint p, const unsigned int loc, GLint* data)
     TWK_GLDEBUG;
 }
 
-void glDrawBox(const TwkMath::Box3f& bbox);
-
 void glJitterFrustum(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble near, GLdouble far, GLdouble pixdx,
                      GLdouble pixdy, GLdouble eyedx, GLdouble eyedy, GLdouble focus);
 

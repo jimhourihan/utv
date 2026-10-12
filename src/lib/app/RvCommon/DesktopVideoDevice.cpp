@@ -263,7 +263,7 @@ namespace Rv
 
         // draw
         float data[] = {0, 0, 0, 0, w, 0, w - 1, 0, w, h, w - 1, h - 1, 0, h, 0, h - 1};
-        PrimitiveData buffer(data, NULL, GL_QUADS, 4, 1, 16 * sizeof(float));
+        PrimitiveData buffer(data, NULL, GL_TRIANGLE_FAN, 4, 1, 16 * sizeof(float));
         std::vector<VertexAttribute> attributeInfo;
 
         attributeInfo.push_back(VertexAttribute(std::string("in_Position"), GL_FLOAT, 2, 2 * sizeof(float), 4 * sizeof(float)));
@@ -287,7 +287,7 @@ namespace Rv
 
         // draw
         float data[] = {0, 0, 0, 0, w, 0, w - 1, 0, w, h, w - 1, h - 1, 0, h, 0, h - 1};
-        PrimitiveData buffer(data, NULL, GL_QUADS, 4, 1, 16 * sizeof(float));
+        PrimitiveData buffer(data, NULL, GL_TRIANGLE_FAN, 4, 1, 16 * sizeof(float));
         std::vector<VertexAttribute> attributeInfo;
 
         attributeInfo.push_back(VertexAttribute(std::string("in_Position"), GL_FLOAT, 2, 2 * sizeof(float), 4 * sizeof(float)));

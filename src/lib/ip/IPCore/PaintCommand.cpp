@@ -173,7 +173,7 @@ namespace IPCore
             //  *not* [0,w-1] x [0,h-1]
             //
             float data[] = {0, 0, 0, 0, w, 0, w - 1, 0, w, h, w - 1, h - 1, 0, h, 0, h - 1};
-            PrimitiveData buffer(data, NULL, GL_QUADS, 4, 1, 16 * sizeof(float));
+            PrimitiveData buffer(data, NULL, GL_TRIANGLE_FAN, 4, 1, 16 * sizeof(float));
             std::vector<VertexAttribute> attributeInfo;
 
             attributeInfo.push_back(VertexAttribute(std::string("in_Position"), GL_FLOAT, 2, 2 * sizeof(float), 4 * sizeof(float)));
@@ -271,7 +271,7 @@ namespace IPCore
             //  NOTE: rectangle coords are [0,w] x [0,h]
             //  *not* [0,w-1] x [0,h-1]
             float data[] = {0, 0, 0, 0, w, 0, w - 1, 0, w, h, w - 1, h - 1, 0, h, 0, h - 1};
-            PrimitiveData buffer(data, NULL, GL_QUADS, 4, 1, 16 * sizeof(float));
+            PrimitiveData buffer(data, NULL, GL_TRIANGLE_FAN, 4, 1, 16 * sizeof(float));
             std::vector<VertexAttribute> attributeInfo2;
             attributeInfo2.push_back(VertexAttribute(std::string("in_Position"), GL_FLOAT, 2, 2 * sizeof(float), 4 * sizeof(float)));
 
@@ -736,7 +736,7 @@ namespace IPCore
         {
             float data[] = {pos.x, pos.y, pos.x + width, pos.y, pos.x + width, pos.y + height, pos.x, pos.y + height};
 
-            executeQuad(context, data, color, GL_QUADS);
+            executeQuad(context, data, color, GL_TRIANGLE_FAN);
         }
 
         void Rectangle::hash(ostream& o) const { o << pos << height << width << color; }
@@ -745,7 +745,7 @@ namespace IPCore
 
         void Quad::execute(CommandContext& context) const
         {
-            GLint dm = (drawMode == SolidMode) ? GL_QUADS : GL_LINE_LOOP;
+            GLint dm = (drawMode == SolidMode) ? GL_TRIANGLE_FAN : GL_LINE_LOOP;
 
             executeQuad(context, (float*)points, color, dm);
         }

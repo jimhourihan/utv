@@ -208,13 +208,13 @@ namespace IPCore
         void fillRectangle(GLState* glState, float x0, float y0, float x1, float y1)
         {
             vector<float> data = {x0, y0, x1, y0, x1, y1, x0, y1};
-            drawVertices(glState, data, GL_QUADS);
+            drawVertices(glState, data, GL_TRIANGLE_FAN);
         }
 
         void drawTexturedRectangle(GLState* glState, float x0, float y0, float x1, float y1)
         {
             float data[] = {0, 0, x0, y0, 1, 0, x1, y0, 1, 1, x1, y1, 0, 1, x0, y1};
-            PrimitiveData buffer(data, NULL, GL_QUADS, 4, 1, sizeof(data));
+            PrimitiveData buffer(data, NULL, GL_TRIANGLE_FAN, 4, 1, sizeof(data));
             vector<VertexAttribute> attributeInfo;
             attributeInfo.push_back(VertexAttribute(string("in_Position"), GL_FLOAT, 2, 2 * sizeof(float), 4 * sizeof(float)));
             attributeInfo.push_back(VertexAttribute(string("in_TexCoord0"), GL_FLOAT, 2, 0, 4 * sizeof(float)));

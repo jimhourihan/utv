@@ -53,7 +53,8 @@ namespace TwkGLF
 
     //
     // this contains
-    // --type of primitives: quads, tris, etc
+    // --type of primitives: triangles, triangle fans, etc. (no GL_QUADS:
+    //   it is not in the core profile)
     // --number of primitives, number of vertices, datatype (float, double,
     // etc.)
     // --data pointer (in PrimitiveData) of the primitives: includes vertex
@@ -105,7 +106,7 @@ namespace TwkGLF
     };
 
     //
-    // render a list of tris, quads, points, faces, etc.
+    // render a list of tris, points, faces, etc.
     // NOTE right now renderPrimitives() will render all primitives, i.e., it is
     // not an option to render partial data in the future, the code can be
     // modified to support rendering of a partial list by default texture,

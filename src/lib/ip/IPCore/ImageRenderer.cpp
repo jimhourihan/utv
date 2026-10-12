@@ -2785,7 +2785,7 @@ namespace IPCore
                             0,
                             static_cast<float>(target->height())};
 
-            PrimitiveData databuffer(data, NULL, GL_QUADS, 4, 1, sizeof(float) * 16);
+            PrimitiveData databuffer(data, NULL, GL_TRIANGLE_FAN, 4, 1, sizeof(float) * 16);
 
             vector<VertexAttribute> attributeInfo;
             attributeInfo.push_back(VertexAttribute("in_Position", GL_FLOAT, 2, 0,
@@ -3395,7 +3395,7 @@ namespace IPCore
         ostringstream texcoordname;
         texcoordname << "in_TexCoord" << image->ipToGraphIDs[img];
 
-        PrimitiveData databuffer(&data.front(), NULL, GL_QUADS, 4, 1, sizeof(float) * 16);
+        PrimitiveData databuffer(&data.front(), NULL, GL_TRIANGLE_FAN, 4, 1, sizeof(float) * 16);
 
         vector<VertexAttribute> attributeInfo;
 
@@ -3542,7 +3542,7 @@ namespace IPCore
             count++;
         }
 
-        PrimitiveData databuffer(&(data[0]), NULL, GL_QUADS, 4, 1,
+        PrimitiveData databuffer(&(data[0]), NULL, GL_TRIANGLE_FAN, 4, 1,
                                  sizeof(float) * (8 + 8 * count)); // 8 for vertex, 8 per texcoord set
 
         RenderPrimitives renderprimitives(glPipeline->glProgram(), databuffer, attributeInfo, m_glState->vboList());
