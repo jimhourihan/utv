@@ -7,6 +7,21 @@
 //******************************************************************************
 
 #include <TwkGLF/GL.h>
+#include <cstdio>
+#include <cstring>
+#include <sstream>
+
+#if defined(PLATFORM_DARWIN)
+//
+//  Apple's GL 2.1 headers (OpenGL/gl.h) don't declare these GL 3.0 names;
+//  OpenGL.framework exports the function. It is only called on GL 3.0+
+//  contexts.
+//
+#ifndef GL_NUM_EXTENSIONS
+#define GL_NUM_EXTENSIONS 0x821D
+#endif
+extern "C" const GLubyte* glGetStringi(GLenum name, GLuint index);
+#endif
 using namespace TwkMath;
 using namespace std;
 
@@ -199,6 +214,97 @@ namespace TwkGLF
             return string();
     }
 
+    void glVersion(int& major, int& minor)
+    {
+        major = 0;
+        minor = 0;
+        const string version = safeGLGetString(GL_VERSION);
+        sscanf(version.c_str(), "%d.%d", &major, &minor);
+    }
+
+    vector<string> glExtensions()
+    {
+        vector<string> extensions;
+        int major, minor;
+        glVersion(major, minor);
+
+        if (major >= 3)
+        {
+            GLint count = 0;
+            glGetIntegerv(GL_NUM_EXTENSIONS, &count);
+
+            for (GLint i = 0; i < count; i++)
+            {
+                if (const GLubyte* name = glGetStringi(GL_EXTENSIONS, i))
+                    extensions.push_back((const char*)name);
+            }
+        }
+        else
+        {
+            istringstream names(safeGLGetString(GL_EXTENSIONS));
+            string name;
+            while (names >> name)
+                extensions.push_back(name);
+        }
+
+        return extensions;
+    }
+
+    bool hasExtension(const char* name)
+    {
+        if (!name)
+            return false;
+
+        //
+        //  Extensions RV checks for that became part of core GL, with the
+        //  version that added them. GL_ARB_imaging and
+        //  GL_ARB_fragment_program never did.
+        //
+
+        struct CoreExtension
+        {
+            const char* name;
+            int major;
+            int minor;
+        };
+
+        static const CoreExtension coreExtensions[] = {
+            {"GL_ARB_texture_non_power_of_two", 2, 0},
+            {"GL_ARB_pixel_buffer_object", 2, 1},
+            {"GL_ARB_texture_float", 3, 0},
+            {"GL_ARB_half_float_pixel", 3, 0},
+            {"GL_ARB_color_buffer_float", 3, 0},
+            {"GL_ARB_framebuffer_object", 3, 0},
+            {"GL_ARB_texture_rg", 3, 0},
+            {"GL_ARB_vertex_array_object", 3, 0},
+            {"GL_ARB_texture_rectangle", 3, 1},
+            {"GL_ARB_sync", 3, 2},
+            {"GL_ARB_texture_swizzle", 3, 3},
+        };
+
+        int major, minor;
+        glVersion(major, minor);
+
+        for (const CoreExtension& e : coreExtensions)
+        {
+            if (!strcmp(name, e.name) && (major > e.major || (major == e.major && minor >= e.minor)))
+                return true;
+        }
+
+        //
+        //  Whole names only: a substring search would find
+        //  "GL_ARB_texture_float" inside a longer name.
+        //
+
+        for (const string& e : glExtensions())
+        {
+            if (e == name)
+                return true;
+        }
+
+        return false;
+    }
+
     string errorString(GLenum errorCode)
     {
         for (size_t i = 0; GLErrors[i].String; i++)
@@ -233,10 +339,4 @@ bool twkGlPrintError(std::string_view file, std::string_view function, const int
     return true;
 }
 
-bool glSupportsExtension(const char* extstring)
-{
-    char* s = (char*)glGetString(GL_EXTENSIONS);    // Get our extension-string
-    char* temp = (s) ? strstr(s, extstring) : NULL; // Is our extension a
-                                                    // string?
-    return temp != NULL;                            // Return false.
-}
+bool glSupportsExtension(const char* extstring) { return TwkGLF::hasExtension(extstring); }

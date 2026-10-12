@@ -13,6 +13,8 @@
 #include <TwkMath/Box.h>
 #include <TwkMath/Color.h>
 #include <TwkMath/Mat44.h>
+#include <string>
+#include <vector>
 
 //
 //  GLEW is taking care of GL extensions (esp on Windows) and includes
@@ -54,8 +56,15 @@
 #include <GL/glext.h>
 #endif
 
+//
+//  TWK_GL_SUPPORTS() checks the current context for an extension, and also
+//  counts extensions that are part of the context's core GL version (see
+//  TwkGLF::hasExtension()).
+//
+
+#define TWK_GL_SUPPORTS(X) glSupportsExtension(X)
+
 #ifdef TWK_USE_GLEW
-#define TWK_GL_SUPPORTS(X) glewIsSupported(X)
 
 //
 //  Load GL entry points through GLEW once a context is current.
@@ -84,8 +93,6 @@ inline GLenum twkGlewInit()
 
 #define TWK_GLEW_INIT(PROC) twkGlewInit()
 #endif
-#else
-#define TWK_GL_SUPPORTS(X) glSupportsExtension(X)
 #endif
 
 #ifndef GL_TEXTURE_RECTANGLE
@@ -156,6 +163,30 @@ namespace TwkGLF
 {
     std::string errorString(GLenum errorCode);
     std::string safeGLGetString(GLenum name);
+
+    //
+    //  The current context's GL version, e.g. 4.1 for "4.1 Metal - 91.7".
+    //  0.0 when there is no current context.
+    //
+
+    void glVersion(int& major, int& minor);
+
+    //
+    //  The current context's extensions. GL 3.0 and later read them with
+    //  glGetStringi(): glGetString(GL_EXTENSIONS) is an error in a core
+    //  profile context.
+    //
+
+    std::vector<std::string> glExtensions();
+
+    //
+    //  True if the current context lists the extension, or its GL version
+    //  includes it. Core profile contexts don't list extensions that became
+    //  part of core GL (macOS's 4.1 core context has no GL_ARB_sync or
+    //  GL_ARB_texture_rectangle in its list).
+    //
+
+    bool hasExtension(const char* name);
 } // namespace TwkGLF
 
 //

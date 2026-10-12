@@ -750,9 +750,7 @@ namespace IPCore
             glslMinor = atoi(tokens2[1].c_str());
         }
 
-        string strExtension = TwkGLF::safeGLGetString(GL_EXTENSIONS);
-        vector<string> extensions;
-        algorithm::split(extensions, strExtension, is_any_of(" "), token_compress_on);
+        vector<string> extensions = TwkGLF::glExtensions();
 
         GLint maxt = 0;
         GLint iunits = 0, tcoords = 0;
@@ -872,7 +870,6 @@ namespace IPCore
 
         GLboolean b[10];
         m_queryInit = false;
-        string strExtension = TwkGLF::safeGLGetString(GL_EXTENSIONS);
         // TWK_GLDEBUG;
 
         m_rectTextures = TWK_GL_SUPPORTS("GL_ARB_texture_rectangle");
@@ -970,7 +967,10 @@ namespace IPCore
             cout << "INFO: Max tex image units   = " << m_maxImageUnits << endl;
             cout << "INFO: Max tex coords        = " << m_maxTexCoords << endl;
             cout << "INFO: Max vert attrs        = " << m_maxVertexAttrs << endl;
-            cout << "INFO: all GL extensions     = " << strExtension << endl;
+            cout << "INFO: all GL extensions     =";
+            for (const string& e : TwkGLF::glExtensions())
+                cout << " " << e;
+            cout << endl;
         }
 
         if (!m_rectTextures)
