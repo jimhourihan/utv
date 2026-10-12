@@ -599,8 +599,22 @@ Problems found along the way, not caused by these steps:
   which renderer `utvio` gets); the core path uses typed lists.
 - Embedded shaders (`.glsl` files converted by
   `cmake/macros/rv_quote_file.cmake`) are generated when CMake
-  configures, not when building, so an edited `.glsl` file needs
-  `cmake .` before it takes effect.
+  configures, so an edited `.glsl` file had no effect until `cmake .` was
+  run by hand. Fixed in `bfce6a94` (each file is added to
+  `CMAKE_CONFIGURE_DEPENDS`).
+- `GLtext::getContext()` read a pthread key that only `newContext()`
+  created, so using GLtext before `newContext()` was undefined (it
+  crashed a test program; RV always calls `newContext()` first). Fixed in
+  `28e754e5`.
+- TwkGLText decodes UTF-8 with `utf8::unchecked`, so invalid UTF-8 is
+  undefined behaviour. Open. The renderer's text now uses TwkText, which
+  validates, so this only affects MuGL text and `rvprof`.
+- Not GL: `src/lib/app/RvCommon/RvCommon/generated/about_utv.cpp` is a
+  build output tracked in git, which every build rewrites in the source
+  tree (`src/lib/app/RvCommon/CMakeLists.txt` writes it to
+  `CMAKE_CURRENT_SOURCE_DIR`). Open. Proposed fix: generate it in the
+  build directory, `git rm --cached` it, and ignore `about_utv.cpp` in
+  `.gitignore` (which only ignores the old `about_rv.cpp`).
 
 #### Text rendering
 
