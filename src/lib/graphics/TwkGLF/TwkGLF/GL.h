@@ -51,6 +51,25 @@
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/gl.h>
 #include <OpenGL/glext.h>
+
+//
+//  Apple's GL 2.1 headers don't declare these GL 3.0 names, which the
+//  macOS core profile context needs. OpenGL.framework exports the
+//  functions. Only call them on GL 3.0+ contexts.
+//
+#ifndef GL_NUM_EXTENSIONS
+#define GL_NUM_EXTENSIONS 0x821D
+#endif
+#ifndef GL_VERTEX_ARRAY_BINDING
+#define GL_VERTEX_ARRAY_BINDING 0x85B5
+#endif
+extern "C"
+{
+    const GLubyte* glGetStringi(GLenum name, GLuint index);
+    void glGenVertexArrays(GLsizei n, GLuint* arrays);
+    void glBindVertexArray(GLuint array);
+    void glDeleteVertexArrays(GLsizei n, const GLuint* arrays);
+}
 #elif defined(PLATFORM_LINUX)
 #include <GL/gl.h>
 #include <GL/glext.h>

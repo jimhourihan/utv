@@ -109,6 +109,28 @@ namespace TwkGLF
         HOP_CALL(glFinish();)
         HOP_PROF_FUNC();
 
+        //
+        //  GL 3.0+ contexts get a vertex array object for the draw: the core
+        //  profile can't draw without one. It is made per draw because a
+        //  VAO belongs to one GL context, and the previous binding is
+        //  restored, so code that draws with VAO 0 (MuGL) is unaffected.
+        //  The macOS compatibility context is GL 2.1 and skips this.
+        //
+
+        int major, minor;
+        glVersion(major, minor);
+        const bool useVAO = major >= 3;
+        GLint previousVAO = 0;
+        GLuint vao = 0;
+
+        if (useVAO)
+        {
+            glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &previousVAO);
+            glGenVertexArrays(1, &vao);
+            glBindVertexArray(vao);
+            TWK_GLDEBUG;
+        }
+
         {
             HOP_CALL(glFinish();)
             HOP_PROF("RenderPrimitives::render - bindBuffer");
@@ -170,6 +192,14 @@ namespace TwkGLF
         }
         unbindBuffer();
         TWK_GLDEBUG;
+
+        if (useVAO)
+        {
+            glBindVertexArray(GLuint(previousVAO));
+            glDeleteVertexArrays(1, &vao);
+            TWK_GLDEBUG;
+        }
+
         HOP_CALL(glFinish();)
     }
 

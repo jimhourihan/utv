@@ -11,17 +11,6 @@
 #include <cstring>
 #include <sstream>
 
-#if defined(PLATFORM_DARWIN)
-//
-//  Apple's GL 2.1 headers (OpenGL/gl.h) don't declare these GL 3.0 names;
-//  OpenGL.framework exports the function. It is only called on GL 3.0+
-//  contexts.
-//
-#ifndef GL_NUM_EXTENSIONS
-#define GL_NUM_EXTENSIONS 0x821D
-#endif
-extern "C" const GLubyte* glGetStringi(GLenum name, GLuint index);
-#endif
 using namespace TwkMath;
 using namespace std;
 
