@@ -54,6 +54,31 @@ Unshackling:
    each one?
 1. Should QRhi be used or directly interface via the GPU API (Vulkan/GL/?)
 
+### Decided: an "RV next gen" product on a branch (2026-10-12)
+
+Decision 1 is option D (see "Decision Notes" below): the QtQuick work
+becomes an "RV next gen" product that lives alongside the current app
+until it is worked out, and until users adopt it.
+
+- The work lives on the utv branch `ip-qt-clean-up`. Waypoints are tagged
+  there. The branch is not merged into main as a whole.
+- Main utv gets commits cherry-picked from the branch once they are ready
+  on their own. Candidates so far:
+  - standalone: the Qt removal from the ip libraries and the
+    `RemoteRvCommand` move to RvApp; `fix(paint): show text without
+    startFrame/duration`; `fix(rmsImageDiff): return the -cmp result`; the
+    GL core-profile steps (quads, no-op fixed-function calls,
+    `GL_RED`/`GL_RG` swizzles, extension queries, numeric texture format,
+    VAOs, core FBO names), which don't change output in the macOS 2.1
+    context
+  - the MTSDF text (`feat(text)`, `feat(gl)`, `feat(paint)`), in that
+    order, only together. `feat(text)` updates the `src/pub` submodule to
+    an openrv-pub commit (msdfgen) on openrv-pub's `ip-qt-clean-up` branch,
+    which has to be pushed (or msdfgen vendored another way) first.
+- The current app stays as it is: `QMainWindow`, Mu HUD, render events,
+  compatibility-profile GL. Work that both products share (core libraries,
+  scripting modules) is done so it can go to main.
+
 ## Some History WRT These Changes
 
 A similar port of this code (RV) was done years ago using Qt5. That code is
@@ -419,6 +444,9 @@ a raw `QQuickWindow`. That suggests a fourth option:
 If a new product is acceptable, I'd recommend D over A: it removes most of
 the compatibility work from the new code path instead of carrying it.
 
+Decided (2026-10-12): D. See "Decided: an "RV next gen" product on a
+branch" above.
+
 ### 2. QRhi or the GPU APIs directly
 
 - QRhi:
@@ -661,8 +689,9 @@ fourth), generated from FreeType outlines with `msdfgen` (MIT).
     with every `origin` mode and multi-line text, 15% of the text pixels
     differ by more than 8/255 and 3% by more than 64/255 (edges);
     visually they are the same.
-  - Proper kerning and ligatures could be turned on later, e.g. per
-    annotation, for new text only.
+  - Kerning and ligatures for new text: wanted as part of the end goal,
+    not scheduled yet (2026-10-12). See "Future: kerning for new
+    annotation text" below.
 - Tested on macOS: `utvio` renders (annotation text, Chinese through
   CoreText fallback, 2.1 context), a standalone draw test in 2.1 and 4.1
   core contexts, and the renders that have no text are unchanged. Not
@@ -675,6 +704,45 @@ fourth), generated from FreeType outlines with `msdfgen` (MIT).
 - Expected output change: glyph positions, kerning and anti-aliasing will
   differ slightly from FTGL's, which is within the "reasonably small
   differences" `utvio` allows.
+
+#### Future: kerning for new annotation text
+
+Wanted as part of the end goal; deferred on 2026-10-12 to keep risk down
+for now. Annotation text keeps FTGL's layout (no kerning or ligatures)
+until this is done.
+
+Plan, following how pen strokes are versioned:
+
+1. Bump `RVPaint` from 3 to 4 (`RvNodeDefinitions.cpp`).
+1. In `PaintIPNode::readCompleted`, for files older than version 4, give
+   each `text:` component without a `version` property one set to the
+   file's version, as is done for pen strokes. The stamp is saved, so old
+   text stays unkerned after the session is edited and saved again.
+1. `compileTextComponent` reads `version` (default `protocolVersion()`)
+   and passes it to the `Text` command. New text (annotate tool or
+   scripts) has no `version` property, so it is version 4.
+1. `Text::execute` lays out version 4+ text with kerning and ligatures,
+   and older text as now. TwkText gets a shaping choice on `Font`
+   (FTGL-compatible or standard) used by both `bounds` and `layout`, so
+   `computeText`'s origin offsets match what is drawn.
+1. The hover label always uses standard shaping (it isn't saved).
+
+Checked: pen strokes only test `version < 3`, so version 4 strokes behave
+like version 3 ones.
+
+Consequences to accept:
+
+- Older RV / OpenRV opening a version 4 session ignores the text
+  `version` and draws new text unkerned (same text, different spacing).
+- Sync peers on older builds draw new annotations unkerned.
+- Without HarfBuzz (Windows until OpenUTVDeps ships it) kerning comes only
+  from FreeType's `kern` table, and fonts that keep kerning only in GPOS
+  (like the default font) stay unkerned; ligatures need HarfBuzz.
+- `RV_TEXT_RENDERER=ftgl` draws all text the old way.
+
+Tests to write: an old session renders unchanged; new text is kerned; an
+old session with new text added, saved and reloaded keeps the old text
+unkerned and the new text kerned.
 
 So the renderer itself is a modest port. What can't move to core is
 everything that draws in the render events: the Mu HUD and MuGL (238
@@ -744,10 +812,12 @@ the compatibility profile.
 Each phase leaves the app shippable. Exit criteria are checked on macOS,
 Linux and Windows.
 
-These phases assume option A (one app). With option D the order is
-different: Phase 0, then the modularization from sub-goal 5, then the new
-app goes straight to Phases 2-3 on GL core with the threaded loop (no Mu
-HUD toggles, no Phase 1), and the current app is left as it is.
+These phases were written for option A (one app). Option D was chosen
+(2026-10-12), so the order is different: Phase 0, then the modularization
+from sub-goal 5, then the new app goes straight to Phases 2-3 on GL core
+with the threaded loop (no Mu HUD toggles, no Phase 1), and the current
+app is left as it is. The phases below still describe the work in each
+step.
 
 ### Phase 0: Decisions and spikes
 
