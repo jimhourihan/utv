@@ -130,7 +130,7 @@ if [ "${INSTALL_DEPS}" -eq 1 ]; then
             ninja pkg-config ccache glew doctest qt pyside \
             ffmpeg openexr imath opencolorio libraw libtiff libpng libspng boost \
             openimageio openjpeg webp yaml-cpp spdlog openjph jpeg-turbo \
-            vulkan-headers vulkan-loader
+            vulkan-headers vulkan-loader harfbuzz
     # RHEL / Rocky Setup
     elif command -v dnf >/dev/null 2>&1; then
         # CRB (CodeReady Builder; "powertools" on EL8) and EPEL provide ninja-build and other -devel
@@ -149,6 +149,7 @@ if [ "${INSTALL_DEPS}" -eq 1 ]; then
                 gh \
                 git \
                 glew-devel \
+                harfbuzz-devel \
                 libdav1d-devel \
                 libicu-devel \
                 libjpeg-turbo-devel \
@@ -214,6 +215,7 @@ if [ "${INSTALL_DEPS}" -eq 1 ]; then
                 libdav1d-dev \
                 libfreetype-dev \
                 libgl1-mesa-dev \
+                libharfbuzz-dev \
                 libglew-dev \
                 libglew-dev \
                 libglu1-mesa-dev \
