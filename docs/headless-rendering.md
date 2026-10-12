@@ -31,6 +31,7 @@ utvio_sw in.#.exr -o out.#.dpx        # also installed as rvio_sw
 | `UTV_GL_PLATFORM=egl` / `glx` | Force the EGL (no display) or GLX (X display) context |
 | `UTV_SOFTWARE_GL=1` or `LIBGL_ALWAYS_SOFTWARE=1` | Software rendering (Mesa llvmpipe) |
 | `UTV_GL_DEBUG=1` | Print which context and renderer were chosen |
+| `UTV_GL_PROFILE=core` | Create a core profile context (EGL: GL 3.3; macOS: GL 4.1) instead of a compatibility one, to test rendering without the fixed-function pipeline. Scripted overlays (`-overlay`, `-leader`) don't work in it. GLX and Windows keep a compatibility context and warn |
 | `UTV_NO_SYSTEM_GL_PRELOAD=1` | Don't preload the system `libGL`/`libEGL` in the launch wrapper |
 
 Example:

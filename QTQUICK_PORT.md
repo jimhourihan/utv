@@ -60,7 +60,8 @@ Decision 1 is option D (see "Decision Notes" below): the QtQuick work
 becomes an "RV next gen" product that lives alongside the current app
 until it is worked out, and until users adopt it.
 
-- The work lives on the utv branch `ip-qt-clean-up`. Waypoints are tagged
+- The work lives on the utv branch `gl-core-profile` (called `ip-qt-clean-up`
+  until 2026-10-12). Waypoints are tagged
   there. The branch is not merged into main as a whole.
 - Main utv gets commits cherry-picked from the branch once they are ready
   on their own. Candidates so far:
@@ -337,8 +338,9 @@ exact match. The tolerance still needs choosing.
   - macOS: CGL with no profile attribute (so GL 2.1). It asks for an
     accelerated renderer by default (what the old separate `rvio_hw` did;
     the session_manager `makepng`/`maketif` scripts still name it) and
-    falls back to Apple's software renderer (`kCGLPFARendererID`) only
-    when there is none, or with `UTV_SOFTWARE_GL`
+    is meant to fall back to Apple's software renderer
+    (`kCGLPFARendererID`) when there is none, or with `UTV_SOFTWARE_GL`.
+    In practice it doesn't (see the next bullet list)
   - Windows: `wglCreateContext`
 - Software rendering, for machines without a usable GPU (render farms,
   containers, VMs):
@@ -348,12 +350,16 @@ exact match. The tolerance still needs choosing.
     environment variables
   - Windows: the `opengl32.dll` forwarder and `UTV_OPENGL=software`
     (AGENTS.md 2.2), which switch to Mesa llvmpipe from OpenUTVDeps
-  - macOS: Apple's software renderer, now only a fallback (headless VMs,
-    CI runners)
+  - macOS: none. Apple's software renderer isn't available on current
+    macOS / Apple Silicon for any profile (checked 2026-10-12, macOS 27,
+    M1 Pro). The CGL attribute lists in `FBOVideoDevice.cpp` are
+    `unsigned long` arrays read as 32-bit attributes, so only their first
+    attribute takes effect: "software" (`UTV_SOFTWARE_GL`) has been asking
+    for `kCGLPFAAllRenderers` only, which picks the GPU
 - macOS is a special case: all current Mac hardware can render offscreen
   on the GPU, so `utvio` there doesn't depend on software rendering the
-  way Linux render farms and containers do. The software fallback only
-  matters for VMs and CI runners.
+  way Linux render farms and containers do. VMs and CI runners without a
+  usable GPU have no fallback (see To Verify).
 - Overlays: `-overlay` / `-leader` scripts are Mu and draw with MuGL. Four
   of the five bundled ones (`rvio_basic_scripts`: `frameburn`, `matte`,
   `watermark`, `simpleslate`) use GL calls, and users have their own.
@@ -550,31 +556,29 @@ and Windows are first checked by CI.
 | A VAO for every draw in `RenderPrimitives` on GL 3.0+ | `6c375aef` | Made per draw (a VAO belongs to one context) and the previous binding restored. macOS's 2.1 context skips it |
 | Core names for the framebuffer and renderbuffer functions and `glActiveTexture`; the `glBlitFramebufferEXT` stub in `utvio`'s `glfix.c` removed | `54d0562b` | Needs GL 3.0 or `ARB_framebuffer_object` (macOS 2.1 has it). A driver with only `EXT_framebuffer_object` would no longer work |
 | `GL_APPLE_` extensions in a macOS core context checked (2026-10-12, Apple M1 Pro, 4.1 Metal) | | `client_storage`, `texture_range`, `rgb_422` and `row_bytes` remain, so the upload fast path survives. `ycbcr_422` and `float_pixels` are gone; core has float textures |
+| Text: the renderer's text with MTSDF instead of FTGL | `df7f4650`, `a7d87ae6`, `6a8d52c4` | See "Text rendering" below |
+| `TwkGLF::isCoreProfile()`; `GL_MAX_TEXTURE_UNITS` (fixed-function) not queried in core | `38185406` | |
+| `GLView` restores its colour mask and clear colour by hand instead of `glPushAttrib` | `bc521f6b` | |
+| `GLPushAttrib` does nothing in core; `GLPushClientAttrib` saves and restores the pixel pack/unpack settings there | `b8f7bec4` | Compatibility contexts push and pop as before. Covers the five uses in `ImageRenderer.cpp` and the one in `Session.cpp` |
+| TwkGLF's rectangle-texture shaders compile as core GLSL (no extension, `texture2DRect` defined as `texture`) from GLSL 1.40 | `9587e7b5` | They failed in a core context; `#version 150` compatibility contexts had depended on the extension |
+| `ARB_fragment_program` warnings and limits skipped in core | `1c20b517` | |
+| `UTV_GL_PROFILE=core`: `utvio` in a core context (CGL on macOS, EGL on Linux) | `c44d83c4` | GLX and WGL keep compatibility and warn. All 26 test renders are identical to the compatibility context on macOS, with no GL errors |
 
 ##### Remaining
 
-1. Text: replace the renderer's FTGL text with MTSDF (decided
-   2026-10-12). Implemented, not yet committed; see "Text rendering"
-   below.
-1. State saving. `ImageRenderer.cpp` wraps rendering and uploads in
-   `GLPushAttrib(GL_ALL_ATTRIB_BITS)` and
-   `GLPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS)` (five places), and
-   `Session.cpp` wraps the `render` event in a sixth. A comment says they
-   exist so FTGL text (the Mu HUD's) renders correctly after the image.
-   Core removes both. They go once nothing draws with FTGL after the
-   renderer, or are replaced by restoring the state the renderer changes
-   (pixel store, blend, scissor, bound textures).
 1. Measure texture upload speed in a macOS core context, against the 2.1
    context (constraint 4).
+1. `UTV_GL_PROFILE=core` for GLX (`glXCreateContextAttribsARB`) and WGL
+   (`wglCreateContextAttribsARB`), and running the test renders in core
+   contexts on Linux and Windows.
 1. Switch the context to core:
    - viewer: `GLView`'s `QSurfaceFormat`, the offscreen GL context behind
      `MetalView` (`QTMetalVideoDevice.mm`) and behind `VulkanView`
-   - `utvio`: `TwkGLFFBO/FBOVideoDevice.cpp` for GLX, EGL, CGL and WGL
-     (see "Offscreen rendering" above)
+   - `utvio`: make core the default (see "Offscreen rendering" above)
    - the shader generator switches to its GLSL 1.50 branch by itself
    - this is the step that needs the HUD decision: the Mu HUD, MuGL and
-     render-event drawing can't run in a core context (or, with option D,
-     only the new app uses core)
+     render-event drawing can't run in a core context (with option D, only
+     the new app uses core). Scripting is set aside for now.
 
 Problems found along the way, not caused by these steps:
 
@@ -588,6 +592,15 @@ Problems found along the way, not caused by these steps:
   `main()` ignored the comparison result. Fixed (2026-10-12). The step
   checks above were re-run reading the printed result, and all matched.
 - `utvio -debug gpu` doesn't print the renderer's GL capability report.
+- The CGL attribute lists in `FBOVideoDevice.cpp` (`unsigned long`
+  arrays cast to `CGLPixelFormatAttribute*`) only ever applied their first
+  attribute on 64-bit macOS: the float colour attributes and the software
+  renderer request never took effect. Left as it is (fixing it changes
+  which renderer `utvio` gets); the core path uses typed lists.
+- Embedded shaders (`.glsl` files converted by
+  `cmake/macros/rv_quote_file.cmake`) are generated when CMake
+  configures, not when building, so an edited `.glsl` file needs
+  `cmake .` before it takes effect.
 
 #### Text rendering
 
@@ -656,11 +669,12 @@ fourth), generated from FreeType outlines with `msdfgen` (MIT).
   - code: layout and atlas in a new GL-free library (e.g.
     `src/lib/graphics/TwkText`); the GL draw function in TwkGLF next to
     `RenderPrimitives`
-- Status (2026-10-12, uncommitted):
+- Status (2026-10-12, committed in `df7f4650`, `a7d87ae6`, `6a8d52c4`):
   - `msdfgen` 1.13 vendored in `src/pub/msdfgen` (core and
     `ext/import-font` only, unmodified, formatting turned off with a local
-    `.clang-format`). `src/pub` is the `OpenUTV/openrv-pub` submodule, so
-    this needs a commit there and a submodule update in utv.
+    `.clang-format`). `src/pub` is the `OpenUTV/openrv-pub` submodule: the
+    copy is openrv-pub commit `cc77aaa` on its `ip-qt-clean-up` branch,
+    which has to be pushed before the utv branch.
   - `cmake/dependencies/harfbuzz.cmake`: optional HarfBuzz
     (`harfbuzz::harfbuzz`); `build.sh` installs it (Homebrew `harfbuzz`,
     dnf `harfbuzz-devel`, apt `libharfbuzz-dev`). Homebrew's `qtbase`
@@ -903,6 +917,8 @@ step.
 - MoltenVK EDR / HDR10 / HLG colour spaces against the current `MetalView`.
 - Upload speed on macOS in a core context. (It keeps
   `APPLE_client_storage` / `APPLE_texture_range`; checked 2026-10-12.)
+- How `utvio` renders on macOS VMs and CI runners without a usable GPU,
+  now that Apple's software renderer is gone.
 - Mesa lavapipe for machines without a GPU driver (Windows, Linux VMs).
 - Vulkan samplers with unnormalized coordinates (needed for texture
   rectangle semantics) have limits: no mipmaps, clamp-to-edge or border
