@@ -11,6 +11,7 @@
 #include <TwkGLF/GLFBO.h>
 #include <TwkExc/Exception.h>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 
 #ifdef PLATFORM_LINUX
@@ -67,6 +68,30 @@ namespace TwkGLF
     using namespace TwkApp;
 
     bool FBOVideoDevice::m_swRendererOnMac = false;
+
+    //
+    //  UTV_GL_PROFILE=core asks for a core profile context (GL 3.3 or
+    //  later, 4.1 on macOS) instead of a compatibility one, for testing
+    //  the renderer without the fixed-function pipeline. Scripted drawing
+    //  (MuGL, e.g. utvio overlays) doesn't work in it. Supported with CGL
+    //  (macOS) and EGL (Linux without GLX); GLX and WGL keep a
+    //  compatibility context and warn.
+    //
+
+    static bool wantCoreProfile()
+    {
+        static const bool core = []()
+        {
+            const char* value = getenv("UTV_GL_PROFILE");
+            if (!value || !*value || !strcmp(value, "compatibility"))
+                return false;
+            if (!strcmp(value, "core"))
+                return true;
+            cout << "WARNING: ignoring unknown UTV_GL_PROFILE=" << value << " (expected core or compatibility)" << endl;
+            return false;
+        }();
+        return core;
+    }
 
 #if defined(PLATFORM_DARWIN)
     struct FBOImp
@@ -168,6 +193,13 @@ namespace TwkGLF
         imp->tiny = XCreateWindow(imp->display, imp->root, 0, 0, 64, 64, 0, imp->vis->depth, InputOutput, imp->vis->visual,
                                   CWColormap | CWEventMask | CWBorderPixel, &swa);
 
+        if (wantCoreProfile())
+        {
+            cout << "WARNING: UTV_GL_PROFILE=core isn't supported with GLX yet; using a compatibility context (UTV_GL_PLATFORM=egl "
+                    "gives a core context)"
+                 << endl;
+        }
+
         imp->ctx = glXCreateContext(imp->display, imp->vis, 0, True);
         if (!imp->ctx || !glXMakeCurrent(imp->display, imp->tiny, imp->ctx))
         {
@@ -211,7 +243,20 @@ namespace TwkGLF
         if (!eglChooseConfig(display, configAttrs, &config, 1, &numConfigs) || numConfigs < 1)
             return false;
 
-        EGLContext context = eglCreateContext(display, config, EGL_NO_CONTEXT, NULL);
+        //
+        //  EGL 1.5 / EGL_KHR_create_context attributes for a core profile
+        //  context (UTV_GL_PROFILE=core).
+        //
+
+        const EGLint coreAttrs[] = {0x3098 /* EGL_CONTEXT_MAJOR_VERSION */,
+                                    3,
+                                    0x30FB /* EGL_CONTEXT_MINOR_VERSION */,
+                                    3,
+                                    0x30FD /* EGL_CONTEXT_OPENGL_PROFILE_MASK */,
+                                    0x1 /* EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT */,
+                                    EGL_NONE};
+
+        EGLContext context = eglCreateContext(display, config, EGL_NO_CONTEXT, wantCoreProfile() ? coreAttrs : NULL);
         if (context == EGL_NO_CONTEXT)
             return false;
 
@@ -333,9 +378,29 @@ namespace TwkGLF
                                    1 * 32,
                                    0};
 
+        //
+        //  Core profile (UTV_GL_PROFILE=core). The lists above are unsigned
+        //  long, but CGL reads 32-bit CGLPixelFormatAttribute values, so on
+        //  64-bit macOS only their first attribute takes effect (the upper
+        //  half of the first entry ends the list): kCGLPFAAccelerated, or
+        //  kCGLPFAAllRenderers for "software", which still picks the GPU.
+        //  The core lists are typed correctly and ask for the same. (Apple's
+        //  software renderer isn't available on current macOS / Apple
+        //  Silicon, for any profile.)
+        //
+
+        CGLPixelFormatAttribute hwCoreAttrs[] = {kCGLPFAAccelerated, kCGLPFAOpenGLProfile,
+                                                 (CGLPixelFormatAttribute)kCGLOGLPVersion_GL4_Core, (CGLPixelFormatAttribute)0};
+        CGLPixelFormatAttribute swCoreAttrs[] = {kCGLPFAAllRenderers, kCGLPFAOpenGLProfile,
+                                                 (CGLPixelFormatAttribute)kCGLOGLPVersion_GL4_Core, (CGLPixelFormatAttribute)0};
+
+        const bool core = wantCoreProfile();
+        CGLPixelFormatAttribute* hw = core ? hwCoreAttrs : (CGLPixelFormatAttribute*)hwAttrs;
+        CGLPixelFormatAttribute* sw = core ? swCoreAttrs : (CGLPixelFormatAttribute*)swAttrs;
+
         const bool forceSoftware = m_swRendererOnMac || getenv("UTV_SOFTWARE_GL");
-        unsigned long* attrs = forceSoftware ? swAttrs : hwAttrs;
-        CGLError err = CGLChoosePixelFormat((CGLPixelFormatAttribute*)attrs, &m_imp->pfo, &m_imp->npfo);
+        CGLPixelFormatAttribute* attrs = forceSoftware ? sw : hw;
+        CGLError err = CGLChoosePixelFormat(attrs, &m_imp->pfo, &m_imp->npfo);
 
         //
         //  No accelerated renderer (e.g. headless VMs, CI runners, render
@@ -345,7 +410,7 @@ namespace TwkGLF
         if ((err != kCGLNoError || !m_imp->pfo) && !forceSoftware)
         {
             cout << "WARNING: no accelerated OpenGL pixel format (" << CGLErrorString(err) << "), using the software renderer" << endl;
-            err = CGLChoosePixelFormat((CGLPixelFormatAttribute*)swAttrs, &m_imp->pfo, &m_imp->npfo);
+            err = CGLChoosePixelFormat(sw, &m_imp->pfo, &m_imp->npfo);
         }
 
         if (err != kCGLNoError || !m_imp->pfo)
@@ -505,6 +570,9 @@ namespace TwkGLF
 
         int result = ChoosePixelFormat(m_imp->deviceContext, &m_imp->format);
         SetPixelFormat(m_imp->deviceContext, result, &m_imp->format);
+
+        if (wantCoreProfile())
+            cout << "WARNING: UTV_GL_PROFILE=core isn't supported on Windows yet; using a compatibility context" << endl;
 
         m_imp->glContext = wglCreateContext(m_imp->deviceContext);
         assert(m_imp->glContext != NULL);
