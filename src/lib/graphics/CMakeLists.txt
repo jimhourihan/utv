@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
+ADD_SUBDIRECTORY(TwkText)
 ADD_SUBDIRECTORY(TwkGLF)
 IF(RV_TARGET_DARWIN)
   ADD_SUBDIRECTORY(TwkGLFCoreGraphics)

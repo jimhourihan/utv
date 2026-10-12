@@ -11,7 +11,7 @@ SET(_target
 )
 
 SET(_sources
-    GLT.cpp TwkGLText.cpp defaultFont.cpp
+    GLT.cpp TwkGLText.cpp
 )
 
 FIND_PACKAGE(OpenGL REQUIRED)
@@ -29,7 +29,7 @@ TARGET_INCLUDE_DIRECTORIES(
 TARGET_LINK_LIBRARIES(
   ${_target}
   PUBLIC FTGL TwkGLF TwkExc TwkMath
-  PRIVATE stl_ext OpenGL::GL OpenGL::GLU TwkUtil utf8
+  PRIVATE TwkText stl_ext OpenGL::GL OpenGL::GLU TwkUtil utf8
 )
 
 IF(RV_TARGET_LINUX)

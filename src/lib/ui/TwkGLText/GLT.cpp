@@ -5,7 +5,7 @@
 //
 //******************************************************************************
 #include <TwkGLText/TwkGLText.h>
-#include <TwkGLText/defaultFont.h>
+#include <TwkText/defaultFont.h>
 #include <TwkGLText/GLT.h>
 #include <FTGL/ftgl.h>
 #include <TwkExc/TwkExcException.h>

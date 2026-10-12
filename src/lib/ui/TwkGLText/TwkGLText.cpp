@@ -31,7 +31,7 @@
 #include <vector>
 #include <iostream>
 #include <stl_ext/string_algo.h>
-#include <TwkGLText/defaultFont.h>
+#include <TwkText/defaultFont.h>
 #include <iterator>
 #include <pthread.h>
 

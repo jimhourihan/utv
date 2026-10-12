@@ -5,7 +5,7 @@
 //
 //******************************************************************************
 
-#include <TwkGLText/defaultFont.h>
+#include <TwkText/defaultFont.h>
 
 //
 // This font is from /usr/X11R6/lib/X11/fonts/TTF/luxisr.ttf
