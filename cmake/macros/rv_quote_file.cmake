@@ -45,6 +45,12 @@ FUNCTION(quote_files OUTPUT_LIST)
     SET(input_timestamp_file
         ${CMAKE_CURRENT_BINARY_DIR}/${input_file_name}.timestamp
     )
+    # The file is converted while CMake configures, so re-run CMake when it changes.
+    SET_PROPERTY(
+      DIRECTORY
+      APPEND
+      PROPERTY CMAKE_CONFIGURE_DEPENDS ${_src_name}
+    )
     FILE(TIMESTAMP ${_src_name} _input_file_timestamp)
     IF(EXISTS ${_dest_name}
        AND EXISTS ${input_timestamp_file}
