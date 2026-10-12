@@ -365,4 +365,25 @@ bool twkGlPrintError(std::string_view file, std::string_view function, const int
     return true;
 }
 
+//
+//  The pixel store settings of core profile GL, packing then unpacking.
+//
+
+static const GLenum pixelStoreNames[GLPixelStoreState::count] = {
+    GL_PACK_SWAP_BYTES,  GL_PACK_LSB_FIRST,     GL_PACK_ROW_LENGTH,    GL_PACK_IMAGE_HEIGHT, GL_PACK_SKIP_ROWS,    GL_PACK_SKIP_PIXELS,
+    GL_PACK_SKIP_IMAGES, GL_PACK_ALIGNMENT,     GL_UNPACK_SWAP_BYTES,  GL_UNPACK_LSB_FIRST,  GL_UNPACK_ROW_LENGTH, GL_UNPACK_IMAGE_HEIGHT,
+    GL_UNPACK_SKIP_ROWS, GL_UNPACK_SKIP_PIXELS, GL_UNPACK_SKIP_IMAGES, GL_UNPACK_ALIGNMENT};
+
+void GLPixelStoreState::save()
+{
+    for (int i = 0; i < count; i++)
+        glGetIntegerv(pixelStoreNames[i], &values[i]);
+}
+
+void GLPixelStoreState::restore() const
+{
+    for (int i = 0; i < count; i++)
+        glPixelStorei(pixelStoreNames[i], values[i]);
+}
+
 bool glSupportsExtension(const char* extstring) { return TwkGLF::hasExtension(extstring); }

@@ -126,19 +126,70 @@ inline GLenum twkGlewInit()
 //  These are RAII structs to make sure GL state is properly handled
 //  esp in the presence of thrown exceptions
 //
+//  Core profile contexts have no attribute stacks:
+//
+//  - GLPushAttrib does nothing there. It protects state for the
+//    fixed-function drawing that may follow in a compatibility context
+//    (MuGL, TwkGLText), which a core context doesn't have.
+//
+//  - GLPushClientAttrib saves and restores the pixel pack and unpack
+//    settings instead, which is the client state the renderer changes.
+//
+
+namespace TwkGLF
+{
+    bool isCoreProfile();
+} // namespace TwkGLF
 
 struct GLPushAttrib
 {
-    GLPushAttrib(GLenum e) { glPushAttrib(e); }
+    GLPushAttrib(GLenum e)
+        : pushed(!TwkGLF::isCoreProfile())
+    {
+        if (pushed)
+            glPushAttrib(e);
+    }
 
-    ~GLPushAttrib() { glPopAttrib(); }
+    ~GLPushAttrib()
+    {
+        if (pushed)
+            glPopAttrib();
+    }
+
+    bool pushed;
+};
+
+struct GLPixelStoreState
+{
+    static constexpr int count = 16;
+
+    void save();
+    void restore() const;
+
+    GLint values[count];
 };
 
 struct GLPushClientAttrib
 {
-    GLPushClientAttrib(GLenum e) { glPushClientAttrib(e); }
+    GLPushClientAttrib(GLenum e)
+        : pushed(!TwkGLF::isCoreProfile())
+    {
+        if (pushed)
+            glPushClientAttrib(e);
+        else
+            pixelStore.save();
+    }
 
-    ~GLPushClientAttrib() { glPopClientAttrib(); }
+    ~GLPushClientAttrib()
+    {
+        if (pushed)
+            glPopClientAttrib();
+        else
+            pixelStore.restore();
+    }
+
+    bool pushed;
+    GLPixelStoreState pixelStore;
 };
 
 struct GLPushMatrix
