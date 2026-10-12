@@ -526,7 +526,8 @@ and Windows are first checked by CI.
 ##### Remaining
 
 1. Text: replace the renderer's FTGL text with MTSDF (decided
-   2026-10-12). See "Text rendering" below.
+   2026-10-12). Implemented, not yet committed; see "Text rendering"
+   below.
 1. State saving. `ImageRenderer.cpp` wraps rendering and uploads in
    `GLPushAttrib(GL_ALL_ATTRIB_BITS)` and
    `GLPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS)` (five places), and
@@ -627,6 +628,46 @@ fourth), generated from FreeType outlines with `msdfgen` (MIT).
   - code: layout and atlas in a new GL-free library (e.g.
     `src/lib/graphics/TwkText`); the GL draw function in TwkGLF next to
     `RenderPrimitives`
+- Status (2026-10-12, uncommitted):
+  - `msdfgen` 1.13 vendored in `src/pub/msdfgen` (core and
+    `ext/import-font` only, unmodified, formatting turned off with a local
+    `.clang-format`). `src/pub` is the `OpenUTV/openrv-pub` submodule, so
+    this needs a commit there and a submodule update in utv.
+  - `cmake/dependencies/harfbuzz.cmake`: optional HarfBuzz
+    (`harfbuzz::harfbuzz`); `build.sh` installs it (Homebrew `harfbuzz`,
+    dnf `harfbuzz-devel`, apt `libharfbuzz-dev`). Homebrew's `qtbase`
+    already depends on HarfBuzz, so users have it at run time.
+  - `src/lib/graphics/TwkText`: `TwkText::Font` (load, metrics, `bounds`,
+    `boundsNL`, `layout`, `layoutNL`) and `TwkText::Atlas` (2048-wide
+    RGBA8 pages that double in height up to 2048, shelf packing, MTSDF at
+    48 px per em with a 4 px range). The embedded default font moved here
+    from TwkGLText, which now links TwkText for it.
+  - `TwkGLF/GLText.h`: `drawText()` (per-context program and atlas
+    textures, GLSL 1.20 and 1.50 shaders) and `useFTGLText()`.
+  - `PaintCommand` (annotation text) and `HoverPreviewOverlayGL` (the
+    label) use TwkText unless `RV_TEXT_RENDERER=ftgl`.
+  - Fallback fonts: `RV_TEXT_FALLBACK_FONTS` (font files, separated by
+    `:`, or `;` on Windows), then CoreText on macOS. Linux (fontconfig)
+    and Windows (DirectWrite) system fallback are still to do.
+- Matching FTGL's layout:
+  - FTGL never kerned RV's text: it fills its kerning cache when a face
+    is created, before a size is set, so every pair of glyphs with
+    indices below 128 got 0. TwkText applies no kerning either (HarfBuzz
+    features `kern`, `liga` and `clig` off; the FreeType-only path doesn't
+    kern). With that, metrics and bounds match `GLtext` exactly for the
+    default font at 12, 100 and 200 px, with and without HarfBuzz.
+  - Drawn text sits within half a pixel of FTGL's (FTGL rounds glyph
+    positions to pixels). In a 1280x720 `utvio` render of annotations
+    with every `origin` mode and multi-line text, 15% of the text pixels
+    differ by more than 8/255 and 3% by more than 64/255 (edges);
+    visually they are the same.
+  - Proper kerning and ligatures could be turned on later, e.g. per
+    annotation, for new text only.
+- Tested on macOS: `utvio` renders (annotation text, Chinese through
+  CoreText fallback, 2.1 context), a standalone draw test in 2.1 and 4.1
+  core contexts, and the renders that have no text are unchanged. Not
+  tested: the hover label and annotation text in the viewer, and Linux
+  and Windows builds.
 - Requirement: annotations in existing sessions keep their position.
   The new code reproduces FTGL's conventions (`ptsize = size * 10000`,
   `scale = 1/800`, baseline origin, line spacing, `origin` modes,
