@@ -3,7 +3,13 @@
 // 
 // SPDX-License-Identifier: Apache-2.0 
 //
+// sampler2DRect is core from GLSL 1.40, and texture2DRect() is replaced by
+// texture(). Core profile contexts don't list the extension.
+#if __VERSION__ < 140
 #extension GL_ARB_texture_rectangle : require
+#else
+#define texture2DRect texture
+#endif
 
 #if __VERSION__ >= 150
 out vec4 FragColor; 
