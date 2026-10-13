@@ -338,9 +338,9 @@ exact match. The tolerance still needs choosing.
   - macOS: CGL with no profile attribute (so GL 2.1). It asks for an
     accelerated renderer by default (what the old separate `rvio_hw` did;
     the session_manager `makepng`/`maketif` scripts still name it) and
-    is meant to fall back to Apple's software renderer
-    (`kCGLPFARendererID`) when there is none, or with `UTV_SOFTWARE_GL`.
-    In practice it doesn't (see the next bullet list)
+    falls back to any renderer (`kCGLPFAAllRenderers`) when there is
+    none, or with `UTV_SOFTWARE_GL`. That used to be meant as Apple's
+    software renderer (see the next bullet list)
   - Windows: `wglCreateContext`
 - Software rendering, for machines without a usable GPU (render farms,
   containers, VMs):
@@ -352,10 +352,9 @@ exact match. The tolerance still needs choosing.
     (AGENTS.md 2.2), which switch to Mesa llvmpipe from OpenUTVDeps
   - macOS: none. Apple's software renderer isn't available on current
     macOS / Apple Silicon for any profile (checked 2026-10-12, macOS 27,
-    M1 Pro). The CGL attribute lists in `FBOVideoDevice.cpp` are
-    `unsigned long` arrays read as 32-bit attributes, so only their first
-    attribute takes effect: "software" (`UTV_SOFTWARE_GL`) has been asking
-    for `kCGLPFAAllRenderers` only, which picks the GPU
+    M1 Pro). Because of a typing bug in the CGL attribute lists (fixed
+    in `e8e71ca4`), "software" (`UTV_SOFTWARE_GL`) had only ever asked
+    for `kCGLPFAAllRenderers`, which picks the GPU
 - macOS is a special case: all current Mac hardware can render offscreen
   on the GPU, so `utvio` there doesn't depend on software rendering the
   way Linux render farms and containers do. VMs and CI runners without a
@@ -591,12 +590,14 @@ Problems found along the way, not caused by these steps:
 - `rmsImageDiff -cmp` printed "Images are NOT matched." but exited with 0;
   `main()` ignored the comparison result. Fixed (2026-10-12). The step
   checks above were re-run reading the printed result, and all matched.
-- `utvio -debug gpu` doesn't print the renderer's GL capability report.
+- `utvio -debug gpu` didn't print the renderer's GL capability report:
+  `utvio` queries GL at startup, before it parses `-debug`. Fixed in
+  `ca97a3ae` (`ImageRenderer::printGLInfo()`, called after parsing).
 - The CGL attribute lists in `FBOVideoDevice.cpp` (`unsigned long`
   arrays cast to `CGLPixelFormatAttribute*`) only ever applied their first
   attribute on 64-bit macOS: the float colour attributes and the software
-  renderer request never took effect. Left as it is (fixing it changes
-  which renderer `utvio` gets); the core path uses typed lists.
+  renderer request never took effect. Fixed in `e8e71ca4` by requesting
+  exactly what took effect, typed; the 26 test renders are unchanged.
 - Embedded shaders (`.glsl` files converted by
   `cmake/macros/rv_quote_file.cmake`) are generated when CMake
   configures, so an edited `.glsl` file had no effect until `cmake .` was
