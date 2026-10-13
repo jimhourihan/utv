@@ -705,7 +705,19 @@ fourth), generated from FreeType outlines with `msdfgen` (MIT).
     label) use TwkText unless `RV_TEXT_RENDERER=ftgl`.
   - Fallback fonts: `RV_TEXT_FALLBACK_FONTS` (font files, separated by
     `:`, or `;` on Windows), then CoreText on macOS. Linux (fontconfig)
-    and Windows (DirectWrite) system fallback are still to do.
+    and Windows (DirectWrite) system fallback are still to do. Plan
+    (2026-10-13): they replace the `systemFallback(c)` stub in
+    `TwkText/Font.cpp`, which only has to return a font file for `c`
+    (`fileFace()` opens it); `RV_TEXT_FALLBACK_FONTS` stays first.
+    - fontconfig (`FcFontSort` on a pattern with the character),
+      guarded by CMake finding fontconfig rather than by platform, so
+      it can be tested on macOS with Homebrew's fontconfig. `build.sh`
+      installs `libfontconfig-dev` / `fontconfig-devel`. Check on Linux
+      what fonts a render node typically has.
+    - DirectWrite (`IDWriteFontFallback::MapCharacters`, Windows 8.1+,
+      then the local font file loader for the path), linking
+      `dwrite.lib`. Needs a Windows machine to compile and test:
+      `branch-build.yml` only runs in `OpenUTV/utv`.
 - Matching FTGL's layout:
   - FTGL never kerned RV's text: it fills its kerning cache when a face
     is created, before a size is set, so every pair of glyphs with
