@@ -360,43 +360,31 @@ namespace TwkGLF
 
 #if defined(PLATFORM_DARWIN)
 
-        unsigned long hwAttrs[] = {kCGLPFAAccelerated,
-                                   kCGLPFAColorFloat, /* color buffers store floating point pixels */
-                                   kCGLPFAColorSize,
-                                   3 * 16,
-                                   kCGLPFAAlphaSize,
-                                   1 * 16,
-                                   0};
-
-        unsigned long swAttrs[] = {kCGLPFAAllRenderers,
-                                   kCGLPFARendererID,
-                                   kCGLRendererAppleSWID,
-                                   kCGLPFAColorFloat, /* color buffers store floating point pixels */
-                                   kCGLPFAColorSize,
-                                   3 * 32,
-                                   kCGLPFAAlphaSize,
-                                   1 * 32,
-                                   0};
-
         //
-        //  Core profile (UTV_GL_PROFILE=core). The lists above are unsigned
-        //  long, but CGL reads 32-bit CGLPixelFormatAttribute values, so on
-        //  64-bit macOS only their first attribute takes effect (the upper
-        //  half of the first entry ends the list): kCGLPFAAccelerated, or
-        //  kCGLPFAAllRenderers for "software", which still picks the GPU.
-        //  The core lists are typed correctly and ask for the same. (Apple's
-        //  software renderer isn't available on current macOS / Apple
-        //  Silicon, for any profile.)
+        //  The default is an accelerated renderer. "Software"
+        //  (UTV_SOFTWARE_GL, useSWRendererOnMac()) and the fallback accept
+        //  any renderer: Apple's software renderer isn't available on current
+        //  macOS / Apple Silicon, so asking for it (kCGLRendererAppleSWID)
+        //  fails. No float colour attributes: utvio renders into FBOs, not
+        //  the context's own framebuffer. UTV_GL_PROFILE=core adds a 4.1
+        //  core profile.
         //
-
-        CGLPixelFormatAttribute hwCoreAttrs[] = {kCGLPFAAccelerated, kCGLPFAOpenGLProfile,
-                                                 (CGLPixelFormatAttribute)kCGLOGLPVersion_GL4_Core, (CGLPixelFormatAttribute)0};
-        CGLPixelFormatAttribute swCoreAttrs[] = {kCGLPFAAllRenderers, kCGLPFAOpenGLProfile,
-                                                 (CGLPixelFormatAttribute)kCGLOGLPVersion_GL4_Core, (CGLPixelFormatAttribute)0};
+        //  (These lists used to be unsigned long, which CGL reads as 32-bit
+        //  attributes, so on 64-bit macOS only the first entry ever took
+        //  effect. These are the attributes that did.)
+        //
 
         const bool core = wantCoreProfile();
-        CGLPixelFormatAttribute* hw = core ? hwCoreAttrs : (CGLPixelFormatAttribute*)hwAttrs;
-        CGLPixelFormatAttribute* sw = core ? swCoreAttrs : (CGLPixelFormatAttribute*)swAttrs;
+        CGLPixelFormatAttribute hw[] = {kCGLPFAAccelerated, (CGLPixelFormatAttribute)0, (CGLPixelFormatAttribute)0,
+                                        (CGLPixelFormatAttribute)0};
+        CGLPixelFormatAttribute sw[] = {kCGLPFAAllRenderers, (CGLPixelFormatAttribute)0, (CGLPixelFormatAttribute)0,
+                                        (CGLPixelFormatAttribute)0};
+
+        if (core)
+        {
+            hw[1] = sw[1] = kCGLPFAOpenGLProfile;
+            hw[2] = sw[2] = (CGLPixelFormatAttribute)kCGLOGLPVersion_GL4_Core;
+        }
 
         const bool forceSoftware = m_swRendererOnMac || getenv("UTV_SOFTWARE_GL");
         CGLPixelFormatAttribute* attrs = forceSoftware ? sw : hw;
@@ -404,12 +392,12 @@ namespace TwkGLF
 
         //
         //  No accelerated renderer (e.g. headless VMs, CI runners, render
-        //  nodes without a GPU): fall back to Apple's software renderer rather
-        //  than failing outright.
+        //  nodes without a GPU): try any renderer rather than failing
+        //  outright.
         //
         if ((err != kCGLNoError || !m_imp->pfo) && !forceSoftware)
         {
-            cout << "WARNING: no accelerated OpenGL pixel format (" << CGLErrorString(err) << "), using the software renderer" << endl;
+            cout << "WARNING: no accelerated OpenGL pixel format (" << CGLErrorString(err) << "), trying any renderer" << endl;
             err = CGLChoosePixelFormat(sw, &m_imp->pfo, &m_imp->npfo);
         }
 
