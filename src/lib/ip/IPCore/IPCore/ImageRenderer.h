@@ -658,6 +658,15 @@ namespace IPCore
         static void queryGL();
         static void queryGLIntoContainer(IPNode*);
 
+        //
+        //  Print what queryGL() found (the "-debug gpu" report). queryGL()
+        //  prints it when debugGpu() is already set; a program that queries
+        //  before parsing its options can call it afterwards. Needs the
+        //  queried context to be current.
+        //
+
+        static void printGLInfo(std::ostream&);
+
         static bool queryGLFinished() { return !m_queryInit; }
 
         static bool queryFloatBuffers() { return m_floatBuffers; }

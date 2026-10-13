@@ -1425,6 +1425,17 @@ int utf8Main(int argc, char* argv[])
         exit(-1);
     }
 
+    //
+    //  queryGL() ran before the options were parsed, so "-debug gpu"
+    //  wasn't set yet when it would have printed its report.
+    //
+
+    if (IPCore::ImageRenderer::debugGpu())
+    {
+        dummyDev->makeCurrent();
+        IPCore::ImageRenderer::printGLInfo(cout);
+    }
+
     IPCore::FormatIPNode::defaultResampleMethod = resampleMethod;
     inputFiles = opts.inputFiles;
 

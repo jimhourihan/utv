@@ -819,6 +819,35 @@ namespace IPCore
         node->declareProperty<IntProperty>("opengl.glsl.minorVersion", glslMinor, 0, true);
     }
 
+    void ImageRenderer::printGLInfo(ostream& o)
+    {
+        o << "INFO: GL version            = " << TwkGLF::safeGLGetString(GL_VERSION) << endl;
+        o << "INFO: GLSL version          = " << TwkGLF::safeGLGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
+        o << "INFO: GL vendor             = " << TwkGLF::safeGLGetString(GL_VENDOR) << endl;
+        o << "INFO: GL renderer           = " << TwkGLF::safeGLGetString(GL_RENDERER) << endl;
+        o << "INFO: core profile          = " << TwkGLF::isCoreProfile() << endl;
+        o << "INFO: Max texture size      = " << m_maxW << endl;
+        o << "INFO: Max ALU insns         = " << m_ALUinsnLimit << endl;
+        o << "INFO: Max TEMP vars         = " << m_tempLimit << endl;
+        o << "INFO: half float            = " << m_halfFloat << endl;
+        o << "INFO: rectangle textures    = " << m_rectTextures << endl;
+        o << "INFO: non-power-of-two tex  = " << m_nonPowerOf2 << endl;
+        o << "INFO: floating buffers      = " << m_floatBuffers << endl;
+        o << "INFO: texture float         = " << m_textureFloat << endl;
+        o << "INFO: client storage        = " << m_hasClientStorage << endl;
+        o << "INFO: imaging               = " << m_imaging << endl;
+        o << "INFO: fragment program      = " << m_fragmentProgram << endl;
+        o << "INFO: pixel buffer object   = " << m_pixelBuffers << endl;
+        o << "INFO: apple yuv 422         = " << m_ycbcrApple << endl;
+        o << "INFO: Max tex image units   = " << m_maxImageUnits << endl;
+        o << "INFO: Max tex coords        = " << m_maxTexCoords << endl;
+        o << "INFO: Max vert attrs        = " << m_maxVertexAttrs << endl;
+        o << "INFO: all GL extensions     =";
+        for (const string& e : TwkGLF::glExtensions())
+            o << " " << e;
+        o << endl;
+    }
+
     void ImageRenderer::queryGL()
     {
         if (!m_queryInit)
@@ -958,32 +987,7 @@ namespace IPCore
         m_maxW = maxt;
 
         if (m_debugGpu)
-        {
-            cout << "INFO: GL version            = " << glver << endl;
-            cout << "INFO: GLSL version          = " << glslver << endl;
-            cout << "INFO: GL vendor             = " << glven << endl;
-            cout << "INFO: GL renderer           = " << glren << endl;
-            cout << "INFO: Max texture size      = " << maxt << endl;
-            cout << "INFO: Max ALU insns         = " << m_ALUinsnLimit << endl;
-            cout << "INFO: Max TEMP vars         = " << m_tempLimit << endl;
-            cout << "INFO: half float            = " << m_halfFloat << endl;
-            cout << "INFO: rectangle textures    = " << m_rectTextures << endl;
-            cout << "INFO: non-power-of-two tex  = " << m_nonPowerOf2 << endl;
-            cout << "INFO: floating buffers      = " << m_floatBuffers << endl;
-            cout << "INFO: texture float         = " << m_textureFloat << endl;
-            cout << "INFO: client storage        = " << m_hasClientStorage << endl;
-            cout << "INFO: imaging               = " << m_imaging << endl;
-            cout << "INFO: fragment program      = " << m_fragmentProgram << endl;
-            cout << "INFO: pixel buffer object   = " << m_pixelBuffers << endl;
-            cout << "INFO: apple yuv 422         = " << m_ycbcrApple << endl;
-            cout << "INFO: Max tex image units   = " << m_maxImageUnits << endl;
-            cout << "INFO: Max tex coords        = " << m_maxTexCoords << endl;
-            cout << "INFO: Max vert attrs        = " << m_maxVertexAttrs << endl;
-            cout << "INFO: all GL extensions     =";
-            for (const string& e : TwkGLF::glExtensions())
-                cout << " " << e;
-            cout << endl;
-        }
+            printGLInfo(cout);
 
         if (!m_rectTextures)
         {
