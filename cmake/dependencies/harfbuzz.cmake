@@ -3,13 +3,32 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# HarfBuzz (text shaping) for TwkText. Optional for now: OpenUTVDeps doesn't ship it yet, so Windows builds without it and TwkText maps characters to glyphs
-# directly. macOS and Linux use the system's (Homebrew, or libharfbuzz-dev).
+# HarfBuzz (text shaping) for TwkText. Optional: without it TwkText maps characters to glyphs directly. Windows uses OpenUTVDeps' (26.6 and later), macOS and
+# Linux the system's (Homebrew, or libharfbuzz-dev).
 #
 # Defines the target harfbuzz::harfbuzz when HarfBuzz is found.
 #
 
-FIND_PACKAGE(harfbuzz CONFIG QUIET)
+IF(RV_TARGET_WINDOWS)
+  # OpenUTVDeps' harfbuzzConfig.cmake is vcpkg's stand-in, which builds its paths from VCPKG_INSTALLED_DIR and only works under the vcpkg toolchain.
+  FIND_PATH(
+    RV_HARFBUZZ_INCLUDE_DIR hb.h
+    PATH_SUFFIXES harfbuzz
+  )
+  FIND_LIBRARY(RV_HARFBUZZ_LIBRARY harfbuzz)
+  IF(RV_HARFBUZZ_INCLUDE_DIR
+     AND RV_HARFBUZZ_LIBRARY
+  )
+    ADD_LIBRARY(harfbuzz::harfbuzz UNKNOWN IMPORTED GLOBAL)
+    SET_TARGET_PROPERTIES(
+      harfbuzz::harfbuzz
+      PROPERTIES IMPORTED_LOCATION "${RV_HARFBUZZ_LIBRARY}"
+                 INTERFACE_INCLUDE_DIRECTORIES "${RV_HARFBUZZ_INCLUDE_DIR}"
+    )
+  ENDIF()
+ELSE()
+  FIND_PACKAGE(harfbuzz CONFIG QUIET)
+ENDIF()
 
 IF(NOT TARGET harfbuzz::harfbuzz)
   FIND_PACKAGE(PkgConfig QUIET)
