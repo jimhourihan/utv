@@ -610,6 +610,17 @@ Problems found along the way, not caused by these steps:
 - TwkGLText decodes UTF-8 with `utf8::unchecked`, so invalid UTF-8 is
   undefined behaviour. Open. The renderer's text now uses TwkText, which
   validates, so this only affects MuGL text and `rvprof`.
+- Linux (oryx, Mesa Intel and NVIDIA, 2026-10-14): `utvio` segfaulted
+  at exit (code 139) after writing a correct image whenever it had used
+  pixel buffer objects. Not caused by the branch: `UninitPBOPools()` only
+  resets flags, so the PBOs were only deleted by the pools' static
+  destructors at exit, after the GL driver had shut down. Fixed with
+  `TwkGLF::DeletePBOPoolBuffers()`, which `utvio` calls after writing,
+  with its context current. The viewer has the same static destructors
+  but is unchanged. A fix for main too.
+- `RV_TEXT_RENDERER=ftgl` (TwkGLText) crashes on Linux before writing
+  its output for non-Latin annotation text (Latin text works). Only the
+  FTGL comparison mode. Open, not investigated.
 - Not GL: `src/lib/app/RvCommon/RvCommon/generated/about_utv.cpp` is a
   build output tracked in git, which every build rewrites in the source
   tree (`src/lib/app/RvCommon/CMakeLists.txt` writes it to
@@ -704,16 +715,20 @@ fourth), generated from FreeType outlines with `msdfgen` (MIT).
   - `PaintCommand` (annotation text) and `HoverPreviewOverlayGL` (the
     label) use TwkText unless `RV_TEXT_RENDERER=ftgl`.
   - Fallback fonts: `RV_TEXT_FALLBACK_FONTS` (font files, separated by
-    `:`, or `;` on Windows), then CoreText on macOS. Linux (fontconfig)
-    and Windows (DirectWrite) system fallback are still to do. Plan
-    (2026-10-13): they replace the `systemFallback(c)` stub in
-    `TwkText/Font.cpp`, which only has to return a font file for `c`
-    (`fileFace()` opens it); `RV_TEXT_FALLBACK_FONTS` stays first.
-    - fontconfig (`FcFontSort` on a pattern with the character),
-      guarded by CMake finding fontconfig rather than by platform, so
-      it can be tested on macOS with Homebrew's fontconfig. `build.sh`
-      installs `libfontconfig-dev` / `fontconfig-devel`. Check on Linux
-      what fonts a render node typically has.
+    `:`, or `;` on Windows), then CoreText on macOS and fontconfig on
+    Linux. Windows (DirectWrite) system fallback is still to do. They
+    implement `systemFallback(c)` in `TwkText/Font.cpp`, which only has
+    to return a font file for `c` (`fileFace()` opens it);
+    `RV_TEXT_FALLBACK_FONTS` stays first.
+    - fontconfig (Linux, optional, `cmake/dependencies/fontconfig.cmake`;
+      `build.sh` installs it): the first font in `FcFontSort`'s list for
+      sans-serif whose charset has the character, skipping bitmap-only
+      and colour fonts. Tested 2026-10-14 on Pop 24.04 (oryx) with Latin,
+      Greek, Cyrillic, CJK, Devanagari, Thai, symbols and emoji: all
+      drawn, emoji from an outline font. Render nodes may have far fewer
+      fonts than a desktop.
+    - CoreText gap: it picks Apple Color Emoji (bitmap) for emoji, which
+      TwkText can't draw, so emoji are blank on macOS. Open.
     - DirectWrite (`IDWriteFontFallback::MapCharacters`, Windows 8.1+,
       then the local font file loader for the path), linking
       `dwrite.lib`. Needs a Windows machine to compile and test:
