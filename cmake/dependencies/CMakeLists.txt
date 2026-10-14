@@ -101,6 +101,7 @@ INCLUDE(openexr)
 INCLUDE(ocio)
 INCLUDE(freetype) # Replaces the legacy source build
 INCLUDE(harfbuzz) # optional, for TwkText
+INCLUDE(fontconfig) # optional, for TwkText on Linux
 INCLUDE(oiio) # depends on openexr and most image formats above and ocio (actually, there's inter-dependency between ocio and oiio)
 IF(RV_TARGET_WINDOWS)
   INCLUDE(pcre2)

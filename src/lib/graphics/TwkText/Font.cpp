@@ -30,6 +30,8 @@
 #ifdef PLATFORM_DARWIN
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreText/CoreText.h>
+#elif defined(TWK_TEXT_HAVE_FONTCONFIG)
+#include <fontconfig/fontconfig.h>
 #endif
 
 #include <algorithm>
@@ -242,10 +244,69 @@ namespace TwkText
             CFRelease(str);
             return face;
         }
+#elif defined(TWK_TEXT_HAVE_FONTCONFIG)
+        //
+        //  Fontconfig's sorted list for a sans-serif font with the character
+        //  (what fc-match -s gives). The list is ordered by how well each
+        //  font matches, not filtered, so take the first one whose charset
+        //  has the character. Bitmap-only and colour fonts (e.g. Noto Color
+        //  Emoji) are skipped: TwkText draws outlines only, so they would
+        //  give an empty glyph instead of falling through.
+        //
+
+        Face* systemFallback(uint32_t c)
+        {
+            if (!FcInit())
+                return nullptr;
+
+            FcPattern* pattern = FcPatternCreate();
+            FcCharSet* charset = FcCharSetCreate();
+            FcCharSetAddChar(charset, c);
+            FcPatternAddString(pattern, FC_FAMILY, (const FcChar8*)"sans-serif");
+            FcPatternAddCharSet(pattern, FC_CHARSET, charset);
+            FcPatternAddBool(pattern, FC_SCALABLE, FcTrue);
+            FcConfigSubstitute(nullptr, pattern, FcMatchPattern);
+            FcDefaultSubstitute(pattern);
+
+            Face* face = nullptr;
+            FcResult result;
+            FcFontSet* fonts = FcFontSort(nullptr, pattern, FcFalse, nullptr, &result);
+
+            for (int i = 0; fonts && i < fonts->nfont && !face; i++)
+            {
+                FcPattern* font = fonts->fonts[i];
+                FcCharSet* fontChars = nullptr;
+                FcBool outline = FcFalse;
+                FcBool color = FcFalse;
+                FcChar8* file = nullptr;
+                FcChar8* ps = nullptr;
+
+                if (FcPatternGetCharSet(font, FC_CHARSET, 0, &fontChars) != FcResultMatch || !FcCharSetHasChar(fontChars, c))
+                    continue;
+                if (FcPatternGetBool(font, FC_OUTLINE, 0, &outline) != FcResultMatch || !outline)
+                    continue;
+                if (FcPatternGetBool(font, FC_COLOR, 0, &color) == FcResultMatch && color)
+                    continue;
+                if (FcPatternGetString(font, FC_FILE, 0, &file) != FcResultMatch)
+                    continue;
+
+                FcPatternGetString(font, FC_POSTSCRIPT_NAME, 0, &ps);
+                face = fileFace((const char*)file, ps ? (const char*)ps : "");
+                if (!hasGlyph(face, c))
+                    face = nullptr;
+            }
+
+            if (fonts)
+                FcFontSetDestroy(fonts);
+            FcCharSetDestroy(charset);
+            FcPatternDestroy(pattern);
+            return face;
+        }
 #else
         //
-        //  TODO: fontconfig (Linux) and DirectWrite (Windows) fallback. Until
-        //  then RV_TEXT_FALLBACK_FONTS is the only fallback there.
+        //  TODO: DirectWrite (Windows) fallback. Until then
+        //  RV_TEXT_FALLBACK_FONTS is the only fallback there, and on Linux
+        //  without fontconfig.
         //
 
         Face* systemFallback(uint32_t) { return nullptr; }
@@ -728,6 +789,8 @@ namespace TwkText
             out << f << ", ";
 #ifdef PLATFORM_DARWIN
         out << "CoreText font fallback";
+#elif defined(TWK_TEXT_HAVE_FONTCONFIG)
+        out << "fontconfig font fallback";
 #else
         out << "no system font fallback";
 #endif

@@ -43,6 +43,17 @@ IF(TARGET harfbuzz::harfbuzz)
   )
 ENDIF()
 
+IF(TARGET Fontconfig::Fontconfig)
+  TARGET_LINK_LIBRARIES(
+    ${_target}
+    PRIVATE Fontconfig::Fontconfig
+  )
+  TARGET_COMPILE_DEFINITIONS(
+    ${_target}
+    PRIVATE TWK_TEXT_HAVE_FONTCONFIG
+  )
+ENDIF()
+
 IF(RV_TARGET_DARWIN)
   TARGET_LINK_LIBRARIES(
     ${_target}
