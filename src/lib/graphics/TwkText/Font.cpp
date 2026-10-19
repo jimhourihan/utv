@@ -205,7 +205,11 @@ namespace TwkText
 #ifdef PLATFORM_DARWIN
         //
         //  CoreText's fallback (cascade) list for the system UI font picks a
-        //  font that has the character; FreeType then opens its file.
+        //  font that has the character; FreeType then opens its file. Colour
+        //  fonts (Apple Color Emoji) are skipped: TwkText draws outlines
+        //  only, so they would give an empty glyph instead of the missing
+        //  glyph box. macOS has no outline emoji font, so emoji draw as
+        //  boxes unless RV_TEXT_FALLBACK_FONTS names one.
         //
 
         Face* systemFallback(uint32_t c)
@@ -218,6 +222,12 @@ namespace TwkText
             Face* face = nullptr;
             CTFontRef base = CTFontCreateWithName(CFSTR("Helvetica"), 12.0, nullptr);
             CTFontRef font = base ? CTFontCreateForString(base, str, CFRangeMake(0, CFStringGetLength(str))) : nullptr;
+
+            if (font && (CTFontGetSymbolicTraits(font) & kCTFontTraitColorGlyphs))
+            {
+                CFRelease(font);
+                font = nullptr;
+            }
 
             if (font)
             {
