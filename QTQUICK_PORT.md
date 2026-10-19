@@ -454,6 +454,11 @@ branch" above.
 
 ### 2. QRhi or the GPU APIs directly
 
+`MODULARIZE_IPCORE.md` (2026-10-19) proposes putting the renderer behind
+an interface with backends loaded at run time, GL first, so this becomes
+"add a backend" rather than an up-front choice. It also covers MuGL
+without GL (record and replay).
+
 - QRhi:
   - one API for Vulkan, Metal, D3D11/12 and GL, and the one QtQuick
     already uses (`QQuickRhiItem`, `QSGRenderNode`)
