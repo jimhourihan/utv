@@ -6,7 +6,6 @@
 //
 //
 #include <IPCore/PaintCommand.h>
-#include <IPBaseNodes/PaintIPNode.h>
 #include <TwkMath/Function.h>
 #include <TwkGLF/GL.h>
 #include <TwkGLF/GLPipeline.h>
@@ -343,9 +342,9 @@ namespace IPCore
 
             // set uniforms
             Color pcolor;
-            const auto* localCommand = dynamic_cast<const PaintIPNode::LocalCommand*>(this);
-            bool isGhostOn = (localCommand != nullptr) ? localCommand->ghostOn : false;
-            pcolor = isGhostOn ? localCommand->ghostColor : color;
+            const auto* holdCommand = dynamic_cast<const HoldCommand*>(this);
+            bool isGhostOn = (holdCommand != nullptr) ? holdCommand->ghostOn : false;
+            pcolor = isGhostOn ? holdCommand->ghostColor : color;
 
             glPipeline->setUniformFloat("uniformColor", 4, &(pcolor[0]));
             float coffset[2] = {50, 50};
@@ -642,9 +641,9 @@ namespace IPCore
             f->setSize(ptsize);
 
             Color textColor;
-            const auto* localCommand = dynamic_cast<const PaintIPNode::LocalCommand*>(this);
-            bool isGhostOn = (localCommand != nullptr) ? localCommand->ghostOn : false;
-            textColor = isGhostOn ? localCommand->ghostColor : color;
+            const auto* holdCommand = dynamic_cast<const HoldCommand*>(this);
+            bool isGhostOn = (holdCommand != nullptr) ? holdCommand->ghostOn : false;
+            textColor = isGhostOn ? holdCommand->ghostColor : color;
             f->setColor(textColor.x, textColor.y, textColor.z, textColor.w);
 
             const float w = fbo->width();

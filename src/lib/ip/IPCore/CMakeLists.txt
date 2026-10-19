@@ -258,13 +258,12 @@ TARGET_LINK_LIBRARIES(
           Mu
           Boost::filesystem
           ${CMAKE_DL_LIBS}
-          IPBaseNodes
 )
 
 IF(RV_TARGET_WINDOWS)
   TARGET_LINK_LIBRARIES(
     ${_target}
-    PUBLIC glew nedmalloc win_posix IPBaseNodes bcrypt
+    PUBLIC glew nedmalloc win_posix bcrypt
   )
   TARGET_COMPILE_OPTIONS(
     ${_target}

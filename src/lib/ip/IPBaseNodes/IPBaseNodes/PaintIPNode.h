@@ -46,23 +46,9 @@ namespace IPCore
         //  Paint:: commands + per-command state local to this node.
         //
 
-        class LocalCommand
-        {
-        public:
-            LocalCommand() = default;
-            virtual ~LocalCommand() = default;
-
-            int startFrame{};
-            int duration{};
-            int eye{-1};
-
-            bool ghostOn{};
-            TwkMath::Col4f ghostColor{Color(0.0)};
-        };
-
         class LocalPolyLine
             : public Paint::PolyLine
-            , public LocalCommand
+            , public Paint::HoldCommand
         {
         public:
             LocalPolyLine() = default;
@@ -70,7 +56,7 @@ namespace IPCore
 
         class LocalText
             : public Paint::Text
-            , public LocalCommand
+            , public Paint::HoldCommand
         {
         public:
             LocalText() = default;
@@ -84,7 +70,7 @@ namespace IPCore
         using Color = TwkMath::Col4f;
         using PointVector = std::vector<Vec2>;
         using FrameVector = std::vector<std::string>;
-        using LocalCommands = std::vector<LocalCommand*>;
+        using HoldCommands = std::vector<Paint::HoldCommand*>;
         using PenMap = std::map<Component*, LocalPolyLine>;
         using TextMap = std::map<Component*, LocalText>;
         using FrameMap = std::map<int, Components>;
@@ -106,7 +92,7 @@ namespace IPCore
     private:
         PenMap m_penStrokes;
         TextMap m_texts;
-        LocalCommands m_commands;
+        HoldCommands m_commands;
         Paint::PushFrameBuffer m_pushFBO;
         Paint::PopFrameBuffer m_popFBO;
         FrameMap m_frameMap;
