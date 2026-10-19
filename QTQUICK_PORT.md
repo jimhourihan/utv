@@ -549,7 +549,7 @@ and Windows are first checked by CI.
 | --- | --- | --- |
 | `GL_QUADS` drawn as `GL_TRIANGLE_FAN` (11 call sites, mostly through `RenderPrimitives`); unused `glDrawBox` removed | `21f008a4` | |
 | No-op fixed-function calls removed from the renderer: `glTexEnvi`, `glColor4f`, texture-target `glEnable`s; unused `glJitterFrustum` / `glJitterPerspective` removed | `5e5709c9` | The `TwkGLF/GL.h` helpers stay for MuGL |
-| `GL_RED` / `GL_RG` with texture swizzles instead of luminance formats | `cd78427e` | Needs GL 3.0 (or `ARB_texture_rg`) and GL 3.3 (or a swizzle extension). macOS's 2.1 context has no swizzle, so it keeps luminance until the switch; Linux and Windows use the new path. `RV_RENDERING_USE_TEXTURE_SWIZZLE=0` turns it off |
+| `GL_RED` / `GL_RG` with texture swizzles instead of luminance formats | `cd78427e` | Needs GL 3.0 (or `ARB_texture_rg`) and GL 3.3 (or a swizzle extension). macOS's 2.1 context has no swizzle, so it keeps luminance until the switch; Linux and Windows use the new path. `RV_RENDERING_USE_TEXTURE_SWIZZLE=0` turns it off. Tested on Linux (2026-10-19, Mesa Intel and NVIDIA): `utvio` renders of 1- and 2-channel 8-bit, 16-bit, half and float images, unscaled and scaled, are identical to main's and to the luminance path, and the viewer shows them correctly, alpha included. Windows untested |
 | Extension queries that work in core contexts: `TwkGLF::glExtensions()` (`glGetStringi` on GL 3.0+), `TwkGLF::hasExtension()` with a table of core-promoted extensions; `TWK_GL_SUPPORTS` uses it on every platform | `7df3e36e` | A macOS 4.1 core context lists only 43 extensions, without `ARB_sync`, `ARB_texture_rectangle`, `ARB_pixel_buffer_object` or float textures |
 | Numeric internal format `3` replaced with `GL_RGB8` | `3a373b2d` | |
 | A VAO for every draw in `RenderPrimitives` on GL 3.0+ | `6c375aef` | Made per draw (a VAO belongs to one context) and the previous binding restored. macOS's 2.1 context skips it |
@@ -618,9 +618,14 @@ Problems found along the way, not caused by these steps:
   `TwkGLF::DeletePBOPoolBuffers()`, which `utvio` calls after writing,
   with its context current. The viewer has the same static destructors
   but is unchanged. A fix for main too.
-- `RV_TEXT_RENDERER=ftgl` (TwkGLText) crashes on Linux before writing
-  its output for non-Latin annotation text (Latin text works). Only the
-  FTGL comparison mode. Open, not investigated.
+- FTGL crashes on characters above U+FFFF (emoji): on Linux, `utvio`
+  segfaults before writing its output, on main too. FTGL's
+  character-to-glyph map (`src/pub/FTGL/FTCharToGlyphIndexMap.h`) only
+  covers U+0000-U+FFFF and doesn't check the range. macOS draws boxes by
+  luck; Windows' 16-bit `wchar_t` gives wrong glyphs. Fix: range checks
+  in `find()` / `insert()`. Parked (2026-10-19): emoji can't be typed
+  into annotations, and FTGL goes away with the Mu HUD. On the branch
+  it only affects `RV_TEXT_RENDERER=ftgl` and MuGL text.
 - Not GL: `src/lib/app/RvCommon/RvCommon/generated/about_utv.cpp` is a
   build output tracked in git, which every build rewrites in the source
   tree (`src/lib/app/RvCommon/CMakeLists.txt` writes it to
@@ -727,8 +732,11 @@ fourth), generated from FreeType outlines with `msdfgen` (MIT).
       Greek, Cyrillic, CJK, Devanagari, Thai, symbols and emoji: all
       drawn, emoji from an outline font. Render nodes may have far fewer
       fonts than a desktop.
-    - CoreText gap: it picks Apple Color Emoji (bitmap) for emoji, which
-      TwkText can't draw, so emoji are blank on macOS. Open.
+    - CoreText: colour fonts are skipped (2026-10-19). Its fallback for
+      emoji is Apple Color Emoji (bitmap), which TwkText can't draw, and
+      macOS has no outline emoji font, so emoji draw as the missing
+      glyph box. Colour emoji would need a bitmap glyph path
+      (`FT_LOAD_COLOR` into an RGBA atlas); not planned.
     - DirectWrite (`IDWriteFontFallback::MapCharacters`, Windows 8.1+,
       then the local font file loader for the path), linking
       `dwrite.lib`. Needs a Windows machine to compile and test:
