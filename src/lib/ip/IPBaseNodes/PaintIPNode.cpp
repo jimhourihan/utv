@@ -20,7 +20,7 @@
 namespace
 {
     using namespace IPCore;
-    using PerFramePaintCommands = std::map<int, PaintIPNode::LocalCommands>;
+    using PerFramePaintCommands = std::map<int, PaintIPNode::HoldCommands>;
 
     int getStartFrame(const TwkContainer::Component& component)
     {
@@ -77,9 +77,9 @@ namespace
     // visibility range settings)
     // 2. Commands that end *before* the current frame
     // 3. Commands that start *after* the current frame
-    auto separateCommandsByFrameGroup(const PaintIPNode::LocalCommands& commands, const int frame, const size_t eye)
+    auto separateCommandsByFrameGroup(const PaintIPNode::HoldCommands& commands, const int frame, const size_t eye)
     {
-        PaintIPNode::LocalCommands currentFrameCommands; // visible commands, excluding hold and ghost
+        PaintIPNode::HoldCommands currentFrameCommands; // visible commands, excluding hold and ghost
         PerFramePaintCommands beforeCommands;
         PerFramePaintCommands afterCommands;
 
@@ -125,7 +125,7 @@ namespace
         return std::make_tuple(currentFrameCommands, beforeCommands, afterCommands);
     }
 
-    void addBeforeCommands(PaintIPNode::LocalCommands* allCommands, PaintIPNode::LocalCommands* currentFrameCommands,
+    void addBeforeCommands(PaintIPNode::HoldCommands* allCommands, PaintIPNode::HoldCommands* currentFrameCommands,
                            const PerFramePaintCommands& beforeCommands, const PaintEffects& paintEffects, const int frame)
     {
         int levelIndex = 1;
@@ -172,7 +172,7 @@ namespace
         }
     }
 
-    void addAfterCommands(PaintIPNode::LocalCommands* allCommands, const PerFramePaintCommands& afterCommands,
+    void addAfterCommands(PaintIPNode::HoldCommands* allCommands, const PerFramePaintCommands& afterCommands,
                           const PaintEffects& paintEffects, const int frame)
     {
         int levelIndex = 1;
@@ -194,7 +194,7 @@ namespace
         }
     }
 
-    void addVisibleCommands(PaintIPNode::LocalCommands* allCommands, const PaintIPNode::LocalCommands& currentFrameCommands)
+    void addVisibleCommands(PaintIPNode::HoldCommands* allCommands, const PaintIPNode::HoldCommands& currentFrameCommands)
     {
         for (auto* command : currentFrameCommands)
         {
@@ -203,11 +203,11 @@ namespace
         }
     }
 
-    PaintIPNode::LocalCommands generateVisibleCommands(const PaintIPNode::LocalCommands& commands, const int frame, const size_t eye,
+    PaintIPNode::HoldCommands generateVisibleCommands(const PaintIPNode::HoldCommands& commands, const int frame, const size_t eye,
                                                        const PaintEffects& paintEffects)
     {
-        PaintIPNode::LocalCommands allCommands;          // visible commands, including hold and ghost
-        PaintIPNode::LocalCommands currentFrameCommands; // visible commands, excluding hold and ghost
+        PaintIPNode::HoldCommands allCommands;          // visible commands, including hold and ghost
+        PaintIPNode::HoldCommands currentFrameCommands; // visible commands, excluding hold and ghost
         PerFramePaintCommands beforeCommands;
         PerFramePaintCommands afterCommands;
 
@@ -632,7 +632,7 @@ namespace IPCore
 
             // generateVisibleCommands should only get the commands that are in
             // the order stack (e.g. m_frameMap)
-            LocalCommands frameCommands{};
+            HoldCommands frameCommands{};
             for (const auto& frame : m_frameMap)
             {
                 const Components& frameComponents = frame.second;
@@ -651,7 +651,7 @@ namespace IPCore
 
             setPaintEffects();
 
-            LocalCommands visibleCommands = generateVisibleCommands(frameCommands, frame, context.eye, m_paintEffects);
+            HoldCommands visibleCommands = generateVisibleCommands(frameCommands, frame, context.eye, m_paintEffects);
 
             for (auto* visibleCommand : visibleCommands)
             {

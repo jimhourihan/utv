@@ -11,7 +11,6 @@
 #include <IPCore/ShaderFunction.h>
 #include <IPCore/ShaderSymbol.h>
 #include <IPCore/IPImage.h>
-#include <IPBaseNodes/StackIPNode.h>
 #include <TwkGLF/GL.h>
 #include <TwkFB/Operations.h>
 #include <TwkMath/MatrixColor.h>

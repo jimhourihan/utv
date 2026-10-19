@@ -5,8 +5,8 @@
 //  SPDX-License-Identifier: Apache-2.0
 //
 //******************************************************************************
-#ifndef __IPBaseNodes__ResizeIPNode__h__
-#define __IPBaseNodes__ResizeIPNode__h__
+#ifndef __IPNodes__ResizeIPNode__h__
+#define __IPNodes__ResizeIPNode__h__
 #include <iostream>
 #include <IPCore/IPNode.h>
 
@@ -45,4 +45,4 @@ namespace IPCore
 
 } // namespace IPCore
 
-#endif // __IPBaseNodes__ResizeIPNode__h__
+#endif // __IPNodes__ResizeIPNode__h__

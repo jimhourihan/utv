@@ -15,7 +15,6 @@
 #include <TwkMath/Iostream.h>
 #include <TwkFB/FrameBuffer.h>
 #include <TwkFB/Operations.h>
-#include <IPBaseNodes/SwitchIPNode.h>
 #include <stl_ext/stl_ext_algo.h>
 #include <iostream>
 #include <cmath>
@@ -217,7 +216,11 @@ namespace IPCore
 
             // Propagate the stencil to the source group if separated by a
             // switch node (MMR)
-            if (dynamic_cast<const SwitchIPNode*>(root->node))
+            //
+            // NOTE: IPCore cannot depend on IPBaseNodes otherwise there is
+            // a circular dependency. Just look at the name of the node's
+            // definition instead of a dynamic_cast to SwitchIPNode*. 
+            if (root->node->definition()->name() == "Switch") 
             {
                 for (IPImage* child = root->children; child; child = child->next)
                 {

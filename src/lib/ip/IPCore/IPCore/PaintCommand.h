@@ -165,6 +165,21 @@ namespace IPCore
             virtual ~Command() = default;
         };
 
+        class HoldCommand
+        {
+        public:
+            HoldCommand() = default;
+            virtual ~HoldCommand() = default;
+
+            int startFrame{};
+            int duration{};
+            int eye{-1};
+
+            bool ghostOn{};
+            TwkMath::Col4f ghostColor{Command::Color(0.0)};
+        };
+
+
         class PolyLine : public Command
         {
         public:
