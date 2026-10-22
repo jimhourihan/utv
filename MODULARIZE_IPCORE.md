@@ -310,8 +310,18 @@ Open points in the draft:
   `Command::getType()`, with `Font`, `Brush`, `CommandContext`,
   `PaintContext` and `renderPaintCommands()`. This is A6 for paint.
   IPCore and IPBaseNodes have no GL code left.
-- Next: drop `TwkGLF` / `TwkGLText` from IPCore's link libraries and add
-  a CMake check (5).
+- Stage 5 (2026-10-22): IPCore no longer links `TwkGLF`, `TwkGLText` or
+  (Windows) `glew`, and IPBaseNodes no longer links `glew`. Nothing else
+  they link brings GL in. `RV_CHECK_NO_LINK`
+  (`cmake/macros/rv_check_no_link.cmake`, called in
+  `src/lib/ip/CMakeLists.txt`) fails the configuration if IPCore or
+  IPBaseNodes link a GL library or IPRendererGLCompat, directly or
+  through other libraries, and names the path.
+- IPCore and IPBaseNodes are now GL-free: no GL code, includes or link
+  libraries. GL is in IPRendererGLCompat, which the apps link. The holes
+  below are in the apps and IPMu, plus the interface types that still
+  carry GL meaning (`RenderTexture` ids, the filtering enum).
+- Not yet built on Windows or Linux.
 
 #### Leaky API holes
 

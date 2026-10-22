@@ -217,11 +217,9 @@ TARGET_LINK_LIBRARIES(
          TwkPaint
          TwkUtil
          stl_ext
-         TwkGLF
   PRIVATE CDL
           OpenEXR::OpenEXR
           TwkDeploy
-          TwkGLText
           TwkCMS
           IOtiff
           Mu
@@ -232,7 +230,7 @@ TARGET_LINK_LIBRARIES(
 IF(RV_TARGET_WINDOWS)
   TARGET_LINK_LIBRARIES(
     ${_target}
-    PUBLIC glew nedmalloc win_posix bcrypt
+    PUBLIC nedmalloc win_posix bcrypt
   )
   TARGET_COMPILE_OPTIONS(
     ${_target}

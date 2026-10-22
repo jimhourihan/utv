@@ -94,7 +94,7 @@ TARGET_LINK_LIBRARIES(
 IF(RV_TARGET_WINDOWS)
   TARGET_LINK_LIBRARIES(
     ${_target}
-    PUBLIC glew nedmalloc win_posix
+    PUBLIC nedmalloc win_posix
   )
   TARGET_COMPILE_OPTIONS(
     ${_target}
