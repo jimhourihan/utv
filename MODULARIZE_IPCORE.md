@@ -130,6 +130,72 @@ List what `Session`, the apps and the video devices call on
 
 Most of the 180 public declarations become backend internals.
 
+#### A1 inventory (2026-10-22)
+
+`ImageRenderer` has 85 public member functions (31 of them static) and
+16 public nested types (two of them, for OpenCL, macOS only). Calls from outside
+`ImageRenderer.cpp` were counted through the receivers the code uses
+(`renderer()->`, `m_renderer->`, `renderer->`, `ImageRenderer::`);
+a call through some other name would be missed.
+
+43 functions are called from outside; 38 are not (the threaded
+upload handshake, image FBO lookup, `setMaxMem`, the PBO and draw-pixels
+switches, `outputDevice`, `hasMultipleOutputs`, `sync`, `manager`, ...)
+and become private or go away.
+
+Callers, by group (call sites in brackets):
+
+| Group | Functions | Callers |
+| --- | --- | --- |
+| Render | `render` (5), `prefetch`, `prepareTextureDescriptionsForUpload`, `waitToDraw`, `freeUploadedTextures`, `useThreadedUpload` | `Session`; `render` also `RvApp/CommandsModule` |
+| Devices | `setControlDevice`, `setOutputDevice`, `controlDevice`, `currentDevice` (7) | `Session`, `RvApp/CommandsModule`, `RenderQuery`, `IPMu/CommandsModule` |
+| Results for the UI | `renderedImages` (9), `viewport` (9), `RenderedImage` / `RenderedImagesVector` types | `RenderQuery`, `IPMu/CommandsModule` |
+| Caches | `flushImageFBOs`, `flushProgramCache`, `clearState`, `unlinkNode` | `Session`, `SequenceIPNode`, `IPMu/CommandsModule`, `RvSession` |
+| Display settings | `setBGPattern` / `bgPattern` / `setDefaultBGPattern` and the `BGPattern` enum, `setFiltering` / `filterType` | `RvTopViewToolBar`, `RvSession`, `Options`, `Session`, `IPMu/CommandsModule` |
+| Capabilities (static, GL) | `queryGL`, `queryGLFinished`, `queryGLIntoContainer`, `printGLInfo`, `supported`, `nextBestRenderer`, `hasFloatFormats`, `fbAcceptableTypes`, `queryClientStorage`, `queryThreadedUpload` | `rv` and `rvio` `main`, `MovieRV_FBO`, `Session`, `SessionIPNode`, `FormatIPNode`, `LUTIPNode`, `RvPreferences` |
+| Options and debug (static) | `debugGpu`, `defaultAllowPBOs`, `setUseAppleClientStorage`, `setUseThreadedUpload`, `setNoGPUCache`, `setPassDebug`, `setOutputIntermediateDebug`, `setIntermediateLogging` | `Options`, `RvPreferences`, `rvio` `main`, `Session`, `VulkanWindow`, `QTVulkanVideoDevice` |
+| Profiling | `initProfilingState`, `profilingState`, `name` | `Session`, `IPMu/CommandsModule` |
+| GL state | `getGLState` | `MovieRV_FBO`, `HoverPreviewOverlayGL` |
+| Script drawing | `AuxRender` (subclassed by `Session`'s `AuxUserRender`, which runs the Mu render events inside `GLPushAttrib`), `AuxAudio` | `Session` |
+
+Nearly all of the traffic is `Session`; outside IPCore it is options and
+preferences (static switches), the background and filter settings, and
+the two `CommandsModule`s.
+
+GL that reaches callers other than through these functions:
+
+- `RenderedImage::textureID` (a `GLuint`) and `RenderQuery.h`'s
+  `GLTextureObject` and `TwkGLF/GLFBO.h` include. `IPMu`'s
+  `imagesAtPixel` and `renderedImages` pass the texture id to scripts,
+  and `audioTextureID` gives `motion_scope.mu` a GL texture to bind with
+  MuGL. These are script-visible GL handles; with Plan C they become
+  handles that MuGL's emulation understands.
+- `queryGLIntoContainer` writes the GL report into the session node's
+  properties, which scripts can read.
+- `PaintCommand`'s `CommandContext` carries `GLFBO`s (A6).
+- `Session`'s `AuxUserRender` wraps script drawing in
+  `GLPushAttrib(GL_ALL_ATTRIB_BITS)`.
+- `SequenceIPNode` flushes the image FBO cache when composite settings
+  change: a cache control call from a node.
+
+What A2 would need from this:
+
+- `Renderer`: `render` (with the aux render and audio), `prefetch`,
+  device set and get, `renderedImages` with a backend-neutral texture
+  handle, `viewport`, cache flushes (one call with a kind), `clearState`,
+  `unlinkNode`, background and filtering, profiling.
+- `RendererCapabilities` (returned by the backend, replacing the static
+  `query*` functions): float formats, acceptable framebuffer types,
+  client storage, threaded upload, a text report for `-debug gpu` and for
+  the session node's properties.
+- `RendererOptions` (set before the backend is created, replacing the
+  static setters): PBOs, client storage, threaded upload, no GPU cache,
+  pass and intermediate debugging, default background.
+- The upload-thread handshake (`waitToDraw`, `freeUploadedTextures`,
+  `useThreadedUpload`) moves inside `render`.
+- `getGLState` stays inside the GL backend: its two callers
+  (`MovieRV_FBO`, `HoverPreviewOverlayGL`) are GL code that moves with it.
+
 ### A2. `IPCore::Renderer`
 
 An abstract class in IPCore with the A1 operations, using IPCore types
@@ -143,6 +209,55 @@ one at a time; `Session` holds a `Renderer*`.
 
 `Session`'s `glFinish` calls become `Renderer::finish()` (or go away
 where they were only for timing).
+
+#### A2 draft (2026-10-22)
+
+`src/lib/ip/IPCore/IPCore/Renderer.h`: a draft, not included or built
+anywhere yet (it compiles on its own with IPCore's flags). It has:
+
+- `Renderer`: the operations from the A1 inventory, 22 virtual
+  functions, with no graphics API types.
+- `RendererBackend`: one per renderer library, exported as
+  `extern "C" IPCore::RendererBackend* UTVRendererBackend()`. It gives
+  the capabilities, the `-debug gpu` report, and makes `Renderer`s.
+- `RendererCapabilities` and `RendererOptions`, replacing the static
+  `query*()` functions and the static setters.
+- `RenderTexture`: an opaque texture handle for what scripts see today as
+  GL texture names (`renderedImages()`, `imagesAtPixel()`,
+  `audioTextureID()`).
+- `findRendererBackend(name)`. `Session::setRendererType()` already
+  makes the renderer by name in one place (`new
+  ImageRenderer("Composite")`, with a commented-out "Direct"
+  alternative), so the factory replaces that line.
+
+Mapping from `ImageRenderer`:
+
+| `ImageRenderer` | `Renderer.h` |
+| --- | --- |
+| `prepareTextureDescriptionsForUpload` + `prefetch` | `Renderer::prefetch` |
+| `waitToDraw`, `useThreadedUpload` | inside `render`; `threadedUpload()` for `Session`'s prefetch timing |
+| `freeUploadedTextures` | `releaseUploads` |
+| `flushImageFBOs`, `flushProgramCache` | `flush(Cache::Intermediates / Programs / All)` |
+| `setBGPattern` / `bgPattern`, `BGPattern` | `setBackground` / `background`, `RendererOptions::Background` |
+| `initProfilingState`, `profilingState` | `beginProfiling`, `profiling` |
+| `controlDevice().glDevice` + `glReadPixels` in `exportCurrentFrame` | `readBack(device, margins)` |
+| `RenderedImage::textureID` (`GLuint`) | `RenderedImage::texture` (`RenderTexture`) |
+| static `query*`, `queryGL`, `queryGLFinished`, `printGLInfo`, `queryGLIntoContainer` | `RendererBackend::capabilities`, `printInfo` |
+| static option setters | `RendererOptions` |
+| `supported`, `nextBestRenderer` | gone: a backend that can't run fails to load or create |
+| `getGLState` | stays inside the GL backend |
+
+Open points in the draft:
+
+- `RvPreferences` changes client storage and threaded upload while the
+  app runs; `RendererOptions` is fixed at creation. Either the renderer
+  is recreated, or those two get setters.
+- `setFiltering` takes an `int` that is a GL enum today; it should be a
+  small enum (nearest, linear).
+- `FormatIPNode` and `LUTIPNode` ask for float support from inside
+  nodes, through the static function. They need a way to reach the
+  current backend's capabilities.
+- The render events (`AuxRender`) still assume GL until Plan C.
 
 ### A3. Video devices per backend
 
