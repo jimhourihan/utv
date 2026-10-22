@@ -321,7 +321,17 @@ Open points in the draft:
   libraries. GL is in IPRendererGLCompat, which the apps link. The holes
   below are in the apps and IPMu, plus the interface types that still
   carry GL meaning (`RenderTexture` ids, the filtering enum).
-- Not yet built on Windows or Linux.
+- Linux (2026-10-22, oryx, GCC): builds after two fixes (`<mutex>` in
+  `PaintIPNode.h`, which came through the GL headers; the
+  `GLCompatRendererBackend.h` include in `rv/main.cpp` was inside the
+  Windows-only block). The utvio test renders are byte-identical to
+  the build before, in compatibility and core profile; the viewer and
+  the hover preview work. Nothing links OpenCL. `RV_CHECK_NO_LINK`
+  fails when GL is linked into IPCore through another library. It
+  cannot follow targets imported in subdirectories (Qt's), so
+  `Qt6::Gui`, `Qt6::OpenGL`, `Qt6::OpenGLWidgets`,
+  `WrapOpenGL::WrapOpenGL` and `opengl32` are named in FORBIDDEN.
+- Not yet built on Windows.
 
 #### Leaky API holes
 

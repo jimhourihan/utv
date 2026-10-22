@@ -12,7 +12,8 @@ ADD_SUBDIRECTORY(ICCNodes)
 ADD_SUBDIRECTORY(IPCoreCommands)
 
 #
-# IPCore and the node libraries are API-neutral: GL is in IPRendererGLCompat (MODULARIZE_IPCORE.md).
+# IPCore and the node libraries are API-neutral: GL is in IPRendererGLCompat (MODULARIZE_IPCORE.md). The Qt targets are imported in subdirectories, so the check
+# cannot follow them from here to the GL library they link: they are named instead.
 #
 INCLUDE(rv_check_no_link)
 RV_CHECK_NO_LINK(
@@ -34,6 +35,11 @@ RV_CHECK_NO_LINK(
   OpenGL::OpenGL
   OpenGL::GLX
   OpenGL::EGL
+  opengl32
+  Qt6::Gui
+  Qt6::OpenGL
+  Qt6::OpenGLWidgets
+  WrapOpenGL::WrapOpenGL
   REASON
   "the renderer backends hold the graphics API code"
 )
