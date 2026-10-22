@@ -4,8 +4,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 //
-#include <IPCore/HoverPreviewOverlayGL.h>
-#include <IPCore/ImageRenderer.h>
+#include <IPRendererGLCompat/HoverPreviewOverlayGL.h>
+#include <IPRendererGLCompat/ImageRenderer.h>
 #include <IPCore/RenderQuery.h>
 #include <TwkGLF/GL.h>
 #include <TwkGLF/GLPipeline.h>
@@ -273,31 +273,12 @@ namespace IPCore
 
     } // namespace
 
-    HoverPreviewOverlayGL::HoverPreviewOverlayGL()
-        : m_tipX(0)
-        , m_tipY(0)
-        , m_imageWidth(0)
-        , m_imageHeight(0)
-        , m_opacity(0)
+    void HoverPreviewOverlayGL::render(const Renderer* r, const TwkApp::VideoDevice* device) const
     {
-    }
+        const ImageRenderer* renderer = dynamic_cast<const ImageRenderer*>(r);
+        if (!renderer)
+            return;
 
-    void HoverPreviewOverlayGL::setPosition(float tipX, float tipY)
-    {
-        m_tipX = tipX;
-        m_tipY = tipY;
-    }
-
-    void HoverPreviewOverlayGL::setImageSize(float width, float height)
-    {
-        m_imageWidth = width;
-        m_imageHeight = height;
-    }
-
-    void HoverPreviewOverlayGL::setOpacity(float opacity) { m_opacity = std::min(std::max(opacity, 0.0f), 1.0f); }
-
-    void HoverPreviewOverlayGL::render(const ImageRenderer* renderer, const TwkApp::VideoDevice* device) const
-    {
         if (m_opacity <= 0.0f || m_imageWidth <= 0.0f || m_imageHeight <= 0.0f)
             return;
 
@@ -399,7 +380,7 @@ namespace IPCore
         GLint textureUnit = 0;
         glPipeline->setUniformInt("texture0", 1, &textureUnit);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture->second.textureID);
+        glBindTexture(GL_TEXTURE_2D, texture->second.id);
         glBlendColor(0.0f, 0.0f, 0.0f, m_opacity);
         glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
         drawTexturedRectangle(glState, imageX0, imageY0, imageX1, imageY1);

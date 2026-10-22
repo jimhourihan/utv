@@ -20,7 +20,7 @@
 #include <RvCommon/RvDocument.h>
 #include <TwkQtCoreUtil/QtConvert.h>
 #include <IPCore/Session.h>
-#include <IPCore/ImageRenderer.h>
+#include <IPRendererGLCompat/ImageRenderer.h>
 #include <IPCore/PropertyEditor.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/regex.hpp>
@@ -687,36 +687,36 @@ namespace Rv
 
     void RvTopViewToolBar::bgMenuUpdate2()
     {
-        ImageRenderer::BGPattern bg = m_session->renderer()->bgPattern();
+        Renderer::Background bg = m_session->renderer()->background();
 
-        m_blackBGAction->setChecked(bg == ImageRenderer::Solid0);
-        m_18GreyBGAction->setChecked(bg == ImageRenderer::Solid18);
-        m_50GreyBGAction->setChecked(bg == ImageRenderer::Solid50);
-        m_whiteBGAction->setChecked(bg == ImageRenderer::Solid100);
-        m_checkerBGAction->setChecked(bg == ImageRenderer::Checker);
-        m_crossHatchBGAction->setChecked(bg == ImageRenderer::CrossHatch);
+        m_blackBGAction->setChecked(bg == Renderer::Background::Solid0);
+        m_18GreyBGAction->setChecked(bg == Renderer::Background::Solid18);
+        m_50GreyBGAction->setChecked(bg == Renderer::Background::Solid50);
+        m_whiteBGAction->setChecked(bg == Renderer::Background::Solid100);
+        m_checkerBGAction->setChecked(bg == Renderer::Background::Checker);
+        m_crossHatchBGAction->setChecked(bg == Renderer::Background::CrossHatch);
 
         const char* iconName = 0;
 
         switch (bg)
         {
         default:
-        case ImageRenderer::Solid0:
+        case Renderer::Background::Solid0:
             iconName = ":/images/black.png";
             break;
-        case ImageRenderer::Solid18:
+        case Renderer::Background::Solid18:
             iconName = ":/images/grey18.png";
             break;
-        case ImageRenderer::Solid50:
+        case Renderer::Background::Solid50:
             iconName = ":/images/grey50.png";
             break;
-        case ImageRenderer::Solid100:
+        case Renderer::Background::Solid100:
             iconName = ":/images/white.png";
             break;
-        case ImageRenderer::Checker:
+        case Renderer::Background::Checker:
             iconName = ":/images/checker.png";
             break;
-        case ImageRenderer::CrossHatch:
+        case Renderer::Background::CrossHatch:
             iconName = ":/images/cross_hatch.png";
             break;
         }
@@ -726,37 +726,37 @@ namespace Rv
 
     void RvTopViewToolBar::bgBlack()
     {
-        m_session->renderer()->setBGPattern(ImageRenderer::Solid0);
+        m_session->renderer()->setBackground(Renderer::Background::Solid0);
         m_bgMenuAction->setIcon(QIcon(":/images/black.png"));
     }
 
     void RvTopViewToolBar::bg18()
     {
-        m_session->renderer()->setBGPattern(ImageRenderer::Solid18);
+        m_session->renderer()->setBackground(Renderer::Background::Solid18);
         m_bgMenuAction->setIcon(QIcon(":/images/grey18.png"));
     }
 
     void RvTopViewToolBar::bg50()
     {
-        m_session->renderer()->setBGPattern(ImageRenderer::Solid50);
+        m_session->renderer()->setBackground(Renderer::Background::Solid50);
         m_bgMenuAction->setIcon(QIcon(":/images/grey50.png"));
     }
 
     void RvTopViewToolBar::bgWhite()
     {
-        m_session->renderer()->setBGPattern(ImageRenderer::Solid100);
+        m_session->renderer()->setBackground(Renderer::Background::Solid100);
         m_bgMenuAction->setIcon(QIcon(":/images/white.png"));
     }
 
     void RvTopViewToolBar::bgChecker()
     {
-        m_session->renderer()->setBGPattern(ImageRenderer::Checker);
+        m_session->renderer()->setBackground(Renderer::Background::Checker);
         m_bgMenuAction->setIcon(QIcon(":/images/checker.png"));
     }
 
     void RvTopViewToolBar::bgHatch()
     {
-        m_session->renderer()->setBGPattern(ImageRenderer::CrossHatch);
+        m_session->renderer()->setBackground(Renderer::Background::CrossHatch);
         m_bgMenuAction->setIcon(QIcon(":/images/cross_hatch.png"));
     }
 

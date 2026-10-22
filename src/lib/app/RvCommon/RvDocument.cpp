@@ -45,11 +45,11 @@
 #include <QtGui/QtGui>
 #include <QtNetwork/QtNetwork>
 #include <IPCore/AudioRenderer.h>
-#include <IPCore/HoverPreviewOverlayGL.h>
-#include <IPCore/ImageRenderer.h>
+#include <IPCore/HoverPreviewOverlay.h>
+#include <IPRendererGLCompat/ImageRenderer.h>
 #include <IPCore/TextureOutputGroupIPNode.h>
 #include <RvApp/RvSession.h>
-#include <IPCore/ImageRenderer.h>
+#include <IPRendererGLCompat/ImageRenderer.h>
 #include <IPBaseNodes/SourceIPNode.h>
 #include <TwkApp/Action.h>
 #include <TwkApp/Application.h>
@@ -2603,7 +2603,8 @@ namespace Rv
             return;
 
         IPCore::TextureOutputGroupIPNode* node = m_session->graph().hoverPreviewNode();
-        if (!node)
+        IPCore::HoverPreviewOverlay* overlay = m_session->hoverPreviewOverlay();
+        if (!node || !overlay)
             return;
 
         const TwkApp::VideoDevice* device = m_session->controlVideoDevice();
@@ -2646,7 +2647,6 @@ namespace Rv
         m_session->graph().requestHoverPreviewFrame(frame);
         m_hoverPreviewActive = true;
 
-        IPCore::HoverPreviewOverlayGL* overlay = m_session->hoverPreviewOverlay();
         overlay->setPosition(x, y);
         overlay->setImageSize(width, height);
         overlay->setLabel(label);

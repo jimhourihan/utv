@@ -51,7 +51,7 @@ namespace IPCore
     {
         CompareRenderedImages() {}
 
-        bool operator()(const ImageRenderer::RenderedImage& a, const ImageRenderer::RenderedImage& b) { return a.imageNum >= b.imageNum; }
+        bool operator()(const Renderer::RenderedImage& a, const Renderer::RenderedImage& b) { return a.imageNum >= b.imageNum; }
     };
 
     void RenderQuery::renderedImages(RenderedImagesVector& results) const
@@ -302,7 +302,7 @@ namespace IPCore
             {
                 if (image.texture.id > 0)
                 {
-                    results[(*it2).second] = GLTextureObject(image.texture.id);
+                    results[(*it2).second] = image.texture;
                 }
             }
         }
@@ -332,7 +332,7 @@ namespace IPCore
 
             if (it2 != image.tagMap.end() && (*it2).second == waveformName)
             {
-                results[(*it2).second] = GLTextureObject(image.texture.id);
+                results[(*it2).second] = image.texture;
             }
         }
     }

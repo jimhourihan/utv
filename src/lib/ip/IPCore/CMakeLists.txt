@@ -22,11 +22,9 @@ SET(_sources
     ShaderSymbol.cpp
     ShaderFunction.cpp
     ShaderExpression.cpp
-    ShaderProgram.cpp
     ShaderCommon.cpp
     ShaderUtil.cpp
     IPImage.cpp
-    ImageFBO.cpp
     FBCache.cpp
     ShaderValues.cpp
     IPGraph.cpp
@@ -38,7 +36,8 @@ SET(_sources
     Profile.cpp
     CoreDefinitions.cpp
     RenderQuery.cpp
-    HoverPreviewOverlayGL.cpp
+    HoverPreviewOverlay.cpp
+    Renderer.cpp
 )
 
 # TODO: Find out whether ALL files are used and replace with a *.glsl glob ???
@@ -182,13 +181,6 @@ SET(_shaders
 QUOTE_FILES(_cooked_shaders INPUT_LIST ${_shaders} SUFFIX "glsl")
 LIST(APPEND _sources ${_cooked_shaders})
 
-# Create CL Kernels
-SET(_cl_kernels
-    Histogram48k Histogram32k Histogram16k
-)
-QUOTE_FILES(_cooked_cl_kernels INPUT_LIST ${_cl_kernels} SUFFIX "cl")
-LIST(APPEND _sources ${_cooked_cl_kernels})
-
 FILE(GLOB _nodes *IPNode.cpp)
 # message(STATUS "_nodes: '${_nodes}'")
 LIST(APPEND _sources ${_nodes})
@@ -198,7 +190,7 @@ FILE(GLOB _instance_nodes *IPInstanceNode.cpp)
 LIST(APPEND _sources ${_instance_nodes})
 
 SET(_renderers
-    ImageRenderer.cpp AudioRenderer.cpp PerFrameAudioRenderer.cpp
+    AudioRenderer.cpp PerFrameAudioRenderer.cpp
 )
 # message(STATUS "_renderers: '${_renderers}'")
 LIST(APPEND _sources ${_renderers})
@@ -246,14 +238,6 @@ IF(RV_TARGET_WINDOWS)
     ${_target}
     PRIVATE "-wd4355"
   )
-ELSEIF(RV_TARGET_DARWIN)
-  FIND_PACKAGE(OpenCL REQUIRED)
-  TARGET_LINK_LIBRARIES(
-    ${_target}
-    PUBLIC OpenCL::OpenCL
-  )
-ELSE()
-  TARGET_LINK_LIBRARIES(${_target})
 ENDIF()
 
 RV_STAGE(TYPE "LIBRARY" TARGET ${_target})

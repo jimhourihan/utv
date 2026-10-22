@@ -4,8 +4,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 //
-#ifndef __IPCore__HoverPreviewOverlayGL__h__
-#define __IPCore__HoverPreviewOverlayGL__h__
+#ifndef __IPCore__HoverPreviewOverlay__h__
+#define __IPCore__HoverPreviewOverlay__h__
 #include <string>
 
 namespace TwkApp
@@ -15,18 +15,18 @@ namespace TwkApp
 
 namespace IPCore
 {
-    class ImageRenderer;
+    class Renderer;
 
     //
-    //  class HoverPreviewOverlayGL
+    //  class HoverPreviewOverlay
     //
-    //  Draws the timeline hover preview: the "hoverPreview" output texture
-    //  (see IPGraph::hoverPreviewNode()) and a label on a translucent panel
-    //  with rounded corners, a soft shadow and an arrow pointing down at
-    //  the frame. Session::renderHoverPreviewOverlay() calls render() after
-    //  the UI has drawn, with the control device's framebuffer bound, so
-    //  the overlay is part of the rendered frame on every presentation
-    //  path.
+    //  The timeline hover preview: the "hoverPreview" output texture (see
+    //  IPGraph::hoverPreviewNode()) and a label on a translucent panel
+    //  with an arrow pointing down at the frame. Session's
+    //  RendererBackend makes it (HoverPreviewOverlayGL for GL), and
+    //  Session::renderHoverPreviewOverlay() calls render() after the UI
+    //  has drawn, with the control device's framebuffer bound, so the
+    //  overlay is part of the rendered frame on every presentation path.
     //
     //  The UI sets the state below. Positions and sizes are in framebuffer
     //  pixels with the origin at the bottom left. The overlay draws only
@@ -34,10 +34,11 @@ namespace IPCore
     //  preview texture this frame. Main thread only.
     //
 
-    class HoverPreviewOverlayGL
+    class HoverPreviewOverlay
     {
     public:
-        HoverPreviewOverlayGL();
+        HoverPreviewOverlay();
+        virtual ~HoverPreviewOverlay();
 
         //
         //  The tip of the arrow, which points at the frame. The panel sits
@@ -65,9 +66,9 @@ namespace IPCore
 
         float opacity() const { return m_opacity; }
 
-        void render(const ImageRenderer*, const TwkApp::VideoDevice*) const;
+        virtual void render(const Renderer*, const TwkApp::VideoDevice*) const = 0;
 
-    private:
+    protected:
         float m_tipX;
         float m_tipY;
         float m_imageWidth;
@@ -78,4 +79,4 @@ namespace IPCore
 
 } // namespace IPCore
 
-#endif // __IPCore__HoverPreviewOverlayGL__h__
+#endif // __IPCore__HoverPreviewOverlay__h__

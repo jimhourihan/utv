@@ -30,7 +30,8 @@
 #include <IPCore/Application.h>
 #include <RvApp/Options.h>
 #include <RvApp/RvNodeDefinitions.h>
-#include <IPCore/ImageRenderer.h>
+#include <IPRendererGLCompat/GLCompatRendererBackend.h>
+#include <IPRendererGLCompat/ImageRenderer.h>
 #include <IPCore/LUTIPNode.h>
 #include <IPCore/IPGraph.h>
 #include <IPBaseNodes/SourceIPNode.h>
@@ -975,6 +976,12 @@ void setEnvVar(const string& var, const string& val)
 
 int utf8Main(int argc, char* argv[])
 {
+    //
+    //  The renderer: GL is the only backend so far (MODULARIZE_IPCORE.md)
+    //
+
+    IPCore::registerGLCompatRendererBackend();
+
     setEnvVar("LANG", "C");
     setEnvVar("LC_ALL", "C");
     TwkFB::ThreadPool::initialize();

@@ -41,6 +41,7 @@ TARGET_LINK_LIBRARIES(
           PyTwkApp
           RvApp
           IPCore
+          IPRendererGLCompat
           IPBaseNodes
           MovieRV_FBO
           MovieFB

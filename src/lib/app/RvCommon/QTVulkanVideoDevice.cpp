@@ -15,7 +15,7 @@
 #include <TwkApp/VideoModule.h>
 #include <TwkApp/Event.h>
 #include <IPCore/Session.h>
-#include <IPCore/ImageRenderer.h>
+#include <IPRendererGLCompat/ImageRenderer.h>
 #include <TwkGLF/GLFBO.h>
 
 #include <QScreen>

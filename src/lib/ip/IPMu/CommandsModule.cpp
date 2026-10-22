@@ -22,7 +22,7 @@
 #include <IPCore/IPGraph.h>
 #include <IPCore/FBCache.h>
 #include <IPCore/IPProperty.h>
-#include <IPCore/ImageRenderer.h>
+#include <IPCore/Renderer.h>
 #include <IPCore/NodeManager.h>
 #include <IPCore/Profile.h>
 #include <IPCore/PropertyEditor.h>
@@ -1002,7 +1002,7 @@ namespace IPMu
         Session* session = Session::currentSession();
         if ((session != nullptr) && (session->renderer() != nullptr))
         {
-            session->renderer()->flushImageFBOs();
+            session->renderer()->flush(Renderer::Cache::Intermediates);
         }
     }
 
@@ -1329,11 +1329,11 @@ namespace IPMu
         NODE_RETURN(mp);
     }
 
-    static void computePixelImages(float x, float y, ImageRenderer::RenderedImagesVector& images, PixelImageVector& pixelImages)
+    static void computePixelImages(float x, float y, Renderer::RenderedImages& images, PixelImageVector& pixelImages)
     {
         for (size_t i = 0; i < images.size(); ++i)
         {
-            const ImageRenderer::RenderedImage& image = images[i];
+            const Renderer::RenderedImage& image = images[i];
             PixelImage& ps = pixelImages[i];
 
             //
@@ -1498,7 +1498,7 @@ namespace IPMu
         if (inputs.empty())
             NODE_RETURN(0);
 
-        ImageRenderer::RenderedImagesVector images;
+        Renderer::RenderedImages images;
         RenderQuery renderQuery(session->renderer());
         renderQuery.imagesByTag(images, "");
 
@@ -1525,7 +1525,7 @@ namespace IPMu
 
         for (size_t i = 0; i < images.size(); ++i)
         {
-            ImageRenderer::RenderedImage& image = images[i];
+            Renderer::RenderedImage& image = images[i];
             PixelImage& ps = pixelImages[i];
 
             if (!image.node)
@@ -1569,7 +1569,7 @@ namespace IPMu
 
         for (int i = 0; i < images.size(); ++i)
         {
-            ImageRenderer::RenderedImage& image = images[i];
+            Renderer::RenderedImage& image = images[i];
             PixelImage& ps = pixelImages[i];
 
             if (!image.node)
@@ -1778,7 +1778,7 @@ namespace IPMu
         DynamicArray* array = new DynamicArray(atype, 1);
         const FixedArrayType* m44type = static_cast<const FixedArrayType*>(c->arrayType(c->floatType(), 2, 4, 4, 0));
 
-        ImageRenderer::RenderedImagesVector images;
+        Renderer::RenderedImages images;
         RenderQuery renderQuery(s->renderer());
         renderQuery.imagesByTag(images, tagname ? tagname->c_str() : "");
 
@@ -1794,7 +1794,7 @@ namespace IPMu
 
             for (size_t i = 0; i < images.size(); i++)
             {
-                ImageRenderer::RenderedImage& image = images[i];
+                Renderer::RenderedImage& image = images[i];
                 PixelImage& ps = pixelImages[i];
 
                 if (!image.node)
@@ -1860,7 +1860,7 @@ namespace IPMu
 
         for (size_t i = 0; i < wantedOnes.size(); i++)
         {
-            ImageRenderer::RenderedImage& image = images[wantedOnes[i]];
+            Renderer::RenderedImage& image = images[wantedOnes[i]];
             PixelImage& ps = pixelImages[wantedOnes[i]];
 
             ClassInstance* o = ClassInstance::allocate(rtype);
@@ -1970,7 +1970,7 @@ namespace IPMu
         DynamicArray* array = new DynamicArray(atype, 1);
         const FixedArrayType* m44type = static_cast<const FixedArrayType*>(c->arrayType(c->floatType(), 2, 4, 4, 0));
 
-        ImageRenderer::RenderedImagesVector sarray;
+        Renderer::RenderedImages sarray;
         RenderQuery renderQuery(s->renderer());
         renderQuery.renderedImages(sarray);
         array->resize(sarray.size());
@@ -2010,7 +2010,7 @@ namespace IPMu
 
         for (int i = 0; i < sarray.size(); i++)
         {
-            ImageRenderer::RenderedImage ps = sarray[i];
+            Renderer::RenderedImage ps = sarray[i];
 
             ClassInstance* o = ClassInstance::allocate(rtype);
             TT* tt = reinterpret_cast<TT*>(o->structure());
@@ -3232,7 +3232,7 @@ namespace IPMu
     NODE_IMPLEMENTATION(getFiltering, int)
     {
         Session* s = Session::currentSession();
-        NODE_RETURN(s->renderer()->filterType());
+        NODE_RETURN(s->renderer()->filtering());
     }
 
     NODE_IMPLEMENTATION(viewSize, Vector2f)
@@ -3253,25 +3253,25 @@ namespace IPMu
 
         if (s && s->renderer())
         {
-            switch (s->renderer()->bgPattern())
+            switch (s->renderer()->background())
             {
             default:
-            case ImageRenderer::Solid0:
+            case Renderer::Background::Solid0:
                 n = "black";
                 break;
-            case ImageRenderer::Solid100:
+            case Renderer::Background::Solid100:
                 n = "white";
                 break;
-            case ImageRenderer::Solid18:
+            case Renderer::Background::Solid18:
                 n = "grey18";
                 break;
-            case ImageRenderer::Solid50:
+            case Renderer::Background::Solid50:
                 n = "grey50";
                 break;
-            case ImageRenderer::Checker:
+            case Renderer::Background::Checker:
                 n = "checker";
                 break;
-            case ImageRenderer::CrossHatch:
+            case Renderer::Background::CrossHatch:
                 n = "crosshatch";
                 break;
             }
@@ -3291,36 +3291,36 @@ namespace IPMu
         if (!method)
             throwBadArgumentException(NODE_THIS, NODE_THREAD, "nil bg method");
 
-        ImageRenderer::BGPattern bg = ImageRenderer::Solid0;
+        Renderer::Background bg = Renderer::Background::Solid0;
 
         if (*method == "black")
         {
-            bg = ImageRenderer::Solid0;
+            bg = Renderer::Background::Solid0;
         }
         else if (*method == "white")
         {
-            bg = ImageRenderer::Solid100;
+            bg = Renderer::Background::Solid100;
         }
         else if (*method == "grey18")
         {
-            bg = ImageRenderer::Solid18;
+            bg = Renderer::Background::Solid18;
         }
         else if (*method == "grey50")
         {
-            bg = ImageRenderer::Solid50;
+            bg = Renderer::Background::Solid50;
         }
         else if (*method == "checker")
         {
-            bg = ImageRenderer::Checker;
+            bg = Renderer::Background::Checker;
         }
         else if (*method == "crosshatch")
         {
-            bg = ImageRenderer::CrossHatch;
+            bg = Renderer::Background::CrossHatch;
         }
 
         if (s && s->renderer())
         {
-            s->setRendererBGType(bg);
+            s->setRendererBGType((unsigned int)bg);
         }
     }
 
@@ -4901,7 +4901,7 @@ namespace IPMu
     NODE_IMPLEMENTATION(audioTextureID, int)
     {
         Session* s = Session::currentSession();
-        ImageRenderer* renderer = s->renderer();
+        Renderer* renderer = s->renderer();
 
         IPCore::RenderQuery::TaggedTextureImagesMap taggedTextures;
         RenderQuery renderQuery(s->renderer());
@@ -4909,7 +4909,7 @@ namespace IPMu
         IPCore::RenderQuery::TaggedTextureImagesMap::iterator it = taggedTextures.find(IPImage::waveformTagValue());
         if (it != taggedTextures.end())
         {
-            NODE_RETURN(it->second.textureID);
+            NODE_RETURN(it->second.id);
         }
         NODE_RETURN(0);
     }

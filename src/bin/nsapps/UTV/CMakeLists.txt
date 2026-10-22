@@ -64,6 +64,7 @@ TARGET_LINK_LIBRARIES(
           PyTwkApp
           Qt::Gui
           IPCore
+          IPRendererGLCompat
           RvApp
           RvCommon
           RvPackage

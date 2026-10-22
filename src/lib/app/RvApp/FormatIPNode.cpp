@@ -14,7 +14,7 @@
 #include <TwkFBAux/FBAux.h>
 #include <TwkMath/Mat44.h>
 #include <TwkMath/Iostream.h>
-#include <IPCore/ImageRenderer.h>
+#include <IPRendererGLCompat/ImageRenderer.h>
 #include <IPCore/NodeDefinition.h>
 #include <stl_ext/stl_ext_algo.h>
 #include <iostream>

@@ -40,7 +40,7 @@ TARGET_INCLUDE_DIRECTORIES(
 
 TARGET_LINK_LIBRARIES(
   ${_target}
-  PUBLIC IPCore Mu MuLang TwkMovie TwkFBAux
+  PUBLIC IPCore IPRendererGLCompat Mu MuLang TwkMovie TwkFBAux
   PRIVATE Python::Python
           Qt::Core
           IPBaseNodes

@@ -266,14 +266,33 @@ Open points in the draft:
 
 #### A2 progress
 
-- Step 1 (2026-10-22, uncommitted): `ImageRenderer` implements
+- Step 1 (2026-10-22): `ImageRenderer` implements
   `Renderer` with thin wrappers, `Session` still holds an
   `ImageRenderer*`. `RenderedImage`, `AuxRender` and `AuxAudio` are
   `Renderer`'s; `prefetch()` prepares and uploads (`prefetchUploads()`
   only uploads); `exportCurrentFrame` uses `readBack()`. The utvio test
   renders (none / hold / ghost, compatibility and core profile) are
   byte-identical to the build before.
-- Next: `Session` holds a `Renderer*`.
+- Stage 1 of moving GL out of IPCore (2026-10-22): the GL renderer is
+  its own library, `src/lib/ip/IPRendererGLCompat`: `ImageRenderer`,
+  `ImageFBO`, `ShaderProgram`, `HoverPreviewOverlayGL`, the OpenCL
+  histogram kernels, and `GLCompatRendererBackend`. IPCore and
+  IPBaseNodes don't use it (no symbol from it is undefined in their
+  archives); the apps (`rv`, `UTV`, `utvio`) link it and call
+  `registerGLCompatRendererBackend()` first thing in `main`.
+  - `Session` holds a `Renderer*` made by the default
+    `RendererBackend`, which also does the device query (`initialize`,
+    `storeInfo`), the GL `-debug` flags and the hover preview overlay
+    (`HoverPreviewOverlay` in IPCore, drawn by `HoverPreviewOverlayGL`).
+  - `RenderQuery` stays in IPCore, on `Renderer`; tagged textures are
+    `RenderTexture`s.
+  - The render events' `GLPushAttrib` and `-debug gpu` error checks moved
+    from `Session` into `ImageRenderer::renderExternal()`.
+  - `LUTIPNode` and `SessionIPNode` ask the default backend.
+- Next (stage 2): the rest of the GL in `Session` (`glFinish`,
+  `GLVideoDevice` casts). Then `Shader::Function` compiling (3),
+  `PaintCommand` drawing (4), and dropping `TwkGLF` from IPCore's link
+  libraries with a CMake check (5).
 
 #### Leaky API holes
 
@@ -290,11 +309,18 @@ where the interface is broken or leaks. All of them are closed by A4.
   (`renderedImages()`, `imagesAtPixel()`, `audioTextureID()`).
 - `setFiltering(int)` takes a GL enum.
 - `AuxRender` (render events) draws with GL (Plan C).
-- `Session`'s `glFinish` calls and `initProfilingState` use
-  `ImageRenderer` directly.
-- `FormatIPNode` and `LUTIPNode` call `ImageRenderer`'s static queries.
-- `getGLState` users (`MovieRV_FBO`, `HoverPreviewOverlayGL`) are GL
-  code outside the backend.
+- `Session` calls `glFinish` and casts devices to `GLVideoDevice`.
+- `Shader::Function` compiles itself with GL; `PaintCommand` draws with
+  GL. Both are in IPCore.
+- App code uses `ImageRenderer`'s statics directly: `Options` and
+  `RvPreferences` (settings), `FormatIPNode` (float formats, acceptable
+  types), the `VulkanWindow` / `QTVulkanVideoDevice` debug flags,
+  `utvio`'s `-debug gpu` report. These become `RendererOptions` and
+  `RendererCapabilities`.
+- `MovieRV_FBO` casts the session's renderer to `ImageRenderer` for
+  `getGLState()`.
+- `RendererBackend::capabilities()` leaves `version`, `vendor`, `device`
+  and `acceptableTypes` empty; the GL backend fills them in later.
 
 ### A3. Video devices per backend
 

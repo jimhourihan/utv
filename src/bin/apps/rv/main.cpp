@@ -92,7 +92,8 @@
 #include <unistd.h>
 #else
 #include <TwkGLFFBO/FBOVideoDevice.h>
-#include <IPCore/ImageRenderer.h>
+#include <IPRendererGLCompat/GLCompatRendererBackend.h>
+#include <IPRendererGLCompat/ImageRenderer.h>
 #endif
 
 #if defined(RV_VFX_CY2023)
@@ -135,7 +136,7 @@ extern void rvThirdPartyCustomization(TwkApp::Bundle& bundle, char* licarg);
 // #error ********* NO VERSION INFORMATION ***********
 #else
 #ifndef _MSC_VER
-#warning********* NO VERSION INFORMATION ***********
+#warning ********* NO VERSION INFORMATION ***********
 #endif
 #endif
 #endif
@@ -259,6 +260,12 @@ int utf8Main(int argc, char* argv[])
 #ifdef PLATFORM_LINUX
     XInitThreads();
 #endif
+
+    //
+    //  The renderer: GL is the only backend so far (MODULARIZE_IPCORE.md)
+    //
+
+    IPCore::registerGLCompatRendererBackend();
 
     // High DPI support is enabled by default. To disable it, set the
     // environment variable "RV_NO_QT_HDPI_SUPPORT".

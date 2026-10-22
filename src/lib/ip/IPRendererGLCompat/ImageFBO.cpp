@@ -5,7 +5,7 @@
 //
 //******************************************************************************
 
-#include <IPCore/ImageFBO.h>
+#include <IPRendererGLCompat/ImageFBO.h>
 #include <algorithm>
 
 namespace

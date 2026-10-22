@@ -18,7 +18,7 @@
 #include <IPCore/Exception.h>
 #include <IPCore/GroupIPNode.h>
 #include <IPCore/IPGraph.h>
-#include <IPCore/ImageRenderer.h>
+#include <IPRendererGLCompat/ImageRenderer.h>
 #include <IPCore/IPProperty.h>
 #include <IPCore/PropertyEditor.h>
 #include <IPCore/NodeManager.h>
@@ -510,7 +510,7 @@ namespace Rv
     {
         StringType::String* name = NODE_ARG_OBJECT(0, StringType::String);
         Session* s = Session::currentSession();
-        ImageRenderer* renderer = s->renderer();
+        Renderer* renderer = s->renderer();
 
         if (!name)
             throwBadArgumentException(NODE_THIS, NODE_THREAD, "nil filename");

@@ -5,7 +5,7 @@
 //  SPDX-License-Identifier: Apache-2.0
 //
 //
-#include <IPCore/ShaderProgram.h>
+#include <IPRendererGLCompat/ShaderProgram.h>
 #include <IPCore/ShaderFunction.h>
 #include <IPCore/ShaderSymbol.h>
 #include <IPCore/ShaderState.h>

@@ -28,6 +28,7 @@ TARGET_LINK_LIBRARIES(
   PUBLIC TwkApp TwkMovie
   PRIVATE IPBaseNodes
           IPCore
+          IPRendererGLCompat
           RvApp
           TwkContainer
           TwkFB

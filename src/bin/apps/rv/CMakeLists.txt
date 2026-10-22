@@ -117,6 +117,7 @@ TARGET_LINK_LIBRARIES(
           MuTwkApp
           PyTwkApp
           IPCore
+          IPRendererGLCompat
           RvApp
           RvPackage
           TwkApp

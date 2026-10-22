@@ -11,11 +11,11 @@
 #define __IPCore__ImageRenderer__h__
 #include <boost/thread.hpp>
 #include <IPCore/IPNode.h>
-#include <IPCore/ShaderProgram.h>
+#include <IPRendererGLCompat/ShaderProgram.h>
 #include <IPCore/ShaderCommon.h>
-#include <IPCore/ShaderProgram.h>
+#include <IPRendererGLCompat/ShaderProgram.h>
 #include <IPCore/PaintCommand.h>
-#include <IPCore/ImageFBO.h>
+#include <IPRendererGLCompat/ImageFBO.h>
 #include <IPCore/Renderer.h>
 #include <TwkExc/TwkExcException.h>
 #include <TwkFB/FrameBuffer.h>
@@ -549,7 +549,7 @@ namespace IPCore
         ImageRenderer(const std::string& name);
         ~ImageRenderer();
 
-        const std::string& name() const { return m_name; }
+        const std::string& name() const override { return m_name; }
 
         //
         //  Device management
@@ -582,6 +582,8 @@ namespace IPCore
         void prefetchUploads(const IPImage*);
 
         bool threadedUpload() const override { return useThreadedUpload(); }
+
+        void waitForUploads() override { waitToDraw(); }
 
         void releaseUploads() override { freeUploadedTextures(); }
 

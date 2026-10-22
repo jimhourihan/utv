@@ -28,7 +28,7 @@
 #include <IPCore/DisplayStereoIPNode.h>
 #include <IPCore/Application.h>
 #include <IPCore/AudioRenderer.h>
-#include <IPCore/ImageRenderer.h>
+#include <IPRendererGLCompat/ImageRenderer.h>
 #include <IPCore/LUTIPNode.h>
 #include <IPCore/Profile.h>
 #include <IPCore/FBCache.h>
@@ -2038,16 +2038,7 @@ namespace Rv
         }
     }
 
-    void RvPreferences::useThreadedUploadChanged(int state)
-    {
-        const TwkApp::Application::Documents& docs = IPCore::App()->documents();
-
-        for (size_t i = 0; i < docs.size(); i++)
-        {
-            Session* s = static_cast<Session*>(docs[i]);
-            s->renderer()->setUseThreadedUpload(state != 0);
-        }
-    }
+    void RvPreferences::useThreadedUploadChanged(int state) { ImageRenderer::setUseThreadedUpload(state != 0); }
 
     void RvPreferences::videoSyncChanged(int state)
     {

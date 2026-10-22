@@ -23,7 +23,6 @@
 #include <IPCore/PipelineGroupIPNode.h>
 #include <IPCore/RootIPNode.h>
 #include <IPCore/SessionIPNode.h>
-#include <IPCore/ShaderProgram.h>
 #include <IPCore/SoundTrackIPNode.h>
 #include <IPCore/Transform2DIPNode.h>
 #include <IPCore/TextureOutputGroupIPNode.h>

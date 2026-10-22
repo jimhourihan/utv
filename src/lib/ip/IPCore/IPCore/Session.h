@@ -30,9 +30,10 @@
 namespace IPCore
 {
     class AudioRenderer;
-    class HoverPreviewOverlayGL;
+    class HoverPreviewOverlay;
     class IPNode;
-    class ImageRenderer;
+    class Renderer;
+    class RendererBackend;
     class PropertyInfo;
 
     //
@@ -515,16 +516,17 @@ namespace IPCore
 
         virtual void setRendererType(const std::string&);
 
-        ImageRenderer* renderer() const { return m_renderer; }
+        Renderer* renderer() const { return m_renderer; }
 
         //
-        //  Timeline hover preview overlay (see HoverPreviewOverlayGL). It
-        //  is created on first call, so it costs nothing until a UI uses
-        //  it. renderHoverPreviewOverlay() draws it over the control device
+        //  Timeline hover preview overlay (see HoverPreviewOverlay). The
+        //  renderer backend makes it on the first call, so it costs nothing
+        //  until a UI uses it; null if there is no backend.
+        //  renderHoverPreviewOverlay() draws it over the control device
         //  after the UI, and does nothing until then. Main thread only.
         //
 
-        HoverPreviewOverlayGL* hoverPreviewOverlay();
+        HoverPreviewOverlay* hoverPreviewOverlay();
 
         void renderHoverPreviewOverlay() const;
 
@@ -1098,7 +1100,7 @@ namespace IPCore
 
         void setSessionStateFromNode(IPNode*);
 
-        void queryAndStoreGLInfo();
+        void initializeRendererBackend();
 
         void waitForUploadToFinish();
 
@@ -1194,8 +1196,9 @@ namespace IPCore
         bool m_waitForUploadThreadPrefetch;
         IPGraph* m_graph;
         std::string m_name;
-        ImageRenderer* m_renderer;
-        HoverPreviewOverlayGL* m_hoverPreviewOverlay;
+        Renderer* m_renderer;
+        RendererBackend* m_rendererBackend;
+        HoverPreviewOverlay* m_hoverPreviewOverlay;
         Timer m_timer;
         Timer m_stopTimer;
         Timer m_userTimer;

@@ -10,7 +10,6 @@
 #include <IPCore/PaintCommand.h>
 #include <IPCore/ShaderExpression.h>
 #include <IPCore/ShaderCommon.h>
-#include <IPCore/ShaderProgram.h>
 #include <IPCore/IPNode.h>
 #include <TwkFB/Operations.h>
 #include <TwkApp/VideoDevice.h>

@@ -9,12 +9,12 @@
 //
 #include <IPCore/Application.h>
 #include <IPCore/AudioRenderer.h>
-#include <IPCore/ImageRenderer.h>
+#include <IPCore/Renderer.h>
 #include <IPCore/DefaultMode.h>
 #include <IPCore/Exception.h>
 #include <IPCore/SessionIPNode.h>
 #include <IPCore/Session.h>
-#include <IPCore/HoverPreviewOverlayGL.h>
+#include <IPCore/HoverPreviewOverlay.h>
 #include <IPCore/PerFrameAudioRenderer.h>
 #include <IPCore/GroupIPNode.h>
 #include <IPCore/SoundTrackIPNode.h>
@@ -169,7 +169,22 @@ namespace IPCore
 
     static bool debugGC = false;
 
-    class AuxUserRender : public ImageRenderer::AuxRender
+    //
+    //  "-debug" flags for the renderer backends (GL: gpu, passes,
+    //  imagefbo, nogpucache, imagefbolog)
+    //
+
+    static bool setRendererDebugOption(const string& flag)
+    {
+        bool known = false;
+
+        for (const string& name : availableRendererBackends())
+            known = findRendererBackend(name)->setDebugOption(flag) || known;
+
+        return known;
+    }
+
+    class AuxUserRender : public Renderer::AuxRender
     {
     public:
         AuxUserRender(Session* s)
@@ -185,7 +200,6 @@ namespace IPCore
 
     void AuxUserRender::render(VideoDevice::DisplayMode mode, bool leftEye, bool rightEye, bool forController, bool forOutput) const
     {
-        GLPushAttrib attr(GL_ALL_ATTRIB_BITS);
         string contents = (leftEye) ? ((rightEye) ? "both" : "left") : "right";
         double startTime = 0;
 
@@ -231,7 +245,7 @@ namespace IPCore
         }
     }
 
-    class AuxAudioRenderer : public ImageRenderer::AuxAudio
+    class AuxAudioRenderer : public Renderer::AuxAudio
     {
     public:
         AuxAudioRenderer(Session* s)
@@ -370,6 +384,7 @@ namespace IPCore
         , m_wantsRedraw(false)
         , m_fullScreen(false)
         , m_renderer(0)
+        , m_rendererBackend(0)
         , m_hoverPreviewOverlay(0)
         , m_realfps(0)
         , m_lastCheckTime(0)
@@ -754,8 +769,8 @@ namespace IPCore
                 TwkApp::Document::debugEvents();
             else if (name == "threads")
                 stl_ext::thread_group::debug_all(true);
-            else if (name == "gpu")
-                ImageRenderer::debugGpu(true);
+            else if (setRendererDebugOption(name))
+                ;
             else if (name == "audio")
                 AudioRenderer::setDebug(true);
             else if (name == "audioverbose")
@@ -783,14 +798,6 @@ namespace IPCore
                 TwkFB::Cache::debug() = true;
             else if (name == "dtree")
                 IPGraph::setDebugTreeOutput(true);
-            else if (name == "passes")
-                ImageRenderer::setPassDebug(true);
-            else if (name == "imagefbo")
-                ImageRenderer::setOutputIntermediateDebug(true);
-            else if (name == "nogpucache")
-                ImageRenderer::setNoGPUCache(true);
-            else if (name == "imagefbolog")
-                ImageRenderer::setIntermediateLogging(true);
             else if (name == "nodes")
                 IPCore::NodeManager::setDebug(true);
         }
@@ -959,7 +966,7 @@ namespace IPCore
 
     void Session::setRendererBGType(unsigned int v)
     {
-        m_renderer->setBGPattern((ImageRenderer::BGPattern)v);
+        m_renderer->setBackground(Renderer::Background(v));
         userGenericEvent("bg-pattern-change", "");
         m_bgChangedSignal();
     }
@@ -972,29 +979,27 @@ namespace IPCore
         delete m_renderer;
         m_renderer = 0;
 
-        if (type == "Composite")
-        {
-            m_renderer = new ImageRenderer("Composite");
-        }
-        // else if (type == "Direct")
-        // {
-        //     m_renderer = new DrawPixelsRenderer(m_fb);
-        // }
-        else if (type == "None")
-        {
-            /* Do nothing */
-        }
-        else
-        {
+        if (type == "None")
+            return;
+
+        if (type != "Composite")
             cerr << "WARNING: requested unknown renderer type " << type << " using Composite" << endl;
-            m_renderer = new ImageRenderer("Composite");
-        }
+
+        m_rendererBackend = defaultRendererBackend();
+
+        if (m_rendererBackend)
+            m_renderer = m_rendererBackend->newRenderer("Composite");
+        else
+            cerr << "ERROR: no renderer backend" << endl;
     }
 
-    HoverPreviewOverlayGL* Session::hoverPreviewOverlay()
+    HoverPreviewOverlay* Session::hoverPreviewOverlay()
     {
         if (!m_hoverPreviewOverlay)
-            m_hoverPreviewOverlay = new HoverPreviewOverlayGL();
+        {
+            if (RendererBackend* backend = m_rendererBackend ? m_rendererBackend : defaultRendererBackend())
+                m_hoverPreviewOverlay = backend->newHoverPreviewOverlay();
+        }
         return m_hoverPreviewOverlay;
     }
 
@@ -1183,7 +1188,7 @@ namespace IPCore
     {
         if (d == m_outputVideoDevice || d == m_controlVideoDevice)
         {
-            m_renderer->flushImageFBOs();
+            m_renderer->flush(Renderer::Cache::Intermediates);
         }
 
         if (d == m_outputVideoDevice)
@@ -2275,7 +2280,7 @@ namespace IPCore
         // We need to manually free the already uploaded textures here because
         // their content risks of no longer matching the reloaded media.
         if (m_renderer)
-            m_renderer->freeUploadedTextures();
+            m_renderer->releaseUploads();
 
         updateGraphInOut();
         askForRedraw();
@@ -3101,7 +3106,7 @@ namespace IPCore
             {
                 ProfilingRecord& trecord = currentProfilingSample();
                 trecord.prefetchRenderStart = profilingElapsedTime();
-                m_renderer->initProfilingState(&m_profilingTimer);
+                m_renderer->beginProfiling(&m_profilingTimer);
             }
 
             m_renderer->prefetch(m_preDisplayImage);
@@ -3110,7 +3115,7 @@ namespace IPCore
             {
                 ProfilingRecord& trecord = currentProfilingSample();
                 trecord.prefetchRenderEnd = profilingElapsedTime();
-                trecord.prefetchUploadPlaneTotal = m_renderer->profilingState().uploadPlaneTime;
+                trecord.prefetchUploadPlaneTotal = m_renderer->profiling().uploadPlaneTime;
             }
         }
 
@@ -3154,27 +3159,16 @@ namespace IPCore
         }
     }
 
-    void Session::queryAndStoreGLInfo()
+    void Session::initializeRendererBackend()
     {
-#if defined(PLATFORM_DARWIN)
-        // Darwin Metal hybrid path: IPCore renders through an offscreen GL context
-        // owned by QTMetalVideoDevice.  Make the control device's context current
-        // when available; defer until the first render if it is not ready yet
-        // (queryGLFinished() stays false).
-        if (const TwkGLF::GLVideoDevice* glDev = dynamic_cast<const TwkGLF::GLVideoDevice*>(controlVideoDevice()))
-        {
-            glDev->makeCurrent();
-        }
-        else
-        {
-            return;
-        }
+        //
+        //  The backend may not be able to query the device yet (Darwin Metal
+        //  hybrid path: no GL context until the first render); it stays
+        //  uninitialized and this is called again.
+        //
 
-        if (TwkGLF::safeGLGetString(GL_VERSION).empty())
-            return;
-#endif
-        ImageRenderer::queryGL();
-        ImageRenderer::queryGLIntoContainer(graph().sessionNode());
+        if (m_rendererBackend && m_rendererBackend->initialize(controlVideoDevice()))
+            m_rendererBackend->storeInfo(graph().sessionNode());
     }
 
     void Session::setNextVSyncOffset(Time t, size_t serial)
@@ -3326,12 +3320,12 @@ namespace IPCore
 
     void Session::advanceState()
     {
-        if (!ImageRenderer::queryGLFinished())
+        if (m_rendererBackend && !m_rendererBackend->initialized())
         {
-            queryAndStoreGLInfo();
+            initializeRendererBackend();
         }
 
-        if (!m_renderer->supported())
+        if (!m_renderer)
             chooseNextBestRenderer();
 
         if (m_rangeDirty)
@@ -3723,7 +3717,7 @@ namespace IPCore
             {
                 ProfilingRecord& trecord = currentProfilingSample();
                 trecord.internalRenderStart = profilingElapsedTime();
-                m_renderer->initProfilingState(&m_profilingTimer);
+                m_renderer->beginProfiling(&m_profilingTimer);
             }
 
             AuxUserRender auxRender(this);
@@ -3754,8 +3748,8 @@ namespace IPCore
                 ProfilingRecord& trecord = currentProfilingSample();
                 trecord.internalRenderEnd = profilingElapsedTime();
                 trecord.frame = m_frame;
-                trecord.renderUploadPlaneTotal = m_renderer->profilingState().uploadPlaneTime;
-                trecord.renderFenceWaitTotal = m_renderer->profilingState().fenceWaitTime;
+                trecord.renderUploadPlaneTotal = m_renderer->profiling().uploadPlaneTime;
+                trecord.renderFenceWaitTotal = m_renderer->profiling().fenceWaitTime;
             }
         }
         catch (RendererNotSupportedExc& exc)
@@ -3909,12 +3903,12 @@ namespace IPCore
 
     void Session::render_v2()
     {
-        if (!ImageRenderer::queryGLFinished())
+        if (m_rendererBackend && !m_rendererBackend->initialized())
         {
-            queryAndStoreGLInfo();
+            initializeRendererBackend();
         }
 
-        if (!m_renderer->supported())
+        if (!m_renderer)
             chooseNextBestRenderer();
 
         if (m_rangeDirty)
@@ -4412,7 +4406,7 @@ namespace IPCore
                 {
                     ProfilingRecord& trecord = currentProfilingSample();
                     trecord.internalRenderStart = profilingElapsedTime();
-                    m_renderer->initProfilingState(&m_profilingTimer);
+                    m_renderer->beginProfiling(&m_profilingTimer);
                 }
 
                 AuxUserRender auxRender(this);
@@ -4488,8 +4482,8 @@ namespace IPCore
                     ProfilingRecord& trecord = currentProfilingSample();
                     trecord.internalRenderEnd = profilingElapsedTime();
                     trecord.frame = m_frame;
-                    trecord.renderUploadPlaneTotal = m_renderer->profilingState().uploadPlaneTime;
-                    trecord.renderFenceWaitTotal = m_renderer->profilingState().fenceWaitTime;
+                    trecord.renderUploadPlaneTotal = m_renderer->profiling().uploadPlaneTime;
+                    trecord.renderFenceWaitTotal = m_renderer->profiling().fenceWaitTime;
                 }
 
                 HOP_CALL(glFinish();)
@@ -4627,7 +4621,7 @@ namespace IPCore
         // make sure it has finished before we destroy the IPImage
         if (m_renderer && m_waitForUploadThreadPrefetch)
         {
-            m_renderer->waitToDraw();
+            m_renderer->waitForUploads();
             m_waitForUploadThreadPrefetch = false;
         }
     }
@@ -4833,7 +4827,7 @@ namespace IPCore
 
             else if (se->name() == "graph-program-flush")
             {
-                renderer()->flushProgramCache();
+                renderer()->flush(Renderer::Cache::Programs);
                 // should prob have a boost signal for this as well
             }
         }
@@ -4984,16 +4978,6 @@ namespace IPCore
 
     void Session::userRender(const VideoDevice* d, const char* eventName, const string& contents)
     {
-        if (ImageRenderer::debugGpu())
-        {
-            // these calls are expensive should only be called in debug mode
-
-            if (GLuint err = glGetError())
-            {
-                cerr << "GL ERROR: *BEFORE* userRender: event=" << eventName << " : " << TwkGLF::errorString(err) << endl;
-            }
-        }
-
         Session* s = currentSession();
         m_currentSession = this;
 
@@ -5007,14 +4991,6 @@ namespace IPCore
         sendEvent(event);
 
         m_currentSession = s;
-
-        if (ImageRenderer::debugGpu())
-        {
-            if (GLuint err = glGetError())
-            {
-                cerr << "GL ERROR: after userRender: event=" << eventName << " : " << TwkGLF::errorString(err) << endl;
-            }
-        }
     }
 
     void Session::setAudioTime(double t) { m_audioStartSample = timeToSamples(t, audioRenderer()->deviceState().rate); }
@@ -5638,7 +5614,7 @@ namespace IPCore
 
         if (bg && !bg->empty())
         {
-            m_renderer->setBGPattern((ImageRenderer::BGPattern)bg->front());
+            m_renderer->setBackground(Renderer::Background(bg->front()));
         }
     }
 
@@ -6384,7 +6360,11 @@ namespace IPCore
 
     void Session::readGTO(const string& filename, bool merge) {}
 
-    bool Session::useThreadedUpload() { return ImageRenderer::useThreadedUpload(); }
+    bool Session::useThreadedUpload()
+    {
+        const RendererBackend* backend = defaultRendererBackend();
+        return backend && backend->capabilities().threadedUpload;
+    }
 
     bool Session::framePatternCheck(int frame) const
     {

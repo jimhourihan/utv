@@ -6,9 +6,9 @@
 //
 //  The interface Session and the apps use instead of ImageRenderer, so
 //  that the renderer can be a library loaded at run time (GL first). See
-//  MODULARIZE_IPCORE.md (A1 inventory, A2). ImageRenderer implements
-//  Renderer; RendererBackend and the loading functions are not
-//  implemented yet. Nothing here names a graphics API.
+//  MODULARIZE_IPCORE.md (A1 inventory, A2). The GL backend is
+//  IPRendererGLCompat (ImageRenderer); the apps register it at start up.
+//  Nothing here names a graphics API.
 //
 #ifndef __IPCore__Renderer__h__
 #define __IPCore__Renderer__h__
@@ -27,6 +27,7 @@
 namespace IPCore
 {
     class IPNode;
+    class HoverPreviewOverlay;
 
     //
     //  A texture owned by the backend, as seen by scripts
@@ -43,9 +44,9 @@ namespace IPCore
     };
 
     //
-    //  Settings a backend is created with. These replace ImageRenderer's
-    //  static setters, which Options and RvPreferences call before or
-    //  between renders.
+    //  Settings a backend is created with. These will replace
+    //  ImageRenderer's static setters, which Options and RvPreferences call
+    //  before or between renders. Only Background is used so far.
     //
 
     struct RendererOptions
@@ -191,6 +192,12 @@ namespace IPCore
         virtual ~Renderer() = default;
 
         //
+        //  The renderer type Session asked for ("Composite")
+        //
+
+        virtual const std::string& name() const = 0;
+
+        //
         //  Devices. The control device is the viewer (or utvio's offscreen
         //  device); the output device is a second display or an SDI / NDI
         //  output. The devices come from the app and must be ones this
@@ -213,6 +220,7 @@ namespace IPCore
         virtual void render(int frame, IPImage* root, const AuxRender* aux = nullptr, const AuxAudio* auxAudio = nullptr,
                             IPImage* uploadRoot = nullptr) = 0;
         virtual bool threadedUpload() const = 0;
+        virtual void waitForUploads() = 0; // the upload thread's prefetch
         virtual void releaseUploads() = 0; // freeUploadedTextures()
 
         //
@@ -261,7 +269,8 @@ namespace IPCore
     //      extern "C" IPCore::RendererBackend* UTVRendererBackend();
     //
     //  and is loaded with dlopen() / LoadLibrary(), as the image format
-    //  plugins are. The GL backend can also be linked in directly.
+    //  plugins are. Until then the apps link the GL backend
+    //  (IPRendererGLCompat) and register it.
     //
 
     class RendererBackend
@@ -272,23 +281,45 @@ namespace IPCore
         virtual std::string name() const = 0; // "GL", "Vulkan", ...
 
         //
-        //  Valid once a device of this backend exists (for GL: a current
-        //  context). Replaces queryGL(), queryGLFinished() and the static
-        //  query*() functions.
+        //  Query the device: the capabilities and the report below are
+        //  valid once initialized() is true. initialize() is called before
+        //  rendering until it succeeds (for GL: once the control device
+        //  has a context). storeInfo() puts the report in the session
+        //  node's properties.
         //
 
-        virtual const RendererCapabilities& capabilities() const = 0;
+        virtual bool initialized() const = 0;
+        virtual bool initialize(const TwkApp::VideoDevice* control) = 0;
+        virtual void storeInfo(IPNode* sessionNode) const = 0;
+
+        virtual RendererCapabilities capabilities() const = 0;
         virtual void printInfo(std::ostream&) const = 0; // "-debug gpu"
 
-        virtual Renderer* newRenderer(const RendererOptions&) = 0;
+        //
+        //  "-debug" flags for the backend. Returns false for a flag it
+        //  doesn't know.
+        //
+
+        virtual bool setDebugOption(const std::string& flag) = 0;
+
+        virtual Renderer* newRenderer(const std::string& type) = 0;
+
+        //
+        //  UI drawn by the backend after the render events
+        //
+
+        virtual HoverPreviewOverlay* newHoverPreviewOverlay() = 0;
     };
 
     //
-    //  Loading. Session::setRendererType() would call
-    //  findRendererBackend() instead of making an ImageRenderer.
+    //  The backends the app registered. The first one is the default:
+    //  findRendererBackend("") returns it, as does
+    //  defaultRendererBackend(). Nodes ask it for capabilities.
     //
 
+    void registerRendererBackend(RendererBackend*);
     RendererBackend* findRendererBackend(const std::string& name);
+    RendererBackend* defaultRendererBackend();
     std::vector<std::string> availableRendererBackends();
 
 } // namespace IPCore

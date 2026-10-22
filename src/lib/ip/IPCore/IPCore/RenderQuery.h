@@ -7,13 +7,9 @@
 //
 #ifndef __IPCore__RenderQuery__h__
 #define __IPCore__RenderQuery__h__
-#include <TwkGLF/GLFBO.h>
 #include <IPCore/IPImage.h>
-#include <TwkGLF/GL.h>
-#include <TwkGLF/GLFence.h>
-#include <TwkGLF/GLVideoDevice.h>
+#include <IPCore/Renderer.h>
 #include <TwkMath/Box.h>
-#include <IPCore/ImageRenderer.h>
 #include <IPCore/IPNode.h>
 #include <IPCore/GroupIPNode.h>
 
@@ -24,15 +20,14 @@ namespace IPCore
     {
     public:
         typedef TwkMath::Vec3f Vec3f;
-        typedef ImageRenderer::RenderedImage RenderedImage;
-        typedef ImageRenderer::GLTextureObject GLTextureObject;
+        typedef Renderer::RenderedImage RenderedImage;
         typedef IPImage::Matrix Matrix;
-        typedef ImageRenderer::RenderedImagesVector RenderedImagesVector;
-        typedef std::map<std::string, GLTextureObject> TaggedTextureImagesMap;
+        typedef Renderer::RenderedImages RenderedImagesVector;
+        typedef std::map<std::string, RenderTexture> TaggedTextureImagesMap;
         typedef TwkApp::VideoDevice VideoDevice;
 
         // Constructor
-        RenderQuery(const ImageRenderer* renderer)
+        RenderQuery(const Renderer* renderer)
             : m_renderer(renderer)
         {
         }
@@ -88,7 +83,7 @@ namespace IPCore
         void imageCornersByHash(const std::string& source, std::vector<Vec3f>&) const;
 
     private:
-        const ImageRenderer* m_renderer;
+        const Renderer* m_renderer;
     };
 
 } // namespace IPCore

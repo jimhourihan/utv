@@ -6,7 +6,7 @@
 //
 //******************************************************************************
 #include <IPCore/LUTIPNode.h>
-#include <IPCore/ImageRenderer.h>
+#include <IPCore/Renderer.h>
 #include <IPCore/Application.h>
 #include <IPCore/Exception.h>
 #include <IPCore/ShaderCommon.h>
@@ -26,6 +26,15 @@ namespace IPCore
     using namespace TwkContainer;
     using namespace TwkUtil;
     using namespace TwkMath;
+
+    namespace
+    {
+        bool hasFloatFormats()
+        {
+            const RendererBackend* backend = defaultRendererBackend();
+            return backend && backend->capabilities().floatFormats;
+        }
+    } // namespace
 
     bool LUTIPNode::newGLSLlutInterp = false;
     std::map<std::string, LUT::LUTData> LUTIPNode::lutLib;
@@ -365,7 +374,7 @@ namespace IPCore
 
         FrameBuffer::DataType dataType = out32 ? FrameBuffer::FLOAT : FrameBuffer::HALF;
 
-        if (!ImageRenderer::hasFloatFormats() && !m_floatOutLUT)
+        if (!hasFloatFormats() && !m_floatOutLUT)
         {
             dataType = FrameBuffer::USHORT;
             if (m_lowlut3)
@@ -510,7 +519,7 @@ namespace IPCore
         FrameBuffer::DataType dataType = out32 ? FrameBuffer::FLOAT : FrameBuffer::HALF;
         typedef unsigned short IType;
 
-        if (!ImageRenderer::hasFloatFormats() && !m_floatOutLUT)
+        if (!hasFloatFormats() && !m_floatOutLUT)
         {
             const IType smax = numeric_limits<IType>::max();
             const double dmax = smax;

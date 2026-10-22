@@ -10,7 +10,7 @@
 #include <IPCore/Exception.h>
 #include <IPBaseNodes/RetimeIPNode.h>
 #include <IPCore/AudioRenderer.h>
-#include <IPCore/ImageRenderer.h>
+#include <IPCore/Renderer.h>
 #include <IPCore/IPGraph.h>
 #include <IPCore/Session.h>
 #include <IPCore/ShaderUtil.h>
@@ -876,7 +876,7 @@ namespace IPCore
                     Session* session = Session::currentSession();
                     if (session && session->renderer())
                     {
-                        session->renderer()->flushImageFBOs();
+                        session->renderer()->flush(Renderer::Cache::Intermediates);
                     }
                 }
 

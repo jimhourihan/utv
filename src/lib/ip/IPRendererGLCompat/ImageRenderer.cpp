@@ -13,10 +13,10 @@
 #endif
 #endif
 
-#include <IPCore/ImageRenderer.h>
+#include <IPRendererGLCompat/ImageRenderer.h>
 #include <IPCore/Exception.h>
 #include <IPCore/IPNode.h>
-#include <IPCore/ShaderProgram.h>
+#include <IPRendererGLCompat/ShaderProgram.h>
 #include <IPCore/Application.h>
 #include <IPCore/PaintCommand.h>
 #include <TwkExc/TwkExcException.h>
@@ -53,7 +53,7 @@
 #include <boost/algorithm/string/regex.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
-#include <IPCore/ImageRenderer.h>
+#include <IPRendererGLCompat/ImageRenderer.h>
 #include <IPCore/Exception.h>
 #include <IPCore/GroupIPNode.h>
 #include <IPCore/IPNode.h>
@@ -2570,7 +2570,27 @@ namespace IPCore
             m_rootContext = &context;
             GLState::FixedFunctionPipeline FFP(m_glState);
             FFP.setViewport(0, 0, fbo->width(), fbo->height());
+            GLPushAttrib attr(GL_ALL_ATTRIB_BITS);
+
+            if (m_debugGpu)
+            {
+                // these calls are expensive should only be called in debug mode
+
+                if (GLuint err = glGetError())
+                {
+                    cerr << "GL ERROR: *BEFORE* render events: " << TwkGLF::errorString(err) << endl;
+                }
+            }
+
             auxRender->render(VideoDevice::IndependentDisplayMode, left, right, controller, !controller);
+
+            if (m_debugGpu)
+            {
+                if (GLuint err = glGetError())
+                {
+                    cerr << "GL ERROR: after render events: " << TwkGLF::errorString(err) << endl;
+                }
+            }
             m_rootContext = 0;
         }
     }

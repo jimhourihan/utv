@@ -28,7 +28,7 @@
 #include <IPCore/AdaptorIPNode.h>
 #include <IPCore/Application.h>
 #include <IPCore/CacheIPNode.h>
-#include <IPCore/ImageRenderer.h>
+#include <IPRendererGLCompat/ImageRenderer.h>
 #include <IPCore/DefaultMode.h>
 #include <IPCore/DispTransform2DIPNode.h>
 #include <IPCore/DisplayGroupIPNode.h>
@@ -2585,7 +2585,7 @@ namespace Rv
 
         if (bg && !bg->empty())
         {
-            m_renderer->setBGPattern((ImageRenderer::BGPattern)bg->front());
+            m_renderer->setBackground(Renderer::Background(bg->front()));
         }
     }
 

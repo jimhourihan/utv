@@ -38,6 +38,7 @@
 #include <TwkFB/IO.h>
 #include <TwkFB/TwkFBThreadPool.h>
 #include <TwkGLF/GLPixelBufferObjectPool.h>
+#include <IPRendererGLCompat/GLCompatRendererBackend.h>
 #include <TwkMovie/MovieIO.h>
 #include <TwkUtil/FourCC.h>
 #include <TwkUtil/Daemon.h>
@@ -83,7 +84,7 @@ extern void rvThirdPartyCustomization(TwkApp::Bundle& bundle, char* licarg);
 #if NDEBUG
 // #error ********* NO VERSION INFORMATION ***********
 #else
-#warning********* NO VERSION INFORMATION ***********
+#warning ********* NO VERSION INFORMATION ***********
 #endif
 #endif
 
@@ -261,6 +262,12 @@ void noOpenGLWarnOnStartup(QtMsgType t, const QMessageLogContext& context, const
 
 int main(int argc, char* argv[])
 {
+    //
+    //  The renderer: GL is the only backend so far (MODULARIZE_IPCORE.md)
+    //
+
+    IPCore::registerGLCompatRendererBackend();
+
     if (!getenv("HOME"))
     {
         cerr << "ERROR: $HOME is not set in the environment and is required." << endl;

@@ -18,10 +18,10 @@
 #include <IPCore/DisplayStereoIPNode.h>
 #include <IPCore/Exception.h>
 #include <IPCore/FBCache.h>
-#include <IPCore/ImageRenderer.h>
+#include <IPRendererGLCompat/ImageRenderer.h>
 #include <IPCore/LUTIPNode.h>
 #include <IPCore/NodeManager.h>
-#include <IPCore/ShaderProgram.h>
+#include <IPRendererGLCompat/ShaderProgram.h>
 #include <IPCore/SoundTrackIPNode.h>
 #include <ImfHeader.h>
 #include <MuTwkApp/MuInterface.h>

@@ -8,7 +8,7 @@
 #include <RvCommon/DesktopVideoModule.h>
 #include <RvCommon/DesktopVideoDevice.h>
 #include <RvCommon/GLView.h>
-#include <IPCore/ImageRenderer.h>
+#include <IPRendererGLCompat/ImageRenderer.h>
 #include <stl_ext/string_algo.h>
 #include <QtGui/QtGui>
 #include <map>

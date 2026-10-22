@@ -773,7 +773,7 @@ namespace Rv
         // doc->ensurePolished();
         Rv::RvSession* s = doc->session();
 
-        s->queryAndStoreGLInfo();
+        s->initializeRendererBackend();
 
         Rv::Options& opts = Rv::Options::sharedOptions();
 

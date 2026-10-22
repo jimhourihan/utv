@@ -12,7 +12,7 @@
 #include <RvApp/Options.h>
 #include <RvApp/RvSession.h>
 #include <IPCore/Session.h>
-#include <IPCore/ImageRenderer.h>
+#include <IPRendererGLCompat/ImageRenderer.h>
 #include <TwkApp/Event.h>
 #include <TwkApp/VideoDevice.h>
 
