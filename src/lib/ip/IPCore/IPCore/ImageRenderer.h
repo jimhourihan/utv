@@ -16,6 +16,7 @@
 #include <IPCore/ShaderProgram.h>
 #include <IPCore/PaintCommand.h>
 #include <IPCore/ImageFBO.h>
+#include <IPCore/Renderer.h>
 #include <TwkExc/TwkExcException.h>
 #include <TwkFB/FrameBuffer.h>
 #include <TwkGLF/GLVideoDevice.h>
@@ -98,7 +99,7 @@ namespace IPCore
     //  vi.   cleanup
     //
 
-    class ImageRenderer
+    class ImageRenderer : public Renderer
     {
     public:
         typedef std::vector<const IPImage*> DisplayIPNodeStack;
@@ -356,54 +357,11 @@ namespace IPCore
         typedef std::map<HashValue, ImagePassState*, std::less<HashValue>, ImagePassStateAlloc> ImagePassStateMap;
 
         //
-        // these are used to record render related info for each IPImage
-        // that are needed by the UI
+        //  RenderedImage (render related info for each IPImage that the UI
+        //  needs) is Renderer::RenderedImage.
         //
-        struct RenderedImage
-        {
-            RenderedImage(const std::string& name = "")
-                : source(name)
-                , node(0)
-                , device(0)
-                , serialNum(0)
-            {
-            }
 
-            std::string source;
-            IPImage::TagMap tagMap;
-            int index;
-            Box2f imageBox;
-            Box2f stencilBox;
-            Matrix modelMatrix;       // affine matrix
-            Matrix globalMatrix;      // affine matrix
-            Matrix projectionMatrix;  // projective
-            Matrix textureMatrix;     // (unused?)
-            Matrix orientationMatrix; // scale only
-            Matrix placementMatrix;   // scale + translate
-            int width;                // render structure
-            int height;
-            int uncropWidth;
-            int uncropHeight;
-            int uncropX;
-            int uncropY;
-            float pixelAspect;
-            float initPixelAspect;
-            int bitDepth;
-            bool floatingPoint;
-            int numChannels;
-            bool planar;
-            const IPNode* node;
-            const VideoDevice* device;
-            size_t serialNum;
-            size_t imageNum;
-            GLuint textureID;
-            bool isVirtual;
-            bool touched;
-            bool render;
-        };
-
-        typedef stl_ext::replacement_allocator<RenderedImage> RenderedImageAlloc;
-        typedef std::vector<RenderedImage, RenderedImageAlloc> RenderedImagesVector;
+        typedef Renderer::RenderedImages RenderedImagesVector;
 
         //
         // the reason this is a struct is for future development where
@@ -479,36 +437,10 @@ namespace IPCore
         };
 
         //
-        //  AuxRender is intended to be derived from and passed to the
-        //  main render function. This is how "user" rendering occurs.
+        //  AuxRender ("user" rendering) and AuxAudio (audio pulled by the
+        //  video output device) are Renderer::AuxRender and
+        //  Renderer::AuxAudio.
         //
-
-        class AuxRender
-        {
-        public:
-            AuxRender() {}
-
-            virtual ~AuxRender() {}
-
-            virtual void render(VideoDevice::DisplayMode, bool leftEye, bool rightEye, bool forController, bool forOuput) const = 0;
-        };
-
-        //
-        //  AuxAudio is allows the video output device to pull audio data.
-        //  The data size and format is determined by the AudioFormat
-        //  parameters of the VideoDevice
-        //
-
-        class AuxAudio
-        {
-        public:
-            AuxAudio() {}
-
-            virtual ~AuxAudio() {}
-
-            virtual void* audioForFrame(int frame, size_t seqindex, size_t& n) const = 0;
-            virtual bool isAvailable() const = 0;
-        };
 
         //
         //  Internal Render Context
@@ -623,14 +555,12 @@ namespace IPCore
         //  Device management
         //
 
-        void setControlDevice(const VideoDevice*);
-        void setOutputDevice(const VideoDevice*);
+        void setControlDevice(const VideoDevice*) override;
+        void setOutputDevice(const VideoDevice*) override;
 
         bool hasMultipleOutputs() const { return m_controlDevice.device != m_outputDevice.device && m_outputDevice.device != 0; }
 
-        const Device& controlDevice() const { return m_controlDevice; }
-
-        const Device& outputDevice() const { return m_outputDevice; }
+        const VideoDevice* controlDevice() const override { return m_controlDevice.device; }
 
         //
         //  Main render entry. render will eventually call the
@@ -638,10 +568,36 @@ namespace IPCore
         //  lifting.
         //
 
-        void render(int frame, IPImage* root, const AuxRender* aux = 0, const AuxAudio* auxAudio = 0, IPImage* uploadRoot = 0);
+        void render(int frame, IPImage* root, const AuxRender* aux = 0, const AuxAudio* auxAudio = 0, IPImage* uploadRoot = 0) override;
 
         void prepareTextureDescriptionsForUpload(const IPImage* img);
-        void prefetch(const IPImage*);
+
+        //
+        //  Renderer::prefetch() prepares the texture descriptions and
+        //  uploads; prefetchUploads() only uploads (descriptions already
+        //  prepared, e.g. by render() for the upload thread).
+        //
+
+        void prefetch(const IPImage*) override;
+        void prefetchUploads(const IPImage*);
+
+        bool threadedUpload() const override { return useThreadedUpload(); }
+
+        void releaseUploads() override { freeUploadedTextures(); }
+
+        TwkFB::FrameBuffer* readBack(const VideoDevice*, const Margins&) override;
+
+        void flush(Cache) override;
+
+        void setBackground(Background b) override { m_bgpattern = BGPattern(b); }
+
+        Background background() const override { return Background(m_bgpattern); }
+
+        int filtering() const override { return m_filter; }
+
+        void beginProfiling(Timer* t) override { initProfilingState(t); }
+
+        Profiling profiling() const override;
 
         ImageFBO* newOutputOnlyImageFBO(GLenum internalFormat, size_t samples = 0);
 
@@ -737,9 +693,9 @@ namespace IPCore
         //  Miscellaneous
         //
 
-        Box2f viewport() const;
-        const VideoDevice* currentDevice() const;
-        void clearState();
+        Box2f viewport() const override;
+        const VideoDevice* currentDevice() const override;
+        void clearState() override;
         void sync();
         void initProfilingState(Timer* t);
 
@@ -747,11 +703,11 @@ namespace IPCore
 
         BGPattern bgPattern() const { return m_bgpattern; }
 
-        void setFiltering(int f);
+        void setFiltering(int f) override;
 
         int filterType() const { return m_filter; }
 
-        const RenderedImagesVector* renderedImages() const { return &m_renderedImages; }
+        const RenderedImagesVector& renderedImages() const override { return m_renderedImages; }
 
         void clearRenderedImages() { m_renderedImages.clear(); }
 
@@ -804,7 +760,7 @@ namespace IPCore
         void freeUploadedTextures();
 
         // resets node ptr on all rendered image links to this node
-        void unlinkNode(IPCore::IPNode* node);
+        void unlinkNode(IPCore::IPNode* node) override;
 
     private:
         //

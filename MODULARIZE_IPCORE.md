@@ -20,6 +20,11 @@ Status: proposal (2026-10-19). Nothing here is implemented.
 - Mu scripts that draw with MuGL keep working on a non-GL backend, for
   the subset of GL that scripts actually use.
 - `utvio` and the viewer can choose a backend at run time.
+- No holes in the interface by the end: no caller reaches around
+  `Renderer` to GL (or another API), relies on GL state it left behind,
+  or owns memory the interface doesn't account for. Known holes are
+  listed under "Leaky API holes" and each is closed before the GL
+  backend becomes a library (A4).
 
 Not goals: changing what the image nodes compute, changing the session
 format, or rewriting the shaders by hand.
@@ -258,6 +263,38 @@ Open points in the draft:
   nodes, through the static function. They need a way to reach the
   current backend's capabilities.
 - The render events (`AuxRender`) still assume GL until Plan C.
+
+#### A2 progress
+
+- Step 1 (2026-10-22, uncommitted): `ImageRenderer` implements
+  `Renderer` with thin wrappers, `Session` still holds an
+  `ImageRenderer*`. `RenderedImage`, `AuxRender` and `AuxAudio` are
+  `Renderer`'s; `prefetch()` prepares and uploads (`prefetchUploads()`
+  only uploads); `exportCurrentFrame` uses `readBack()`. The utvio test
+  renders (none / hold / ghost, compatibility and core profile) are
+  byte-identical to the build before.
+- Next: `Session` holds a `Renderer*`.
+
+#### Leaky API holes
+
+Places where callers still depend on what is behind the interface, or
+where the interface is broken or leaks. All of them are closed by A4.
+
+- `exportCurrentFrame` (`RvApp/CommandsModule.cpp`) saves
+  `GL_FRAMEBUFFER_BINDING` before `render()` and restores it after
+  `readBack()`. The backend should leave the device as it found it.
+- Export > Snapshot (`exportCurrentFrame`) does not work, in the 2026.14
+  release as well (a blank image). Not caused by this work; fix it in
+  `readBack()`. It also never frees the `FrameBuffer` it writes.
+- `RenderTexture` ids are GL texture names, handed to scripts
+  (`renderedImages()`, `imagesAtPixel()`, `audioTextureID()`).
+- `setFiltering(int)` takes a GL enum.
+- `AuxRender` (render events) draws with GL (Plan C).
+- `Session`'s `glFinish` calls and `initProfilingState` use
+  `ImageRenderer` directly.
+- `FormatIPNode` and `LUTIPNode` call `ImageRenderer`'s static queries.
+- `getGLState` users (`MovieRV_FBO`, `HoverPreviewOverlayGL`) are GL
+  code outside the backend.
 
 ### A3. Video devices per backend
 

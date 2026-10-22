@@ -1920,7 +1920,7 @@ namespace IPMu
             tt->pdevice = stype->allocate(image.device ? image.device->physicalDevice()->name() : "");
             tt->serialNum = image.serialNum;
             tt->imageNum = image.imageNum;
-            tt->textureID = image.textureID;
+            tt->textureID = image.texture.id;
             tt->initPixelAspect = image.initPixelAspect;
 
             array->element<ClassInstance*>(i) = o;
@@ -2073,7 +2073,7 @@ namespace IPMu
             tt->pdevice = stype->allocate(ps.device ? ps.device->physicalDevice()->name() : "");
             tt->serialNum = ps.serialNum;
             tt->imageNum = ps.imageNum;
-            tt->textureID = ps.textureID;
+            tt->textureID = ps.texture.id;
 
             array->element<ClassInstance*>(i) = o;
         }
@@ -2496,7 +2496,7 @@ namespace IPMu
         // RvSession::clear() sends the clearSession remote command
 
         s->clear();
-        //s->askForRedraw(); <-- now in clear() as well
+        // s->askForRedraw(); <-- now in clear() as well
     }
 
     NODE_IMPLEMENTATION(newSession, void)

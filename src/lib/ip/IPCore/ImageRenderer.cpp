@@ -206,7 +206,7 @@ namespace IPCore
                 if (renderer->stopUploadThread())
                     break;
 
-                renderer->prefetch(renderer->uploadRoot());
+                renderer->prefetchUploads(renderer->uploadRoot());
 
                 //
                 // fence is inserted after all upload gl commands, before we
@@ -638,6 +638,52 @@ namespace IPCore
         m_profilingState.uploadPlaneTime = 0.0;
     }
 
+    ImageRenderer::Profiling ImageRenderer::profiling() const
+    {
+        Profiling p;
+        p.uploadPlaneTime = m_profilingState.uploadPlaneTime;
+        p.fenceWaitTime = m_profilingState.fenceWaitTime;
+        return p;
+    }
+
+    void ImageRenderer::flush(Cache c)
+    {
+        if (c == Cache::Intermediates || c == Cache::All)
+            flushImageFBOs();
+        if (c == Cache::Programs || c == Cache::All)
+            flushProgramCache();
+    }
+
+    TwkFB::FrameBuffer* ImageRenderer::readBack(const VideoDevice* device, const Margins& m)
+    {
+        //
+        //  Read from the framebuffer the renderer draws into. That's the
+        //  device's defaultFBO(): Qt's framebuffer for the GL view, an
+        //  offscreen one for the Metal and Vulkan presentation devices
+        //  (their fboID() is 0).
+        //
+
+        const GLVideoDevice* d = dynamic_cast<const GLVideoDevice*>(device);
+        const GLFBO* target = d ? d->defaultFBO() : 0;
+        if (!target)
+            return 0;
+
+        const int w = d->width() - m.left - m.right;
+        const int h = d->height() - m.bottom - m.top;
+        FrameBuffer* fb = new FrameBuffer(w, h, 4, FrameBuffer::UCHAR);
+
+        glFinish();
+
+        GLint readFBO = 0;
+        glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFBO);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, target->fboID());
+        glReadPixels(m.left, m.bottom, w, h, GL_RGBA, GL_UNSIGNED_BYTE, fb->pixels<unsigned char>());
+        glFinish();
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, readFBO);
+
+        return fb;
+    }
+
     void ImageRenderer::setIntermediateLogging(bool b) { ImageFBOManager::setIntermediateLogging(b); }
 
     ImageRenderer::FastPath ImageRenderer::findFastPath(const FrameBuffer* fb) const
@@ -697,7 +743,7 @@ namespace IPCore
     void ImageRenderer::createGLContexts()
     {
         delete m_uploadThreadDevice;
-        m_uploadThreadDevice = controlDevice().glDevice->newSharedContextWorkerDevice();
+        m_uploadThreadDevice = m_controlDevice.glDevice->newSharedContextWorkerDevice();
         if (!m_uploadThreadDevice)
         {
             static bool logged = false;
@@ -711,7 +757,7 @@ namespace IPCore
             return;
         }
         m_setGLContext = true;
-        controlDevice().glDevice->makeCurrent();
+        m_controlDevice.glDevice->makeCurrent();
     }
 
     void ImageRenderer::queryGLIntoContainer(IPNode* node)
@@ -1728,7 +1774,7 @@ namespace IPCore
                     // Texture object creation (glGenTextures, PBO alloc) must run
                     // on the control device's GL context — especially on the Metal
                     // offscreen path where nothing else guarantees it is current.
-                    controlDevice().glDevice->makeCurrent();
+                    m_controlDevice.glDevice->makeCurrent();
 
                     //
                     // traverse our IPTree, and create gl textures/buffers for
@@ -1749,7 +1795,7 @@ namespace IPCore
                         // frame. This is overhead in most cases though
                         //
                         prepareTextureDescriptionsForUpload(root);
-                        prefetch(root);
+                        prefetchUploads(root);
                     }
 
                     prepareTextureDescriptionsForUpload(uploadRoot);
@@ -1759,7 +1805,7 @@ namespace IPCore
                     // fall back to synchronous upload for this frame.
                     if (!useThreadedUpload())
                     {
-                        prefetch(uploadRoot);
+                        prefetchUploads(uploadRoot);
                     }
                 }
                 else
@@ -1775,7 +1821,7 @@ namespace IPCore
                     //
 
                     prepareTextureDescriptionsForUpload(root);
-                    prefetch(root);
+                    prefetchUploads(root);
                 }
                 HOP_CALL(glFinish();)
             }
@@ -2950,6 +2996,12 @@ namespace IPCore
     //
     void ImageRenderer::prefetch(const IPImage* img)
     {
+        prepareTextureDescriptionsForUpload(img);
+        prefetchUploads(img);
+    }
+
+    void ImageRenderer::prefetchUploads(const IPImage* img)
+    {
         // this func uploads framebuffers to card
         if (!queryRectTextures())
         {
@@ -3312,7 +3364,7 @@ namespace IPCore
         s.source = image->source;
         s.serialNum = image->serialNum;
         s.imageNum = image->imageNum;
-        s.textureID = (image->planes.size()) ? image->planes.front().tile->id : 0;
+        s.texture.id = (image->planes.size()) ? image->planes.front().tile->id : 0;
         s.node = image->node;
         s.tagMap = image->tagMap;
         s.index = img->fb ? img->fbHash() : img->renderIDHash();

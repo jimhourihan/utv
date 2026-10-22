@@ -4,11 +4,11 @@
 //  SPDX-License-Identifier: Apache-2.0
 //
 //
-//  DRAFT (MODULARIZE_IPCORE.md, step A2). Not included or built anywhere
-//  yet. It is the interface Session and the apps would use instead of
-//  ImageRenderer, so that the renderer can be a library loaded at run time
-//  (GL first). The operations come from the A1 inventory in
-//  MODULARIZE_IPCORE.md. Nothing here names a graphics API.
+//  The interface Session and the apps use instead of ImageRenderer, so
+//  that the renderer can be a library loaded at run time (GL first). See
+//  MODULARIZE_IPCORE.md (A1 inventory, A2). ImageRenderer implements
+//  Renderer; RendererBackend and the loading functions are not
+//  implemented yet. Nothing here names a graphics API.
 //
 #ifndef __IPCore__Renderer__h__
 #define __IPCore__Renderer__h__

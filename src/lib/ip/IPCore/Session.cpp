@@ -3104,7 +3104,6 @@ namespace IPCore
                 m_renderer->initProfilingState(&m_profilingTimer);
             }
 
-            m_renderer->prepareTextureDescriptionsForUpload(m_preDisplayImage);
             m_renderer->prefetch(m_preDisplayImage);
 
             if (debugProfile)

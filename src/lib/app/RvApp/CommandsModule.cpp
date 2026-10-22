@@ -511,7 +511,6 @@ namespace Rv
         StringType::String* name = NODE_ARG_OBJECT(0, StringType::String);
         Session* s = Session::currentSession();
         ImageRenderer* renderer = s->renderer();
-        const TwkGLF::GLVideoDevice* d = renderer->controlDevice().glDevice;
 
         if (!name)
             throwBadArgumentException(NODE_THIS, NODE_THREAD, "nil filename");
@@ -522,38 +521,19 @@ namespace Rv
 
         TwkApp::VideoDevice::Margins m = s->eventVideoDevice()->margins();
 
-        //
-        //  Read from the framebuffer the renderer draws into. That's the
-        //  device's defaultFBO(): Qt's framebuffer for the GL view, an
-        //  offscreen one for the Metal and Vulkan presentation devices
-        //  (their fboID() is 0).
-        //
-
-        const TwkGLF::GLFBO* target = d->defaultFBO();
-
-        if (!target)
-            throwBadArgumentException(NODE_THIS, NODE_THREAD, "cannot read back the current frame");
-
-        std::unique_ptr<TwkFB::FrameBuffer> fb(
-            new TwkFB::FrameBuffer(d->width() - m.left - m.right, d->height() - m.bottom - m.top, 4, TwkFB::FrameBuffer::UCHAR));
-
         // Get current framebuffer id.
         GLuint qtDefaultFBO;
         glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*)&qtDefaultFBO);
 
         renderer->render(s->currentFrame(), s->displayImage());
 
-        glFinish();
-
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, target->fboID());
-
-        glReadPixels(m.left, m.bottom, d->width() - m.left - m.right, d->height() - m.bottom - m.top, GL_RGBA, GL_UNSIGNED_BYTE,
-                     fb->pixels<unsigned char>());
-
-        glFinish();
+        std::unique_ptr<TwkFB::FrameBuffer> fb(renderer->readBack(renderer->controlDevice(), m));
 
         // Restore original framebuffer.
         glBindFramebuffer(GL_FRAMEBUFFER, qtDefaultFBO);
+
+        if (!fb)
+            throwBadArgumentException(NODE_THIS, NODE_THREAD, "cannot read back the current frame");
 
         TwkFB::FrameBufferIO::WriteRequest request;
         TwkFB::FrameBufferIO::ConstFrameBufferVector fbs(1);

@@ -56,7 +56,7 @@ namespace IPCore
 
     void RenderQuery::renderedImages(RenderedImagesVector& results) const
     {
-        const RenderedImagesVector* renderedImages = m_renderer->renderedImages();
+        const RenderedImagesVector* renderedImages = &m_renderer->renderedImages();
 
         for (size_t i = 0, s = renderedImages->size(); i < s; ++i)
         {
@@ -83,7 +83,7 @@ namespace IPCore
         //  return all images with matching tag
         //
 
-        const RenderedImagesVector* renderedImages = m_renderer->renderedImages();
+        const RenderedImagesVector* renderedImages = &m_renderer->renderedImages();
         for (size_t i = 0; i < renderedImages->size(); ++i)
         {
             const RenderedImage& image = (*renderedImages)[i];
@@ -153,7 +153,7 @@ namespace IPCore
 
     void RenderQuery::imageFrameRatio(const std::string& name, double& frameRatio) const
     {
-        const RenderedImagesVector* renderedImages = m_renderer->renderedImages();
+        const RenderedImagesVector* renderedImages = &m_renderer->renderedImages();
 
         if (renderedImages)
         {
@@ -182,7 +182,7 @@ namespace IPCore
 
     void RenderQuery::imageCornersByHash(const IPImage::HashValue c, vector<Vec3f>& points, bool stencil) const
     {
-        const RenderedImagesVector* renderedImages = m_renderer->renderedImages();
+        const RenderedImagesVector* renderedImages = &m_renderer->renderedImages();
         const VideoDevice* currentDevice = m_renderer->currentDevice();
 
         for (size_t i = 0, s = renderedImages->size(); i < s; ++i)
@@ -203,7 +203,7 @@ namespace IPCore
     void RenderQuery::imageCornersByTag(const std::string& name, const std::string& value, vector<Vec3f>& points, bool stencil) const
     {
         RenderedImage image;
-        const RenderedImagesVector* renderedImages = m_renderer->renderedImages();
+        const RenderedImagesVector* renderedImages = &m_renderer->renderedImages();
 
         for (size_t j = 0; j < renderedImages->size(); ++j)
         {
@@ -289,7 +289,7 @@ namespace IPCore
     void RenderQuery::taggedTextureImages(TaggedTextureImagesMap& results) const
     {
         RenderedImage image;
-        const RenderedImagesVector* renderedImages = m_renderer->renderedImages();
+        const RenderedImagesVector* renderedImages = &m_renderer->renderedImages();
         const string tagName = IPImage::textureIDTagName();
 
         for (size_t i = 0, s = renderedImages->size(); i < s; ++i)
@@ -300,9 +300,9 @@ namespace IPCore
 
             if (it2 != image.tagMap.end())
             {
-                if (image.textureID > 0)
+                if (image.texture.id > 0)
                 {
-                    results[(*it2).second] = GLTextureObject(image.textureID);
+                    results[(*it2).second] = GLTextureObject(image.texture.id);
                 }
             }
         }
@@ -320,7 +320,7 @@ namespace IPCore
         //
 
         RenderedImage image;
-        const RenderedImagesVector* renderedImages = m_renderer->renderedImages();
+        const RenderedImagesVector* renderedImages = &m_renderer->renderedImages();
         const string tagName = IPImage::textureIDTagName();
         const string waveformName = IPImage::waveformTagValue();
 
@@ -332,7 +332,7 @@ namespace IPCore
 
             if (it2 != image.tagMap.end() && (*it2).second == waveformName)
             {
-                results[(*it2).second] = GLTextureObject(image.textureID);
+                results[(*it2).second] = GLTextureObject(image.texture.id);
             }
         }
     }
@@ -343,7 +343,7 @@ namespace IPCore
     void RenderQuery::imageCornersByHash(const string& source, vector<Vec3f>& points) const
     {
         RenderedImage image;
-        const RenderedImagesVector* renderedImages = m_renderer->renderedImages();
+        const RenderedImagesVector* renderedImages = &m_renderer->renderedImages();
 
         for (size_t i = 0; i < renderedImages->size(); ++i)
         {
