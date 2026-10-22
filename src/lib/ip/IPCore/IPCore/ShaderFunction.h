@@ -19,8 +19,7 @@ namespace IPCore
     namespace Shader
     {
 
-        struct FunctionGLState;
-        struct ProgramGLState;
+        struct FunctionState;
 
         //
         //  class Shader::Function
@@ -183,7 +182,7 @@ namespace IPCore
 
             const ImageParameterVector& imageParameters() const { return m_inImageParameters; }
 
-            const FunctionGLState* state() const { return m_state; }
+            const FunctionState* state() const { return m_state; }
 
             bool isCompiled() const;
 
@@ -245,7 +244,7 @@ namespace IPCore
 
         private:
             static FunctionVector m_retiredFunctions;
-            mutable FunctionGLState* m_state;
+            mutable FunctionState* m_state;
             Type m_type;
             std::string m_name;
             std::string m_callName;

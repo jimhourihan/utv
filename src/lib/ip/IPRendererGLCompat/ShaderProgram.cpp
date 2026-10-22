@@ -8,7 +8,7 @@
 #include <IPRendererGLCompat/ShaderProgram.h>
 #include <IPCore/ShaderFunction.h>
 #include <IPCore/ShaderSymbol.h>
-#include <IPCore/ShaderState.h>
+#include <IPRendererGLCompat/GLShaderCompiler.h>
 #include <IPCore/IPImage.h>
 #include <TwkGLF/GL.h>
 #include <TwkUtil/Timer.h>
@@ -618,7 +618,7 @@ namespace IPCore::Shader
             if (F->isInline())
                 continue;
 
-            if (!F->isCompiled() || !F->state() || !glIsShader(F->state()->shader))
+            if (!F->isCompiled() || !F->state() || !glIsShader(glShader(F)))
             {
                 if (F->isCompiled())
                 {
@@ -635,7 +635,7 @@ namespace IPCore::Shader
 
             if (!attachedFuncs.count(F))
             {
-                glAttachShader(m_programId, F->state()->shader);
+                glAttachShader(m_programId, glShader(F));
                 if (Shader::debuggingType() != Shader::NoDebugInfo)
                     cout << "INFO: attached " << F->name() << endl;
                 attachedFuncs.insert(F);
@@ -660,7 +660,7 @@ namespace IPCore::Shader
             return false;
         }
 
-        glAttachShader(m_programId, m_main->state()->shader);
+        glAttachShader(m_programId, glShader(m_main));
         glLinkProgram(m_programId);
 
         glGetProgramiv(m_programId, GL_LINK_STATUS, &status);

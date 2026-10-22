@@ -6,12 +6,10 @@
 //
 //
 #include <IPCore/ShaderCommon.h>
-#include <IPCore/ShaderState.h>
 #include <IPCore/ShaderExpression.h>
 #include <IPCore/ShaderFunction.h>
 #include <IPCore/ShaderSymbol.h>
 #include <IPCore/IPImage.h>
-#include <TwkGLF/GL.h>
 #include <TwkFB/Operations.h>
 #include <TwkMath/MatrixColor.h>
 #include <TwkMath/Vec2.h>

@@ -295,9 +295,15 @@ Open points in the draft:
   nothing by default and call `redraw()` / `redrawImmediately()` on a
   `GLVideoDevice` (so `DesktopVideoDevice`, which isn't one, still isn't
   asked, as before).
-- Next: `Shader::Function` compiling (3),
-  `PaintCommand` drawing (4), and dropping `TwkGLF` from IPCore's link
-  libraries with a CMake check (5).
+- Stage 3 (2026-10-22): `Shader::Function` generates GLSL but no longer
+  compiles it. A `Shader::Compiler` (`IPCore/ShaderCompiler.h`), set by
+  the backend, gives the API and GLSL versions that choose the dialect
+  and compiles header + source into an opaque `Shader::FunctionState`.
+  The GL one (`GLShaderCompiler`) holds the shader object in a
+  `GLFunctionState`, which deletes it; `ShaderProgram` attaches it.
+  `ShaderState.h` is gone.
+- Next: `PaintCommand` drawing (4), and dropping `TwkGLF` from IPCore's
+  link libraries with a CMake check (5).
 
 #### Leaky API holes
 
@@ -312,10 +318,11 @@ where the interface is broken or leaks. All of them are closed by A4.
   `readBack()`. It also never frees the `FrameBuffer` it writes.
 - `RenderTexture` ids are GL texture names, handed to scripts
   (`renderedImages()`, `imagesAtPixel()`, `audioTextureID()`).
-- `setFiltering(int)` takes a GL enum.
+- `Renderer::setFiltering(int)` takes a GL enum.
 - `AuxRender` (render events) draws with GL (Plan C).
-- `Shader::Function` compiles itself with GL; `PaintCommand` draws with
-  GL. Both are in IPCore.
+- `PaintCommand` (IPCore) draws with GL.
+- The Mu `setFiltering` / `getFiltering` commands (IPMu) use
+  `GL_LINEAR` / `GL_NEAREST` values, so IPMu includes and links TwkGLF.
 - App code uses `ImageRenderer`'s statics directly: `Options` and
   `RvPreferences` (settings), `FormatIPNode` (float formats, acceptable
   types), the `VulkanWindow` / `QTVulkanVideoDevice` debug flags,

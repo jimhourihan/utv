@@ -23,6 +23,7 @@
 #include <IPCore/FBCache.h>
 #include <IPCore/IPProperty.h>
 #include <IPCore/Renderer.h>
+#include <TwkGLF/GL.h> // GL_LINEAR / GL_NEAREST in the filtering API
 #include <IPCore/NodeManager.h>
 #include <IPCore/Profile.h>
 #include <IPCore/PropertyEditor.h>

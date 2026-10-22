@@ -6,7 +6,7 @@
 //
 //
 #include <IPCore/ShaderFunction.h>
-#include <IPCore/ShaderState.h>
+#include <IPCore/ShaderCompiler.h>
 #include <IPCore/ShaderSymbol.h>
 #include <IPCore/IPImage.h>
 #include <TwkUtil/Timer.h>
@@ -72,15 +72,26 @@ namespace IPCore
             unsigned int glslMajor = 0;
             unsigned int glslMinor = 0;
 
+            Compiler* theCompiler = nullptr;
+
+            //
+            //  The API version (GL_VERSION) chooses the GLSL dialect: empty
+            //  when there is no compiler or it can't query its device yet.
+            //
+
+            string apiVersion() { return theCompiler ? theCompiler->apiVersion() : string(); }
+
             void initGLSLVersion()
             {
                 if (glslMajor == 0)
                 {
                     //
                     //  NOTE: its much better to have assigned
-                    if (const char* glVersion = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION))
+                    const string version = theCompiler ? theCompiler->languageVersion() : string();
+
+                    if (!version.empty())
                     {
-                        Shader::Function::useShadingLanguageVersion(glVersion);
+                        Shader::Function::useShadingLanguageVersion(version.c_str());
                     }
                     else
                     {
@@ -90,6 +101,10 @@ namespace IPCore
             }
 
         } // namespace
+
+        void setCompiler(Compiler* c) { theCompiler = c; }
+
+        Compiler* compiler() { return theCompiler; }
 
         Function::FunctionVector Function::m_retiredFunctions;
 
@@ -325,17 +340,12 @@ namespace IPCore
             }
         }
 
-        bool Function::isCompiled() const { return m_state && m_state->shader; }
+        bool Function::isCompiled() const { return m_state != nullptr; }
 
         void Function::releaseCompiledState() const
         {
-            if (m_state)
-            {
-                if (m_state->shader)
-                    glDeleteShader(m_state->shader);
-                delete m_state;
-                m_state = nullptr;
-            }
+            delete m_state;
+            m_state = nullptr;
         }
 
         void outputAnnotatedCode(ostream& o, const string& code)
@@ -967,30 +977,15 @@ namespace IPCore
                 return glsl_header;
             }
 
-            void compileGLSL(const string& source, GLuint& shaderID, int& status, vector<char>& log)
+            FunctionState* compileGLSL(const string& source, string& log)
             {
-                shaderID = glCreateShader(GL_FRAGMENT_SHADER);
-
-                const char* glVersion = (const char*)glGetString(GL_VERSION);
-                int logsize;
-
-                const char* src[2];
-                src[0] = get_glsl_header(glVersion);
-                src[1] = source.c_str();
-
-                glShaderSource(shaderID, 2, src, 0);
-                glCompileShader(shaderID);
-                glGetShaderiv(shaderID, GL_COMPILE_STATUS, &status);
-                glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &logsize);
-
-                if (logsize > 1)
+                if (!theCompiler)
                 {
-                    log.resize(logsize + 1);
-                    GLsizei rlen;
-                    glGetShaderInfoLog(shaderID, logsize, &rlen, &log.front());
+                    log = "no shader compiler";
+                    return nullptr;
                 }
-                else
-                    log.resize(0);
+
+                return theCompiler->compile(get_glsl_header(apiVersion().c_str()), source, log);
             }
 
         } // namespace
@@ -1007,26 +1002,21 @@ namespace IPCore
             if (m_state)
                 return true;
 
-            m_state = new FunctionGLState();
-
-            vector<char> buffer;
-            int status;
+            string log;
             if (Shader::debuggingType() != Shader::NoDebugInfo)
             {
                 cout << "INFO: compiling GLSL shader " << name() << " " << m_doc << endl;
             }
 
-            compileGLSL(m_sourceCode, m_state->shader, status, buffer);
-            const char* glVersion = (const char*)glGetString(GL_VERSION);
-            const std::string glsl_header(get_glsl_header(glVersion));
+            m_state = compileGLSL(m_sourceCode, log);
+            const std::string glsl_header(get_glsl_header(apiVersion().c_str()));
 
-            if (status != GL_TRUE)
+            if (!m_state)
             {
-                cout << "ERROR: compiling shader " << m_name << ": " << endl << &buffer.front() << endl;
+                cout << "ERROR: compiling shader " << m_name << ": " << endl << log << endl;
 
                 cout << "ERROR: ----- source follows ----" << endl;
                 outputAnnotatedCode(cout, glsl_header + m_sourceCode);
-                releaseCompiledState();
             }
             else if (Shader::debuggingType() != Shader::NoDebugInfo)
             {
@@ -1034,15 +1024,13 @@ namespace IPCore
                 outputAnnotatedCode(cout, glsl_header + m_sourceCode);
             }
 
-            return status == GL_TRUE;
+            return m_state != nullptr;
         }
 
         Function::ValidationResult Function::validate() const
         {
-            GLuint shader;
-            int status;
-            vector<char> log;
-            const char* glVersion = (const char*)glGetString(GL_VERSION);
+            string log;
+            const string glVersion = apiVersion();
 
             string testGLSL = generateTestGLSL(glVersion[0] <= '2');
 
@@ -1052,13 +1040,11 @@ namespace IPCore
                 outputAnnotatedCode(cout, testGLSL);
             }
 
-            compileGLSL(testGLSL, shader, status, log);
-            if (log.empty())
-                log.push_back(0);
-            string logString = &log.front();
-            glDeleteShader(shader);
+            FunctionState* state = compileGLSL(testGLSL, log);
+            const bool ok = state != nullptr;
+            delete state;
 
-            return ValidationResult(status == GL_TRUE, logString);
+            return ValidationResult(ok, log);
         }
 
         string Function::prototype(const string& suffix) const
@@ -1113,7 +1099,7 @@ namespace IPCore
             regex nameRE("\\b" + callName() + "\\b");
             string a = regex_replace(source(), nameRE, callName() + suffix);
 
-            const char* glVersion = (const char*)glGetString(GL_VERSION);
+            const string glVersion = apiVersion();
             bool gl2 = glVersion[0] <= '2';
 
             //

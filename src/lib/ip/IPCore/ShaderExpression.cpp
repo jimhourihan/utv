@@ -6,9 +6,7 @@
 //
 //
 #include <IPCore/ShaderExpression.h>
-#include <IPCore/ShaderState.h>
 #include <IPCore/IPImage.h>
-#include <TwkGLF/GL.h>
 #include <TwkUtil/Timer.h>
 #include <assert.h>
 #include <set>

@@ -4,6 +4,7 @@
 //  SPDX-License-Identifier: Apache-2.0
 //
 #include <IPRendererGLCompat/GLCompatRendererBackend.h>
+#include <IPRendererGLCompat/GLShaderCompiler.h>
 #include <IPRendererGLCompat/HoverPreviewOverlayGL.h>
 #include <IPRendererGLCompat/ImageRenderer.h>
 #include <TwkGLF/GL.h>
@@ -85,7 +86,9 @@ namespace IPCore
     void registerGLCompatRendererBackend()
     {
         static GLCompatRendererBackend backend;
+        static Shader::GLShaderCompiler compiler;
         registerRendererBackend(&backend);
+        Shader::setCompiler(&compiler);
     }
 
 } // namespace IPCore

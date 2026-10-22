@@ -7,10 +7,8 @@
 //
 #include <IPCore/ShaderSymbol.h>
 #include <IPCore/ShaderExpression.h>
-#include <IPCore/ShaderState.h>
 #include <IPCore/IPNode.h>
 #include <IPCore/IPImage.h>
-#include <TwkGLF/GL.h>
 #include <TwkUtil/Timer.h>
 #include <TwkFB/FrameBuffer.h>
 #include <assert.h>

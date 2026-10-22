@@ -8,7 +8,6 @@
 #ifndef __IPCore__ShaderSymbol__h__
 #define __IPCore__ShaderSymbol__h__
 #include <IPCore/ShaderValues.h>
-#include <TwkGLF/GL.h>
 #include <stl_ext/replace_alloc.h>
 #include <iostream>
 #include <vector>
@@ -45,8 +44,6 @@ namespace IPCore
         //  Finally, the metalanguage is converted into the target language
         //  (GLSL, OpenCL) and that is passed to the actual device.
         //
-
-        struct FunctionGLState;
 
         //
         //  class Shader::Symbol

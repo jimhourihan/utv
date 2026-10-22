@@ -15,7 +15,7 @@ SET(_target
 )
 
 SET(_sources
-    GLCompatRendererBackend.cpp ImageRenderer.cpp ImageFBO.cpp ShaderProgram.cpp HoverPreviewOverlayGL.cpp
+    GLCompatRendererBackend.cpp GLShaderCompiler.cpp ImageRenderer.cpp ImageFBO.cpp ShaderProgram.cpp HoverPreviewOverlayGL.cpp
 )
 
 # Create CL Kernels

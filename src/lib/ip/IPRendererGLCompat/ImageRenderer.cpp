@@ -58,7 +58,7 @@
 #include <IPCore/GroupIPNode.h>
 #include <IPCore/IPNode.h>
 #include <IPCore/ShaderCommon.h>
-#include <IPCore/ShaderState.h>
+#include <IPRendererGLCompat/GLShaderCompiler.h>
 #include <limits>
 #include <stdexcept>
 #include <algorithm>

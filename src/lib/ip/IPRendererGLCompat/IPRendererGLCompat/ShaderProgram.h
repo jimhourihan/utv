@@ -15,9 +15,6 @@ namespace IPCore
     namespace Shader
     {
 
-        struct FunctionGLState;
-        struct ProgramGLState;
-
         struct CompareExpr
         {
             bool operator()(const Expression* A, const Expression* B) const { return A->lessThan(B); }
