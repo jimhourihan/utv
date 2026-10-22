@@ -102,6 +102,10 @@ namespace TwkGLF
         virtual void redraw() const;
         virtual void redrawImmediately() const;
 
+        void requestRedraw() const override { redraw(); }
+
+        void requestRedrawImmediately() const override { redrawImmediately(); }
+
         void setTextContext(TwkGLText::Context, bool share = false);
 
         TwkGLText::Context textContext() const { return m_textContext; }

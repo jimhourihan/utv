@@ -13,7 +13,6 @@
 #include <IPCore/NodeManager.h>
 #include <TwkCMS/ColorManagementSystem.h>
 #include <TwkFB/IO.h>
-#include <TwkGLF/GLVideoDevice.h>
 #include <TwkUtil/SystemInfo.h>
 #include <TwkUtil/File.h>
 #include <TwkMovie/MovieIO.h>

@@ -570,6 +570,17 @@ namespace TwkApp
         virtual void blockUntilSyncComplete() const;
 
         //
+        //  Ask a device that draws in a view (the viewer) to draw again,
+        //  later or now. The session calls these; the default does
+        //  nothing. TwkGLF::GLVideoDevice implements them with redraw()
+        //  and redrawImmediately().
+        //
+
+        virtual void requestRedraw() const {}
+
+        virtual void requestRedrawImmediately() const {}
+
+        //
         //  Margins
         //
 

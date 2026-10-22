@@ -219,6 +219,7 @@ namespace IPCore
         virtual void prefetch(const IPImage*) = 0;
         virtual void render(int frame, IPImage* root, const AuxRender* aux = nullptr, const AuxAudio* auxAudio = nullptr,
                             IPImage* uploadRoot = nullptr) = 0;
+        virtual void finish() = 0; // wait until the GPU is done
         virtual bool threadedUpload() const = 0;
         virtual void waitForUploads() = 0; // the upload thread's prefetch
         virtual void releaseUploads() = 0; // freeUploadedTextures()

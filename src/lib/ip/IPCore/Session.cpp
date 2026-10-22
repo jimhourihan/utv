@@ -25,8 +25,6 @@
 #include <IPCore/NodeManager.h>
 #include <IPCore/FBCache.h>
 #if defined(PLATFORM_DARWIN)
-#include <TwkGLF/GL.h>
-#include <TwkGLF/GLVideoDevice.h>
 #endif
 #include <TwkApp/Event.h>
 #include <TwkContainer/GTOReader.h>
@@ -173,6 +171,16 @@ namespace IPCore
     //  "-debug" flags for the renderer backends (GL: gpu, passes,
     //  imagefbo, nogpucache, imagefbolog)
     //
+
+    //
+    //  Wait for the GPU, for the HOP profiler
+    //
+
+    static void finishRenderer(Renderer* renderer)
+    {
+        if (renderer)
+            renderer->finish();
+    }
 
     static bool setRendererDebugOption(const string& flag)
     {
@@ -2340,14 +2348,14 @@ namespace IPCore
 
         if (!isRendering() || force)
         {
-            if (const TwkGLF::GLVideoDevice* d = dynamic_cast<const TwkGLF::GLVideoDevice*>(controlVideoDevice()))
+            if (const VideoDevice* d = controlVideoDevice())
             {
-                d->redraw();
+                d->requestRedraw();
             }
 
-            if (const TwkGLF::GLVideoDevice* d = dynamic_cast<const TwkGLF::GLVideoDevice*>(outputVideoDevice()))
+            if (const VideoDevice* d = outputVideoDevice())
             {
-                d->redraw();
+                d->requestRedraw();
             }
 
             if (outputVideoDevice() && outputVideoDevice() != controlVideoDevice())
@@ -3298,7 +3306,7 @@ namespace IPCore
                 return;
             }
 
-            if (const TwkGLF::GLVideoDevice* d = dynamic_cast<const TwkGLF::GLVideoDevice*>(controlVideoDevice()))
+            if (const VideoDevice* d = controlVideoDevice())
             {
                 double now = TwkUtil::SystemClock().now();
                 if (now >= (m_lastDrawingTime + minElapsedTime))
@@ -3311,7 +3319,7 @@ namespace IPCore
                     //  some platforms is gated on the display refresh signal.
                     if (isPlaying())
                         ++m_diagRedrawRequests;
-                    d->redrawImmediately();
+                    d->requestRedrawImmediately();
                     m_lastDrawingTime = now;
                 }
             }
@@ -3864,39 +3872,39 @@ namespace IPCore
     {
         if (m_avPlaybackVersion == 2)
         {
-            HOP_CALL(glFinish();)
+            HOP_CALL(finishRenderer(m_renderer);)
             HOP_PROF("Session::render - render_v2");
 
             render_v2();
 
-            HOP_CALL(glFinish();)
+            HOP_CALL(finishRenderer(m_renderer);)
         }
         else
         {
             {
-                HOP_CALL(glFinish();)
+                HOP_CALL(finishRenderer(m_renderer);)
                 HOP_PROF("Session::render - advanceState");
 
                 advanceState();
 
-                HOP_CALL(glFinish();)
+                HOP_CALL(finishRenderer(m_renderer);)
             }
             {
-                HOP_CALL(glFinish();)
+                HOP_CALL(finishRenderer(m_renderer);)
                 HOP_PROF("Session::render - renderState");
 
                 renderState();
 
-                HOP_CALL(glFinish();)
+                HOP_CALL(finishRenderer(m_renderer);)
             }
             {
-                HOP_CALL(glFinish();)
+                HOP_CALL(finishRenderer(m_renderer);)
 
                 HOP_PROF("Session::render - recordRenderState");
 
                 recordRenderState();
 
-                HOP_CALL(glFinish();)
+                HOP_CALL(finishRenderer(m_renderer);)
             }
         }
     }
@@ -4292,12 +4300,12 @@ namespace IPCore
 
             try
             {
-                HOP_CALL(glFinish();)
+                HOP_CALL(finishRenderer(m_renderer);)
                 HOP_PROF("Session::render - render_v2 - evaluateForDisplay");
 
                 evaluateForDisplay();
 
-                HOP_CALL(glFinish();)
+                HOP_CALL(finishRenderer(m_renderer);)
             }
             catch (BufferNeedsRefillExc& exc)
             {
@@ -4399,7 +4407,7 @@ namespace IPCore
 
             try
             {
-                HOP_CALL(glFinish();)
+                HOP_CALL(finishRenderer(m_renderer);)
                 HOP_PROF("Session::render - render_v2 - internalRender");
 
                 if (debugProfile)
@@ -4486,7 +4494,7 @@ namespace IPCore
                     trecord.renderFenceWaitTotal = m_renderer->profiling().fenceWaitTime;
                 }
 
-                HOP_CALL(glFinish();)
+                HOP_CALL(finishRenderer(m_renderer);)
             }
             catch (RendererNotSupportedExc& exc)
             {
@@ -4577,7 +4585,7 @@ namespace IPCore
 
         if (m_lastFrame != m_frame && playing)
         {
-            HOP_CALL(glFinish();)
+            HOP_CALL(finishRenderer(m_renderer);)
             HOP_PROF("Session::render - render_v2 - frameChangeEvent");
 
             if (debugProfile)
@@ -4603,7 +4611,7 @@ namespace IPCore
                 ProfilingRecord& trecord = currentProfilingSample();
                 trecord.frameChangeEventEnd = profilingElapsedTime();
             }
-            HOP_CALL(glFinish();)
+            HOP_CALL(finishRenderer(m_renderer);)
         }
 
         m_lastFrame = m_frame;
@@ -4912,12 +4920,11 @@ namespace IPCore
 
     //----------------------------------------------------------------------
     //
-    //  Some actual GL in Session here. In the event that we need a non-GL
-    //  renderer (DX11, etc). This would need to change (as would all of
-    //  the GL in Mu?)
+    //  Render events. The renderer calls these through AuxUserRender with
+    //  its target bound (GL: see ImageRenderer::renderExternal()). The
+    //  handlers draw with MuGL, so they still need GL (Plan C in
+    //  MODULARIZE_IPCORE.md).
     //
-
-#include <TwkGLF/GL.h>
 
     void Session::userRenderEvent(const std::string& name, const std::string& contents)
     {

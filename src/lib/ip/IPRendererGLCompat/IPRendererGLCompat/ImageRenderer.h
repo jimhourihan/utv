@@ -585,6 +585,8 @@ namespace IPCore
 
         void waitForUploads() override { waitToDraw(); }
 
+        void finish() override { glFinish(); }
+
         void releaseUploads() override { freeUploadedTextures(); }
 
         TwkFB::FrameBuffer* readBack(const VideoDevice*, const Margins&) override;

@@ -289,8 +289,13 @@ Open points in the draft:
   - The render events' `GLPushAttrib` and `-debug gpu` error checks moved
     from `Session` into `ImageRenderer::renderExternal()`.
   - `LUTIPNode` and `SessionIPNode` ask the default backend.
-- Next (stage 2): the rest of the GL in `Session` (`glFinish`,
-  `GLVideoDevice` casts). Then `Shader::Function` compiling (3),
+- Stage 2 (2026-10-22): no GL left in `Session`. The HOP profiling
+  `glFinish` calls are `Renderer::finish()`; redraw requests go through
+  `VideoDevice::requestRedraw()` / `requestRedrawImmediately()`, which do
+  nothing by default and call `redraw()` / `redrawImmediately()` on a
+  `GLVideoDevice` (so `DesktopVideoDevice`, which isn't one, still isn't
+  asked, as before).
+- Next: `Shader::Function` compiling (3),
   `PaintCommand` drawing (4), and dropping `TwkGLF` from IPCore's link
   libraries with a CMake check (5).
 
@@ -309,7 +314,6 @@ where the interface is broken or leaks. All of them are closed by A4.
   (`renderedImages()`, `imagesAtPixel()`, `audioTextureID()`).
 - `setFiltering(int)` takes a GL enum.
 - `AuxRender` (render events) draws with GL (Plan C).
-- `Session` calls `glFinish` and casts devices to `GLVideoDevice`.
 - `Shader::Function` compiles itself with GL; `PaintCommand` draws with
   GL. Both are in IPCore.
 - App code uses `ImageRenderer`'s statics directly: `Options` and
