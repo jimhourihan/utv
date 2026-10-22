@@ -1,0 +1,4 @@
+# Vendored upstream code: keep it exactly as released, so updates diff
+# cleanly against upstream.
+DisableFormat: true
+SortIncludes: Never

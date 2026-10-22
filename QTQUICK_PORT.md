@@ -73,9 +73,8 @@ until it is worked out, and until users adopt it.
     VAOs, core FBO names), which don't change output in the macOS 2.1
     context
   - the MTSDF text (`feat(text)`, `feat(gl)`, `feat(paint)`), in that
-    order, only together. `feat(text)` updates the `src/pub` submodule to
-    an openrv-pub commit (msdfgen) on openrv-pub's `ip-qt-clean-up` branch,
-    which has to be pushed (or msdfgen vendored another way) first.
+    order, only together, plus the commit that vendors msdfgen in
+    `src/lib/graphics/msdfgen` (it was in `src/pub` at first).
 - The current app stays as it is: `QMainWindow`, Mu HUD, render events,
   compatibility-profile GL. Work that both products share (core libraries,
   scripting modules) is done so it can go to main.
@@ -690,7 +689,7 @@ fourth), generated from FreeType outlines with `msdfgen` (MIT).
     font fallback (CoreText, DirectWrite, fontconfig); a session or
     environment setting can name a font file for reproducible `utvio`
     output
-  - `msdfgen` core vendored into `src/pub` (MIT, no dependencies)
+  - `msdfgen` core vendored (MIT, no dependencies)
   - bidirectional text (right-to-left) later; it slots in before shaping
     (SheenBidi, Apache-2.0, is the likely choice)
   - first version covers the renderer's text only (annotations, hover
@@ -706,11 +705,12 @@ fourth), generated from FreeType outlines with `msdfgen` (MIT).
     `src/lib/graphics/TwkText`); the GL draw function in TwkGLF next to
     `RenderPrimitives`
 - Status (2026-10-12, committed in `df7f4650`, `a7d87ae6`, `6a8d52c4`):
-  - `msdfgen` 1.13 vendored in `src/pub/msdfgen` (core and
+  - `msdfgen` 1.13 vendored in `src/lib/graphics/msdfgen` (core and
     `ext/import-font` only, unmodified, formatting turned off with a local
-    `.clang-format`). `src/pub` is the `OpenUTV/openrv-pub` submodule: the
-    copy is openrv-pub commit `cc77aaa` on its `ip-qt-clean-up` branch,
-    which has to be pushed before the utv branch.
+    `.clang-format`; licence in `Notice.txt`). It was first added to
+    `src/pub` (the `OpenUTV/openrv-pub` submodule), and moved into this
+    repository on 2026-10-22 to keep the branch to one repository; it
+    should probably go back to openrv-pub eventually.
   - `cmake/dependencies/harfbuzz.cmake`: optional HarfBuzz
     (`harfbuzz::harfbuzz`); `build.sh` installs it (Homebrew `harfbuzz`,
     dnf `harfbuzz-devel`, apt `libharfbuzz-dev`). Homebrew's `qtbase`
