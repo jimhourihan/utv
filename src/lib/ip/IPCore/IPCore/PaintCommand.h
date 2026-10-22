@@ -9,11 +9,7 @@
 #include <TwkMath/Color.h>
 #include <TwkMath/Box.h>
 #include <TwkFB/FrameBuffer.h>
-#include <TwkGLF/GLState.h>
-#include <TwkGLF/GLFBO.h>
-#include <TwkGLF/GLRenderPrimitives.h>
 #include <TwkPaint/Path.h>
-#include <TwkText/Font.h>
 #include <IPCore/IPImage.h>
 #include <vector>
 
@@ -22,106 +18,6 @@ namespace IPCore
 
     namespace Paint
     {
-
-        typedef TwkGLF::GLFBO GLFBO;
-        typedef TwkGLF::GLState GLState;
-        typedef TwkGLF::PrimitiveData PrimitiveData;
-        typedef TwkGLF::VertexAttribute VertexAttribute;
-
-        class Brush
-        {
-        public:
-            typedef TwkFB::FrameBuffer FrameBuffer;
-
-            Brush(const std::string& name, FrameBuffer* fb, bool radial)
-                : m_fb(fb)
-                , m_name(name)
-                , m_radial(radial)
-                , m_id(-1)
-            {
-            }
-
-            const FrameBuffer* fb() const { return m_fb; }
-
-            unsigned int id() const { return m_id; }
-
-            const std::string& name() const { return m_name; }
-
-        private:
-            FrameBuffer* m_fb;
-            std::string m_name;
-            bool m_radial;
-            unsigned int m_id;
-            friend class DeclareBrushes;
-        };
-
-        class Font
-        {
-        public:
-            Font(const std::string& name)
-                : m_name(name)
-                , m_initialized(false)
-                , m_size(0)
-            {
-            }
-
-            const std::string& name() const { return m_name; }
-
-            void init() const;
-
-            bool initialized() const { return m_initialized; }
-
-            void setSize(unsigned int s) const;
-            void setColor(float, float, float, float) const;
-            std::pair<float, float> computeText(const std::string&, std::string&, float space, std::string origin) const;
-            float globalAscenderHeight() const;
-            float globalDescenderHeight() const;
-
-            //
-            //  The font at the current size, for drawing with TwkGLF::drawText()
-            //  (unless TwkGLF::useFTGLText()).
-            //
-
-            const TwkText::Font& textFont() const { return m_text; }
-
-        private:
-            TwkMath::Box2f boundsNL(const std::string& text, float space) const;
-
-            std::string m_name;
-            mutable bool m_initialized;
-            mutable unsigned int m_size;
-            mutable TwkText::Font m_text;
-            friend class DeclareFonts;
-        };
-
-        class CommandContext
-        {
-        public:
-            explicit CommandContext(TwkMath::Mat44f pid, TwkMath::Mat44f m, const GLFBO* i, const GLFBO* t, const GLFBO* c, GLState*& g,
-                                    bool hasSten, TwkMath::Vec4f sten = TwkMath::Vec4f(0.0))
-            {
-                hasStencil = hasSten;
-                stencilBox = sten;
-                projMatrix = pid;
-                modelviewMatrix = m;
-                initialRender = i;
-                currentTexture = t;
-                currentRender = c;
-                glState = g;
-            }
-
-            ~CommandContext() {}
-
-            bool hasStencil;
-            TwkMath::Vec4f stencilBox;
-
-            TwkMath::Mat44f projMatrix;
-            TwkMath::Mat44f modelviewMatrix;
-            const GLFBO* initialRender;
-            const GLFBO* currentTexture;
-            const GLFBO* currentRender;
-            GLState* glState;
-        };
 
         class Command
         {
@@ -149,7 +45,6 @@ namespace IPCore
             unsigned int version;
             Color color;
 
-            virtual void execute(CommandContext& context) const = 0;
             virtual void hash(std::ostream& ostream) const = 0;
             [[nodiscard]] virtual size_t getType() const = 0;
 
@@ -178,7 +73,6 @@ namespace IPCore
             bool ghostOn{};
             TwkMath::Col4f ghostColor{Command::Color(0.0)};
         };
-
 
         class PolyLine : public Command
         {
@@ -273,20 +167,18 @@ namespace IPCore
 
             mutable HashValue idhash;
 
-            // the following 4 are computed / setup right after the geometry is
+            // the following are computed / setup right after the geometry is
             // computed they only need to be recomputed if the geometry has
-            // changed
-            mutable PrimitiveData primitives;
+            // changed. The renderer draws them (vertex layout: see
+            // build()).
             mutable std::vector<float> primitiveData;
             mutable std::vector<unsigned int> primitiveIndices;
-            mutable std::vector<VertexAttribute> primitiveAttributes;
+            mutable size_t primitiveVertexCount{0};
+            mutable size_t primitiveTriangleCount{0};
 
             //
             mutable Path path;
             mutable bool built;
-
-            void execute(CommandContext& context) const override;
-            void executeOldOverMode(CommandContext& context) const;
 
             void hash(std::ostream& ostream) const override;
             virtual HashValue hashValue() const;
@@ -321,19 +213,14 @@ namespace IPCore
             float rotation;
             float spacing;
 
-            void execute(CommandContext& context) const override;
             void hash(std::ostream& ostream) const override;
             [[nodiscard]] size_t getType() const override;
-
-            static void setup(CommandContext&);
-            static void cleanup(CommandContext&);
         };
 
         class PushFrameBuffer : public Command
         {
         public:
             PushFrameBuffer();
-            void execute(CommandContext& context) const override;
             void hash(std::ostream& ostream) const override;
             [[nodiscard]] size_t getType() const override;
         };
@@ -342,7 +229,6 @@ namespace IPCore
         {
         public:
             PopFrameBuffer();
-            void execute(CommandContext& context) const override;
             void hash(std::ostream& ostream) const override;
             [[nodiscard]] size_t getType() const override;
         };
@@ -364,7 +250,6 @@ namespace IPCore
             float height;
             float width;
 
-            void execute(CommandContext&) const override;
             void hash(std::ostream&) const override;
             [[nodiscard]] size_t getType() const override;
         };
@@ -392,7 +277,6 @@ namespace IPCore
             Vec2 points[4];
             DrawMode drawMode;
 
-            void execute(CommandContext&) const override;
             void hash(std::ostream&) const override;
             [[nodiscard]] size_t getType() const override;
         };
@@ -402,43 +286,9 @@ namespace IPCore
         public:
             ExecuteAllBefore() = default;
 
-            void execute(CommandContext& context) const override;
             void hash(std::ostream& ostream) const override;
             [[nodiscard]] size_t getType() const override;
         };
-
-        struct PaintContext
-        {
-            PaintContext()
-                : initialRender(0)
-                , tempRender1(0)
-                , tempRender2(0)
-                , cachedfbo(0)
-                , image(0)
-                , hasStencil(false)
-                , updateCache(true)
-                , cacheUpdated(false)
-                , lastCommand(0)
-                , commandExecuted(0)
-            {
-            }
-
-            const GLFBO* initialRender;
-            const GLFBO* tempRender1;
-            const GLFBO* tempRender2;
-            const GLFBO* cachedfbo;
-            const IPImage* image;
-            bool hasStencil;
-            TwkMath::Vec4f stencilBox;
-            bool updateCache;
-            bool cacheUpdated;
-            const Paint::Command* lastCommand;
-            IPImage::PaintCommands commands;
-            GLState* glState;
-            size_t commandExecuted;
-        };
-
-        void renderPaintCommands(PaintContext&);
 
     } // namespace Paint
 

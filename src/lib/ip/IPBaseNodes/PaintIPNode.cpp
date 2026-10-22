@@ -8,7 +8,6 @@
 #include <IPCore/SessionIPNode.h>
 #include <IPCore/Exception.h>
 #include <IPCore/IPGraph.h>
-#include <TwkGLText/TwkGLText.h>
 #include <exception>
 #include <mutex>
 #include <stl_ext/string_algo.h>
@@ -204,7 +203,7 @@ namespace
     }
 
     PaintIPNode::HoldCommands generateVisibleCommands(const PaintIPNode::HoldCommands& commands, const int frame, const size_t eye,
-                                                       const PaintEffects& paintEffects)
+                                                      const PaintEffects& paintEffects)
     {
         PaintIPNode::HoldCommands allCommands;          // visible commands, including hold and ghost
         PaintIPNode::HoldCommands currentFrameCommands; // visible commands, excluding hold and ghost
@@ -228,7 +227,6 @@ namespace IPCore
     using namespace TwkContainer;
     using namespace TwkMath;
     using namespace TwkPaint;
-    using namespace TwkGLText;
 
     PaintIPNode::PaintIPNode(const std::string& name, const NodeDefinition* def, IPGraph* g, GroupIPNode* group)
         : IPNode(name, def, g, group)

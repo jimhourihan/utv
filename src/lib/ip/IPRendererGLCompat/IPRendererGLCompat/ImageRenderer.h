@@ -14,7 +14,7 @@
 #include <IPRendererGLCompat/ShaderProgram.h>
 #include <IPCore/ShaderCommon.h>
 #include <IPRendererGLCompat/ShaderProgram.h>
-#include <IPCore/PaintCommand.h>
+#include <IPRendererGLCompat/PaintCommandGL.h>
 #include <IPRendererGLCompat/ImageFBO.h>
 #include <IPCore/Renderer.h>
 #include <TwkExc/TwkExcException.h>

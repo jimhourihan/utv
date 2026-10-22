@@ -302,8 +302,16 @@ Open points in the draft:
   The GL one (`GLShaderCompiler`) holds the shader object in a
   `GLFunctionState`, which deletes it; `ShaderProgram` attaches it.
   `ShaderState.h` is gone.
-- Next: `PaintCommand` drawing (4), and dropping `TwkGLF` from IPCore's
-  link libraries with a CMake check (5).
+- Stage 4 (2026-10-22): `PaintCommand` (IPCore) holds the paint
+  commands and the stroke geometry (`PolyLine::build()` fills
+  `primitiveData` / `primitiveIndices` and the vertex and triangle
+  counts). Drawing them is `PaintCommandGL` in IPRendererGLCompat: the
+  `execute()` methods became functions there, chosen by
+  `Command::getType()`, with `Font`, `Brush`, `CommandContext`,
+  `PaintContext` and `renderPaintCommands()`. This is A6 for paint.
+  IPCore and IPBaseNodes have no GL code left.
+- Next: drop `TwkGLF` / `TwkGLText` from IPCore's link libraries and add
+  a CMake check (5).
 
 #### Leaky API holes
 
@@ -320,7 +328,6 @@ where the interface is broken or leaks. All of them are closed by A4.
   (`renderedImages()`, `imagesAtPixel()`, `audioTextureID()`).
 - `Renderer::setFiltering(int)` takes a GL enum.
 - `AuxRender` (render events) draws with GL (Plan C).
-- `PaintCommand` (IPCore) draws with GL.
 - The Mu `setFiltering` / `getFiltering` commands (IPMu) use
   `GL_LINEAR` / `GL_NEAREST` values, so IPMu includes and links TwkGLF.
 - App code uses `ImageRenderer`'s statics directly: `Options` and

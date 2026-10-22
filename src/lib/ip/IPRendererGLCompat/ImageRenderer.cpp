@@ -18,7 +18,7 @@
 #include <IPCore/IPNode.h>
 #include <IPRendererGLCompat/ShaderProgram.h>
 #include <IPCore/Application.h>
-#include <IPCore/PaintCommand.h>
+#include <IPRendererGLCompat/PaintCommandGL.h>
 #include <TwkExc/TwkExcException.h>
 #include <TwkGLF/GL.h>
 #include <TwkGLF/GLState.h>
