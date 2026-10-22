@@ -257,8 +257,8 @@ Open points in the draft:
 - `RvPreferences` changes client storage and threaded upload while the
   app runs; `RendererOptions` is fixed at creation. Either the renderer
   is recreated, or those two get setters.
-- `setFiltering` takes an `int` that is a GL enum today; it should be a
-  small enum (nearest, linear).
+- `setFiltering` took an `int` that was a GL enum. It now takes
+  `Renderer::Filter` (nearest, linear); see the progress entry below.
 - `FormatIPNode` and `LUTIPNode` ask for float support from inside
   nodes, through the static function. They need a way to reach the
   current backend's capabilities.
@@ -320,7 +320,7 @@ Open points in the draft:
 - IPCore and IPBaseNodes are now GL-free: no GL code, includes or link
   libraries. GL is in IPRendererGLCompat, which the apps link. The holes
   below are in the apps and IPMu, plus the interface types that still
-  carry GL meaning (`RenderTexture` ids, the filtering enum).
+  carry GL meaning (`RenderTexture` ids).
 - Linux (2026-10-22, oryx, GCC): builds after two fixes (`<mutex>` in
   `PaintIPNode.h`, which came through the GL headers; the
   `GLCompatRendererBackend.h` include in `rv/main.cpp` was inside the
@@ -337,6 +337,14 @@ Open points in the draft:
   before (compatibility profile only: the WGL context has no core
   profile). The viewer works. The timeline hover preview doesn't show
   on Windows, with or without this work: not caused by it.
+- Filtering (2026-10-22): `Renderer::setFiltering` / `filtering` take
+  and return `Renderer::Filter` (`RendererOptions::Filter`: `Nearest`,
+  `Linear`), and so does `Options::imageFilter`. `ImageRenderer` maps
+  them to GL inside. The Mu / Python `setFiltering` / `getFiltering`
+  commands still take and return the values of `GL_NEAREST` and
+  `GL_LINEAR`, so scripts don't change; IPMu has those two numbers as
+  constants and no longer includes or links TwkGLF. IPMu is added to
+  `RV_CHECK_NO_LINK`.
 
 #### Leaky API holes
 
@@ -351,10 +359,7 @@ where the interface is broken or leaks. All of them are closed by A4.
   `readBack()`. It also never frees the `FrameBuffer` it writes.
 - `RenderTexture` ids are GL texture names, handed to scripts
   (`renderedImages()`, `imagesAtPixel()`, `audioTextureID()`).
-- `Renderer::setFiltering(int)` takes a GL enum.
 - `AuxRender` (render events) draws with GL (Plan C).
-- The Mu `setFiltering` / `getFiltering` commands (IPMu) use
-  `GL_LINEAR` / `GL_NEAREST` values, so IPMu includes and links TwkGLF.
 - App code uses `ImageRenderer`'s statics directly: `Options` and
   `RvPreferences` (settings), `FormatIPNode` (float formats, acceptable
   types), the `VulkanWindow` / `QTVulkanVideoDevice` debug flags,

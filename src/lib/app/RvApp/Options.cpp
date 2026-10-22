@@ -531,7 +531,7 @@ namespace Rv
         useAppleClientStorage = 0;
 #endif
 
-        imageFilter = GL_LINEAR;
+        imageFilter = IPCore::RendererOptions::Filter::Linear;
     }
 
     Options::SourceArgsVector Options::parseSourceArgs(const Files& inputFiles)

@@ -61,6 +61,16 @@ namespace IPCore
             CrossHatch
         };
 
+        //
+        //  How images are sampled when magnified or minified
+        //
+
+        enum class Filter
+        {
+            Nearest,
+            Linear
+        };
+
         Background defaultBackground = Background::Checker;
         bool allowPixelBuffers = true;  // PBOs on GL
         bool appleClientStorage = true; // macOS upload fast path on GL
@@ -111,6 +121,7 @@ namespace IPCore
         using Matrix = IPImage::Matrix;
         using Box2f = TwkMath::Box2f;
         using Background = RendererOptions::Background;
+        using Filter = RendererOptions::Filter;
 
         //
         //  Script drawing (render events) and audio for output devices.
@@ -253,8 +264,8 @@ namespace IPCore
 
         virtual void setBackground(Background) = 0;
         virtual Background background() const = 0;
-        virtual void setFiltering(int) = 0; // GL_NEAREST / GL_LINEAR today
-        virtual int filtering() const = 0;
+        virtual void setFiltering(Filter) = 0;
+        virtual Filter filtering() const = 0;
 
         //
         //  Profiling

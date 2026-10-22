@@ -609,7 +609,9 @@ namespace IPCore
     //  Miscellaneous: utilities, public funcs, etc.
     //
 
-    void ImageRenderer::setFiltering(int f) { m_filter = f; }
+    void ImageRenderer::setFiltering(Filter f) { m_filter = f == Filter::Nearest ? GL_NEAREST : GL_LINEAR; }
+
+    ImageRenderer::Filter ImageRenderer::filtering() const { return m_filter == GL_NEAREST ? Filter::Nearest : Filter::Linear; }
 
     std::string ImageRenderer::logicalImageHash(const IPImage* img) const
     {

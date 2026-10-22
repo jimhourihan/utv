@@ -7,6 +7,7 @@
 //
 #ifndef __RV__Options__h__
 #define __RV__Options__h__
+#include <IPCore/Renderer.h>
 #include <vector>
 #include <string>
 #include <map>
@@ -314,7 +315,7 @@ namespace Rv
         StringVector debugKeyWords;
         StringMap muFlags;
         char* view;
-        int imageFilter;
+        IPCore::RendererOptions::Filter imageFilter;
 
         float pixelAspect;
         int rangeOffset;

@@ -23,7 +23,6 @@
 #include <IPCore/FBCache.h>
 #include <IPCore/IPProperty.h>
 #include <IPCore/Renderer.h>
-#include <TwkGLF/GL.h> // GL_LINEAR / GL_NEAREST in the filtering API
 #include <IPCore/NodeManager.h>
 #include <IPCore/Profile.h>
 #include <IPCore/PropertyEditor.h>
@@ -89,6 +88,15 @@ namespace IPMu
     using namespace TwkContainer;
     using namespace TwkUtil;
     using namespace IPCore;
+
+    //
+    //  setFiltering() / getFiltering() take and return the values of
+    //  GL_NEAREST and GL_LINEAR (scripts pass the MuGL / PyOpenGL
+    //  constants), whatever the renderer backend.
+    //
+
+    constexpr int ScriptFilterNearest = 0x2600;
+    constexpr int ScriptFilterLinear = 0x2601;
 
     typedef Session::PropertyVector PropertyVector;
     typedef TwkApp::EventType::EventInstance Event;
@@ -3219,21 +3227,21 @@ namespace IPMu
         Session* s = Session::currentSession();
         int filter = NODE_ARG(0, int);
 
-        if (filter != GL_LINEAR && filter != GL_NEAREST)
+        if (filter != ScriptFilterLinear && filter != ScriptFilterNearest)
         {
             throwBadArgumentException(NODE_THIS, NODE_THREAD, "setFiltering only accepts GL_LINEAR or GL_NEAREST");
         }
 
         if (s->renderer())
         {
-            s->renderer()->setFiltering(filter);
+            s->renderer()->setFiltering(filter == ScriptFilterNearest ? Renderer::Filter::Nearest : Renderer::Filter::Linear);
         }
     }
 
     NODE_IMPLEMENTATION(getFiltering, int)
     {
         Session* s = Session::currentSession();
-        NODE_RETURN(s->renderer()->filtering());
+        NODE_RETURN(s->renderer()->filtering() == Renderer::Filter::Nearest ? ScriptFilterNearest : ScriptFilterLinear);
     }
 
     NODE_IMPLEMENTATION(viewSize, Vector2f)

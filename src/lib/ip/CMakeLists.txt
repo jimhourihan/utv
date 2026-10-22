@@ -20,6 +20,7 @@ RV_CHECK_NO_LINK(
   TARGETS
   IPCore
   IPBaseNodes
+  IPMu
   FORBIDDEN
   IPRendererGLCompat
   TwkGLF

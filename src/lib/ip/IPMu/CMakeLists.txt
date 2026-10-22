@@ -35,7 +35,6 @@ TARGET_LINK_LIBRARIES(
           TwkContainer
           TwkDeploy
           TwkFB
-          TwkGLF
           TwkMovie
           TwkUtil
           stl_ext

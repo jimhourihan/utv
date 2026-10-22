@@ -666,9 +666,9 @@ namespace Rv
         }
         m_ui.resampleMethodCombo->setCurrentIndex(n);
 
-        if (opts.imageFilter == GL_LINEAR)
+        if (opts.imageFilter == IPCore::RendererOptions::Filter::Linear)
             m_ui.imageFilterCombo->setCurrentIndex(0);
-        if (opts.imageFilter == GL_NEAREST)
+        if (opts.imageFilter == IPCore::RendererOptions::Filter::Nearest)
             m_ui.imageFilterCombo->setCurrentIndex(1);
 
         n = 0;
@@ -1123,12 +1123,12 @@ namespace Rv
         else if (s == Nearest)
             opts.resampleMethod = (char*)Nearest;
 
-        s = settings.value("imageFilter", opts.imageFilter).toString();
+        s = settings.value("imageFilter", opts.imageFilter == IPCore::RendererOptions::Filter::Nearest ? Nearest : Linear).toString();
 
         if (s == Linear)
-            opts.imageFilter = GL_LINEAR;
+            opts.imageFilter = IPCore::RendererOptions::Filter::Linear;
         else if (s == Nearest)
-            opts.imageFilter = GL_NEAREST;
+            opts.imageFilter = IPCore::RendererOptions::Filter::Nearest;
 
         s = settings.value("backgroundPattern", (opts.bgpattern ? opts.bgpattern : "black")).toString();
 

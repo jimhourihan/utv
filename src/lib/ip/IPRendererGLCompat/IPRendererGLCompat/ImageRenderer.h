@@ -597,7 +597,7 @@ namespace IPCore
 
         Background background() const override { return Background(m_bgpattern); }
 
-        int filtering() const override { return m_filter; }
+        Filter filtering() const override;
 
         void beginProfiling(Timer* t) override { initProfilingState(t); }
 
@@ -707,7 +707,7 @@ namespace IPCore
 
         BGPattern bgPattern() const { return m_bgpattern; }
 
-        void setFiltering(int f) override;
+        void setFiltering(Filter) override;
 
         int filterType() const { return m_filter; }
 
