@@ -52,6 +52,7 @@
 #include <PyTwkApp/PyInterface.h>
 #include <IPCore/Application.h>
 #include <IPCore/NodeDefinition.h>
+#include <IPRendererGLCompat/GLCompatRendererBackend.h>
 #include <RvApp/CommandsModule.h>
 #include <RvApp/PyCommandsModule.h>
 #include <RvApp/Options.h>
@@ -92,7 +93,6 @@
 #include <unistd.h>
 #else
 #include <TwkGLFFBO/FBOVideoDevice.h>
-#include <IPRendererGLCompat/GLCompatRendererBackend.h>
 #include <IPRendererGLCompat/ImageRenderer.h>
 #endif
 
@@ -136,7 +136,7 @@ extern void rvThirdPartyCustomization(TwkApp::Bundle& bundle, char* licarg);
 // #error ********* NO VERSION INFORMATION ***********
 #else
 #ifndef _MSC_VER
-#warning ********* NO VERSION INFORMATION ***********
+#warning********* NO VERSION INFORMATION ***********
 #endif
 #endif
 #endif

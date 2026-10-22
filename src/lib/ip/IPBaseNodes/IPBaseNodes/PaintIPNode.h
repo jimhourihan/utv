@@ -9,6 +9,7 @@
 #include <IPCore/PaintCommand.h>
 #include <TwkMath/Color.h>
 #include <map>
+#include <mutex>
 #include <vector>
 
 namespace IPCore
