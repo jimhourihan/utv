@@ -331,7 +331,12 @@ Open points in the draft:
   cannot follow targets imported in subdirectories (Qt's), so
   `Qt6::Gui`, `Qt6::OpenGL`, `Qt6::OpenGLWidgets`,
   `WrapOpenGL::WrapOpenGL` and `opengl32` are named in FORBIDDEN.
-- Not yet built on Windows.
+- Windows (2026-10-22, oryx-win, MSVC 2022): builds as is, and the check
+  passes. IPCore and IPBaseNodes have no GL, glew, wgl or OpenCL
+  symbols. The utvio test renders are byte-identical to the build
+  before (compatibility profile only: the WGL context has no core
+  profile). The viewer works. The timeline hover preview doesn't show
+  on Windows, with or without this work: not caused by it.
 
 #### Leaky API holes
 
