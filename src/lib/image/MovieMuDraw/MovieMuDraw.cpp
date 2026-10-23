@@ -19,7 +19,6 @@
 #include <TwkFB/IO.h>
 #include <TwkGLText/TwkGLText.h>
 #include <TwkGLF/GL.h>
-#include <TwkGLF/GLState.h>
 #include <iostream>
 
 #if defined(PLATFORM_WINDOWS)
@@ -144,8 +143,6 @@ namespace TwkMovie
         for (size_t i = 0; i < fbs.size(); i++)
         {
             TwkFB::FrameBuffer* fb = fbs[i];
-            TwkGLF::GLState* glstate = fb->attribute<TwkGLF::GLState*>("glState");
-
             if (TwkGLF::GLVideoDevice* d = fb->attribute<TwkGLF::GLVideoDevice*>("videoDevice"))
             {
                 d->setDefaultFBOIndex(i);
@@ -234,10 +231,17 @@ namespace TwkMovie
             //  Call the function
             //
 
-            GLState::FixedFunctionPipeline FFP(glstate);
+            //
+            //  The function draws with the fixed function pipeline. Put
+            //  back the renderer's program afterwards.
+            //
+
+            GLint program = 0;
+            glGetIntegerv(GL_CURRENT_PROGRAM, &program);
+            glUseProgram(0);
 
             glPushAttrib(GL_ALL_ATTRIB_BITS);
-            FFP.setViewport(0, 0, m_movie->info().uncropWidth, m_movie->info().uncropHeight);
+            glViewport(0, 0, m_movie->info().uncropWidth, m_movie->info().uncropHeight);
 
             if (fb->attribute<string>("renderer") == "sw" && fbs.size() > 1)
             {
@@ -309,6 +313,7 @@ namespace TwkMovie
             }
 
             glFlush();
+            glUseProgram(program);
         }
 
         m_process->releaseApplicationThread(t);

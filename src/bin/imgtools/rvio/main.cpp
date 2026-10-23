@@ -994,8 +994,6 @@ int utf8Main(int argc, char* argv[])
 
     TwkGLF::FBOVideoDevice* dummyDev = new TwkGLF::FBOVideoDevice(0, 10, 10, false);
     IPCore::defaultRendererBackend()->initialize(dummyDev);
-    const char* glVersion = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
-    IPCore::Shader::Function::useShadingLanguageVersion(glVersion);
 
 #ifndef PLATFORM_WINDOWS
     //

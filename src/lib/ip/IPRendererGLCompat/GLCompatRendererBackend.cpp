@@ -7,6 +7,7 @@
 #include <IPRendererGLCompat/GLShaderCompiler.h>
 #include <IPRendererGLCompat/HoverPreviewOverlayGL.h>
 #include <IPRendererGLCompat/ImageRenderer.h>
+#include <IPCore/ShaderFunction.h>
 #include <TwkGLF/GL.h>
 #include <TwkGLF/GLVideoDevice.h>
 
@@ -35,7 +36,21 @@ namespace IPCore
         if (TwkGLF::safeGLGetString(GL_VERSION).empty())
             return false;
 #endif
+        const bool first = !initialized();
         ImageRenderer::queryGL();
+
+        //
+        //  The GLSL version the shaders are written for. Without this
+        //  Shader::Function asks the compiler when it first needs it.
+        //
+
+        if (first)
+        {
+            const string glsl = TwkGLF::safeGLGetString(GL_SHADING_LANGUAGE_VERSION);
+            if (!glsl.empty())
+                Shader::Function::useShadingLanguageVersion(glsl.c_str());
+        }
+
         return true;
     }
 

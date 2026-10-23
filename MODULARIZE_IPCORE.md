@@ -358,6 +358,14 @@ Open points in the draft:
   `RendererBackend::initialize()` instead of `ImageRenderer::queryGL()`.
   The Vulkan files are not built on macOS: build them on Linux and
   Windows.
+- GLSL version and `MovieRV_FBO` (2026-10-22): the GL backend's
+  `initialize()` sets `Shader::Function::useShadingLanguageVersion()`
+  from the device the first time, instead of the rv (Windows) and utvio
+  mains calling `glGetString`. `MovieRV_FBO` no longer casts to
+  `ImageRenderer` or passes its `GLState` to `MovieMuDraw` (the Mu
+  `-overlay` / `-leader` drawing in utvio); `MovieMuDraw` saves the
+  current GL program, draws with program 0 and restores it. Both are
+  GL code and stay so until Plan C.
 
 #### Leaky API holes
 
@@ -373,12 +381,6 @@ where the interface is broken or leaks. All of them are closed by A4.
 - `RenderTexture` ids are GL texture names, handed to scripts
   (`renderedImages()`, `imagesAtPixel()`, `audioTextureID()`).
 - `AuxRender` (render events) draws with GL (Plan C).
-- `MovieRV_FBO` casts the session's renderer to `ImageRenderer` for
-  `getGLState()`.
-- The rv (Windows) and utvio mains make a GL device and ask it for the
-  GLSL version (`glGetString`) to call
-  `Shader::Function::useShadingLanguageVersion()`. The backend should do
-  that in `initialize()`.
 
 ### A3. Video devices per backend
 

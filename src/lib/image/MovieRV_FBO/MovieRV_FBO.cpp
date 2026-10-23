@@ -8,11 +8,11 @@
 
 #include <IPCore/AudioRenderer.h>
 #include <RvApp/RvSession.h>
-#include <IPRendererGLCompat/ImageRenderer.h>
 #include <MovieRV_FBO/MovieRV_FBO.h>
 #include <IPBaseNodes/FileSourceIPNode.h>
 #include <IPCore/DisplayStereoIPNode.h>
 #include <IPCore/OutputGroupIPNode.h>
+#include <IPCore/Renderer.h>
 #include <TwkAudio/Audio.h>
 #include <TwkAudio/AudioFormats.h>
 #include <TwkContainer/GTOReader.h>
@@ -21,7 +21,7 @@
 #include <TwkGLF/GLVideoDevice.h>
 #include <TwkGLFFBO/FBOVideoDevice.h>
 #include <TwkGLF/GL.h>
-#include <TwkGLF/GLState.h>
+#include <TwkGLF/GLPixelBufferObjectPool.h>
 #include <TwkGLText/TwkGLText.h>
 #include <iostream>
 
@@ -281,7 +281,6 @@ namespace TwkFB
 
             fb->setIdentifier("");
             fb->attribute<TwkGLF::GLVideoDevice*>("videoDevice") = m_device;
-            fb->attribute<TwkGLF::GLState*>("glState") = dynamic_cast<ImageRenderer*>(m_session->renderer())->getGLState();
             fb->attribute<string>("renderer") = "hw";
             identifier(frame, fb->idstream());
 
