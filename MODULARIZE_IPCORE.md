@@ -366,18 +366,22 @@ Open points in the draft:
   `-overlay` / `-leader` drawing in utvio); `MovieMuDraw` saves the
   current GL program, draws with program 0 and restores it. Both are
   GL code and stay so until Plan C.
+- `renderAndReadBack` (2026-10-22): `Renderer::readBack()` is replaced
+  by `renderAndReadBack(frame, root, margins)`, which renders to the
+  control device, reads it back and leaves the device as it found it.
+  `exportCurrentFrame` no longer saves and restores
+  `GL_FRAMEBUFFER_BINDING` itself; `ImageRenderer` does, around its
+  `render()` and `readBack()`, and `RvApp/CommandsModule.cpp` has no GL.
 
 #### Leaky API holes
 
 Places where callers still depend on what is behind the interface, or
 where the interface is broken or leaks. All of them are closed by A4.
 
-- `exportCurrentFrame` (`RvApp/CommandsModule.cpp`) saves
-  `GL_FRAMEBUFFER_BINDING` before `render()` and restores it after
-  `readBack()`. The backend should leave the device as it found it.
 - Export > Snapshot (`exportCurrentFrame`) does not work, in the 2026.14
   release as well (a blank image). Not caused by this work; fix it in
-  `readBack()`. It also never frees the `FrameBuffer` it writes.
+  `ImageRenderer::renderAndReadBack()` / `readBack()`. It also never
+  frees the `FrameBuffer` it writes.
 - `RenderTexture` ids are GL texture names, handed to scripts
   (`renderedImages()`, `imagesAtPixel()`, `audioTextureID()`).
 - `AuxRender` (render events) draws with GL (Plan C).

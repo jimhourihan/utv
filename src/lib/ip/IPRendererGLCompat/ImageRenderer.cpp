@@ -659,6 +659,23 @@ namespace IPCore
             flushProgramCache();
     }
 
+    TwkFB::FrameBuffer* ImageRenderer::renderAndReadBack(int frame, IPImage* root, const Margins& m)
+    {
+        //
+        //  render() binds the device's framebuffers; put back the one
+        //  that was bound (Qt's, when this runs from a script).
+        //
+
+        GLint fbo = 0;
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fbo);
+
+        render(frame, root);
+        FrameBuffer* fb = readBack(controlDevice(), m);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        return fb;
+    }
+
     TwkFB::FrameBuffer* ImageRenderer::readBack(const VideoDevice* device, const Margins& m)
     {
         //

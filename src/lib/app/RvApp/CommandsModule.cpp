@@ -18,7 +18,7 @@
 #include <IPCore/Exception.h>
 #include <IPCore/GroupIPNode.h>
 #include <IPCore/IPGraph.h>
-#include <IPRendererGLCompat/ImageRenderer.h>
+#include <IPCore/Renderer.h>
 #include <IPCore/IPProperty.h>
 #include <IPCore/PropertyEditor.h>
 #include <IPCore/NodeManager.h>
@@ -65,7 +65,6 @@
 #include <TwkDeploy/Deploy.h>
 #include <TwkFB/IO.h>
 #include <TwkFB/Operations.h>
-#include <TwkGLF/GLFBO.h>
 #include <TwkMovie/Movie.h>
 #include <TwkUtil/File.h>
 #include <TwkUtil/FileStream.h>
@@ -521,16 +520,7 @@ namespace Rv
 
         TwkApp::VideoDevice::Margins m = s->eventVideoDevice()->margins();
 
-        // Get current framebuffer id.
-        GLuint qtDefaultFBO;
-        glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*)&qtDefaultFBO);
-
-        renderer->render(s->currentFrame(), s->displayImage());
-
-        std::unique_ptr<TwkFB::FrameBuffer> fb(renderer->readBack(renderer->controlDevice(), m));
-
-        // Restore original framebuffer.
-        glBindFramebuffer(GL_FRAMEBUFFER, qtDefaultFBO);
+        std::unique_ptr<TwkFB::FrameBuffer> fb(renderer->renderAndReadBack(s->currentFrame(), s->displayImage(), m));
 
         if (!fb)
             throwBadArgumentException(NODE_THIS, NODE_THREAD, "cannot read back the current frame");

@@ -589,7 +589,9 @@ namespace IPCore
 
         void releaseUploads() override { freeUploadedTextures(); }
 
-        TwkFB::FrameBuffer* readBack(const VideoDevice*, const Margins&) override;
+        TwkFB::FrameBuffer* renderAndReadBack(int frame, IPImage* root, const Margins&) override;
+
+        TwkFB::FrameBuffer* readBack(const VideoDevice*, const Margins&);
 
         void flush(Cache) override;
 

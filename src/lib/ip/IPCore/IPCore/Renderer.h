@@ -236,12 +236,14 @@ namespace IPCore
         virtual void releaseUploads() = 0; // freeUploadedTextures()
 
         //
-        //  Read back what was last rendered to a device, without its
-        //  margins, as RGBA8 (exportCurrentFrame() does its own
-        //  glReadPixels today). The caller owns the result.
+        //  Render a frame to the control device and read it back without
+        //  the margins, as RGBA8 (exportCurrentFrame()). Unlike render()
+        //  this can be called outside a device's paint: it leaves the
+        //  device as it found it. The caller owns the result, which is
+        //  null if it can't be read back.
         //
 
-        virtual TwkFB::FrameBuffer* readBack(const VideoDevice*, const Margins&) = 0;
+        virtual TwkFB::FrameBuffer* renderAndReadBack(int frame, IPImage* root, const Margins&) = 0;
 
         //
         //  Results of the last render
