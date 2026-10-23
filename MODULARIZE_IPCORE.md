@@ -366,6 +366,14 @@ Open points in the draft:
   `-overlay` / `-leader` drawing in utvio); `MovieMuDraw` saves the
   current GL program, draws with program 0 and restores it. Both are
   GL code and stay so until Plan C.
+- Snapshot (2026-10-23): Export > Snapshot was blank with the Metal and
+  Vulkan presentation devices (also in the 2026.14 release): the
+  read-back used the device's `fboID()`, which is 0 for them, instead of
+  the `defaultFBO()` the renderer draws into. Fixed on main
+  (`fix-snapshot-metal`) and cherry-picked into `gl-core-profile`; here
+  the fix is in `ImageRenderer::readBack()`, and `exportCurrentFrame`
+  frees the `FrameBuffer`. Not tested with Vulkan: on Linux the 10-bit
+  Vulkan view fails at startup, on main as well.
 - `renderAndReadBack` (2026-10-22): `Renderer::readBack()` is replaced
   by `renderAndReadBack(frame, root, margins)`, which renders to the
   control device, reads it back and leaves the device as it found it.
@@ -378,10 +386,6 @@ Open points in the draft:
 Places where callers still depend on what is behind the interface, or
 where the interface is broken or leaks. All of them are closed by A4.
 
-- Export > Snapshot (`exportCurrentFrame`) does not work, in the 2026.14
-  release as well (a blank image). Not caused by this work; fix it in
-  `ImageRenderer::renderAndReadBack()` / `readBack()`. It also never
-  frees the `FrameBuffer` it writes.
 - `RenderTexture` ids are GL texture names, handed to scripts
   (`renderedImages()`, `imagesAtPixel()`, `audioTextureID()`).
 - `AuxRender` (render events) draws with GL (Plan C).
