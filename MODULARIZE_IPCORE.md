@@ -384,7 +384,8 @@ Open points in the draft:
 #### Leaky API holes
 
 Places where callers still depend on what is behind the interface, or
-where the interface is broken or leaks. All of them are closed by A4.
+where the interface is broken or leaks. Both are closed by Plan C: the
+scripts use these ids and draw through MuGL.
 
 - `RenderTexture` ids are GL texture names, handed to scripts
   (`renderedImages()`, `imagesAtPixel()`, `audioTextureID()`).
@@ -412,13 +413,26 @@ Move `ImageRenderer`, `ShaderProgram` / `ShaderFunction` GL code,
 `ImageFBO`, the GL parts of `PaintCommand` and `HoverPreviewOverlayGL`
 into `libIPRendererGL`. IPCore links no GL.
 
-The library exports one factory function (for example
-`IPCore::Renderer* createRenderer(const RendererOptions&)`). It is
-loaded with `dlopen` / `LoadLibrary`, as the image format plugins are
-(`TwkFB/IO.cpp`). The backend is chosen by a command line option or
-setting, with GL the default. The interface is C++: the backends are
-built with the same compiler and flags as the app, so a C++ ABI across
-the boundary is fine.
+Done (2026-10-23). The GL backend is `IPRendererGLCompat`. IPCore, the
+node libraries, RvApp, RvCommon and MovieRV_FBO don't link it; the rv,
+UTV and rvio mains do, and register it at start up. The `-renderer
+<name>` option (rv and UTV) chooses a backend
+(`selectRendererBackend()`), with GL the default; an unknown name is an
+error that lists the available ones. rvio stays GL: it renders through a
+GL `FBOVideoDevice`.
+
+The backends are linked, not loaded at run time. A backend uses IPCore
+throughout (the node tree, `ShaderCommon`, the shader function
+registry, `Shader::setCompiler()`), and IPCore and most of the libraries
+under it are static: a `dlopen`ed backend would have its own copies of
+them and their globals. The image and output plugins avoid this with
+narrow interfaces (the image plugins share TwkFB, which is a shared
+library). Loading backends at run time needs IPCore and its
+dependencies built as shared libraries, which on Windows means exporting
+their symbols (and importing their data by hand). Exporting the
+executable's symbols instead doesn't work on Windows with three
+executables. Revisit this if a backend has to ship or install
+separately.
 
 ### A5. Shaders: keep GLSL, translate per backend
 
@@ -601,3 +615,5 @@ while.
   without a copy on each backend.
 - 10-bit and HDR presentation on each candidate backend (MoltenVK
   colour spaces, QRhi swapchain formats).
+- Load backends at run time? It needs IPCore and the libraries under
+  it as shared libraries (A4).

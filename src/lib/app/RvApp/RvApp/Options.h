@@ -190,6 +190,7 @@ namespace Rv
         int dispGreenBits;
         int dispBlueBits;
         int dispAlphaBits;
+        char* renderer;
         char* networkHost;
         std::string networkHostBuf;
         char* networkTag;
@@ -577,9 +578,10 @@ namespace Rv
         "Try to re-use the current session for incoming URLs (1 = reuse "                                                                  \
         "session, 0 = new session, default = %d)",                                                                                         \
         opt.urlsReuseSession, "-nopackages", ARG_FLAG(&opt.noPackages), "Don't load any packages at startup (for debugging)",              \
-        "-encodeURL", ARG_FLAG(&opt.encodeURL), "Encode the command line as an rvlink URL, print, and exit", "-bakeURL",                   \
-        ARG_FLAG(&opt.bakeURL), "Fully bake the command line as an rvlink URL, print, and exit", "-sendEvent",                             \
-        ARG_SUBR(&Rv::parseSendEvents), "Send external events e.g. -sendEvent 'name' 'content'", "-flags", ARG_SUBR(&Rv::parseMuFlags),    \
+        "-renderer %S", &opt.renderer, "Renderer backend (default GL)", "-encodeURL", ARG_FLAG(&opt.encodeURL),                            \
+        "Encode the command line as an rvlink URL, print, and exit", "-bakeURL", ARG_FLAG(&opt.bakeURL),                                   \
+        "Fully bake the command line as an rvlink URL, print, and exit", "-sendEvent", ARG_SUBR(&Rv::parseSendEvents),                     \
+        "Send external events e.g. -sendEvent 'name' 'content'", "-flags", ARG_SUBR(&Rv::parseMuFlags),                                    \
         "Arbitrary flags (flag, or 'name=value') for use in Mu code", "-debug", ARG_SUBR(&Rv::parseDebugKeyWords),                         \
         Rv::getDebugCategories(), "-version", ARG_FLAG(&opt.showVersion), "Show RV version number", "--version",                           \
         ARG_FLAG(&opt.showVersion), "Show RV version number"

@@ -15,6 +15,7 @@
 #include <IPBaseNodes/StackIPNode.h>
 #include <IPCore/Application.h>
 #include <IPCore/AudioRenderer.h>
+#include <IPCore/Renderer.h>
 #include <IPCore/DisplayStereoIPNode.h>
 #include <IPCore/Exception.h>
 #include <IPCore/FBCache.h>
@@ -328,6 +329,7 @@ namespace Rv
         dispAlphaBits = 8;
         networkPort = 0;
         networkHost = NULL;
+        renderer = NULL;
         networkTag = NULL;
         networkUser = NULL;
         networkPerm = -1;
@@ -881,6 +883,27 @@ namespace Rv
 
     bool Options::initializeAfterParsing(Options* prefs)
     {
+        //
+        //  The renderer backend first: the settings below go to it
+        //
+
+        if (renderer && !selectRendererBackend(renderer))
+        {
+            if (findRendererBackend(renderer))
+            {
+                cerr << "ERROR: can't change the renderer to " << renderer << " once rendering has started" << endl;
+            }
+            else
+            {
+                cerr << "ERROR: no renderer named " << renderer << "; available:";
+                for (const string& name : availableRendererBackends())
+                    cerr << " " << name;
+                cerr << endl;
+            }
+
+            return false;
+        }
+
         //
         //  Initialize IPCore prefs from Options
         //
@@ -1513,8 +1536,8 @@ namespace Rv
             << CHAROUT(dpxPixel) << CHAROUT(eval) << CHAROUT(fileCDL) << CHAROUT(fileLUT) << CHAROUT(initscript) << CHAROUT(layoutMode)
             << CHAROUT(licarg) << CHAROUT(lookCDL) << CHAROUT(lookLUT) << CHAROUT(mistPixel) << CHAROUT(networkHost) << CHAROUT(networkTag)
             << CHAROUT(preCacheLUT) << CHAROUT(presentData) << CHAROUT(presentDevice) << CHAROUT(presentFormat) << CHAROUT(qtcss)
-            << CHAROUT(qtstyle) << CHAROUT(resampleMethod) << CHAROUT(schedulePolicy) << CHAROUT(sessionType) << CHAROUT(stereoMode)
-            << CHAROUT(view) << CHAROUT(windowType);
+            << CHAROUT(qtstyle) << CHAROUT(renderer) << CHAROUT(resampleMethod) << CHAROUT(schedulePolicy) << CHAROUT(sessionType)
+            << CHAROUT(stereoMode) << CHAROUT(view) << CHAROUT(windowType);
 
         for (int i = 0; i < sendEvents.size(); ++i)
         {

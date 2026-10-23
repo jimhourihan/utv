@@ -278,13 +278,11 @@ namespace IPCore
     };
 
     //
-    //  A backend: one per renderer library. A library exports
-    //
-    //      extern "C" IPCore::RendererBackend* UTVRendererBackend();
-    //
-    //  and is loaded with dlopen() / LoadLibrary(), as the image format
-    //  plugins are. Until then the apps link the GL backend
-    //  (IPRendererGLCompat) and register it.
+    //  A backend: one per renderer library. The apps link the backends
+    //  they are built with and register them at start up; the -renderer
+    //  option chooses one (selectRendererBackend() below). Loading them
+    //  at run time would need IPCore and the libraries it uses to be
+    //  shared libraries (MODULARIZE_IPCORE.md, A4).
     //
 
     class RendererBackend
@@ -341,10 +339,16 @@ namespace IPCore
     //  findRendererBackend("") returns it, as does
     //  defaultRendererBackend(). Nodes ask it for capabilities.
     //
+    //  selectRendererBackend() makes the named backend the default. It
+    //  returns false if there is no backend with that name, or if another
+    //  backend is already initialized: the backend can't change once
+    //  rendering has started.
+    //
 
     void registerRendererBackend(RendererBackend*);
     RendererBackend* findRendererBackend(const std::string& name);
     RendererBackend* defaultRendererBackend();
+    bool selectRendererBackend(const std::string& name);
     std::vector<std::string> availableRendererBackends();
     bool setRendererDebugOption(const std::string& flag);
 

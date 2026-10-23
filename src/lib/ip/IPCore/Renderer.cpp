@@ -4,6 +4,7 @@
 //  SPDX-License-Identifier: Apache-2.0
 //
 #include <IPCore/Renderer.h>
+#include <algorithm>
 
 namespace IPCore
 {
@@ -37,6 +38,24 @@ namespace IPCore
     }
 
     RendererBackend* defaultRendererBackend() { return backends().empty() ? nullptr : backends().front(); }
+
+    bool selectRendererBackend(const string& name)
+    {
+        RendererBackend* backend = findRendererBackend(name);
+        RendererBackend* current = defaultRendererBackend();
+
+        if (!backend)
+            return false;
+        if (backend == current)
+            return true;
+        if (current->initialized())
+            return false;
+
+        vector<RendererBackend*>& b = backends();
+        b.erase(find(b.begin(), b.end(), backend));
+        b.insert(b.begin(), backend);
+        return true;
+    }
 
     vector<string> availableRendererBackends()
     {
