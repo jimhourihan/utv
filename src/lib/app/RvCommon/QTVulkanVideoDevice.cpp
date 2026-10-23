@@ -85,6 +85,19 @@
 #define GL_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_EXT 0x9531
 #endif
 
+//
+//  "-debug gpu"
+//
+
+namespace
+{
+    bool debugGpu()
+    {
+        const IPCore::RendererBackend* backend = IPCore::defaultRendererBackend();
+        return backend && backend->options().debugGpu;
+    }
+} // namespace
+
 #ifdef PLATFORM_WINDOWS
 // The bundled GLEW under src/pub/glew (version 2.3.0) does not declare the
 // EXT_memory_object / EXT_semaphore (or their Win32 companions) entry points.
@@ -105,19 +118,6 @@ typedef void(GLAPIENTRY* PFNGLWAITSEMAPHOREEXTPROC_RV)(GLuint semaphore, GLuint 
                                                        GLuint numTextureBarriers, const GLuint* textures, const GLenum* dstLayouts);
 typedef void(GLAPIENTRY* PFNGLSIGNALSEMAPHOREEXTPROC_RV)(GLuint semaphore, GLuint numBufferBarriers, const GLuint* buffers,
                                                          GLuint numTextureBarriers, const GLuint* textures, const GLenum* srcLayouts);
-
-//
-//  "-debug gpu"
-//
-
-namespace
-{
-    bool debugGpu()
-    {
-        const IPCore::RendererBackend* backend = IPCore::defaultRendererBackend();
-        return backend && backend->options().debugGpu;
-    }
-} // namespace
 
 namespace
 {
