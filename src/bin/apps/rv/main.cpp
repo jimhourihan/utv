@@ -93,7 +93,6 @@
 #include <unistd.h>
 #else
 #include <TwkGLFFBO/FBOVideoDevice.h>
-#include <IPRendererGLCompat/ImageRenderer.h>
 #endif
 
 #if defined(RV_VFX_CY2023)
@@ -136,7 +135,7 @@ extern void rvThirdPartyCustomization(TwkApp::Bundle& bundle, char* licarg);
 // #error ********* NO VERSION INFORMATION ***********
 #else
 #ifndef _MSC_VER
-#warning********* NO VERSION INFORMATION ***********
+#warning ********* NO VERSION INFORMATION ***********
 #endif
 #endif
 #endif
@@ -889,7 +888,7 @@ int utf8Main(int argc, char* argv[])
 
 #ifdef PLATFORM_WINDOWS
     TwkGLF::FBOVideoDevice* dummyDev = new TwkGLF::FBOVideoDevice(0, 10, 10, false, 0);
-    IPCore::ImageRenderer::queryGL();
+    IPCore::defaultRendererBackend()->initialize(dummyDev);
     const char* glVersion = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
     if (glVersion)
     {

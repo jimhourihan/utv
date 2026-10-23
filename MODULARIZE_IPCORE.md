@@ -255,13 +255,12 @@ Mapping from `ImageRenderer`:
 Open points in the draft:
 
 - `RvPreferences` changes client storage and threaded upload while the
-  app runs; `RendererOptions` is fixed at creation. Either the renderer
-  is recreated, or those two get setters.
+  app runs. Resolved: `RendererBackend::setOptions()` can be called at
+  any time and reaches existing renderers.
 - `setFiltering` took an `int` that was a GL enum. It now takes
   `Renderer::Filter` (nearest, linear); see the progress entry below.
 - `FormatIPNode` and `LUTIPNode` ask for float support from inside
-  nodes, through the static function. They need a way to reach the
-  current backend's capabilities.
+  nodes. Resolved: they ask `defaultRendererBackend()->capabilities()`.
 - The render events (`AuxRender`) still assume GL until Plan C.
 
 #### A2 progress
@@ -345,6 +344,20 @@ Open points in the draft:
   `GL_LINEAR`, so scripts don't change; IPMu has those two numbers as
   constants and no longer includes or links TwkGLF. IPMu is added to
   `RV_CHECK_NO_LINK`.
+- Options and capabilities (2026-10-22): `RendererBackend` has
+  `options()` / `setOptions(RendererOptions)`, which can be called at
+  any time; the GL backend maps them to `ImageRenderer`'s statics, which
+  every `ImageRenderer` reads, so changes reach existing renderers.
+  `capabilities()` fills in `version`, `vendor`, `device` and
+  `acceptableTypes`, and its `threadedUpload` now means "supported"
+  (`Session::useThreadedUpload()` checks the option as well).
+  `setRendererDebugOption()` moved from `Session.cpp` to `Renderer.cpp`
+  so `Options` can use it. `Options`, `RvPreferences`, `FormatIPNode`,
+  the Vulkan presentation code, utvio and the rv and utvio mains no
+  longer use `ImageRenderer`. The mains and `MovieRV_FBO` call
+  `RendererBackend::initialize()` instead of `ImageRenderer::queryGL()`.
+  The Vulkan files are not built on macOS: build them on Linux and
+  Windows.
 
 #### Leaky API holes
 
@@ -360,15 +373,12 @@ where the interface is broken or leaks. All of them are closed by A4.
 - `RenderTexture` ids are GL texture names, handed to scripts
   (`renderedImages()`, `imagesAtPixel()`, `audioTextureID()`).
 - `AuxRender` (render events) draws with GL (Plan C).
-- App code uses `ImageRenderer`'s statics directly: `Options` and
-  `RvPreferences` (settings), `FormatIPNode` (float formats, acceptable
-  types), the `VulkanWindow` / `QTVulkanVideoDevice` debug flags,
-  `utvio`'s `-debug gpu` report. These become `RendererOptions` and
-  `RendererCapabilities`.
 - `MovieRV_FBO` casts the session's renderer to `ImageRenderer` for
   `getGLState()`.
-- `RendererBackend::capabilities()` leaves `version`, `vendor`, `device`
-  and `acceptableTypes` empty; the GL backend fills them in later.
+- The rv (Windows) and utvio mains make a GL device and ask it for the
+  GLSL version (`glGetString`) to call
+  `Shader::Function::useShadingLanguageVersion()`. The backend should do
+  that in `initialize()`.
 
 ### A3. Video devices per backend
 

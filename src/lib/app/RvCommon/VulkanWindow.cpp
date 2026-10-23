@@ -12,7 +12,7 @@
 #include <RvApp/Options.h>
 #include <RvApp/RvSession.h>
 #include <IPCore/Session.h>
-#include <IPRendererGLCompat/ImageRenderer.h>
+#include <IPCore/Renderer.h>
 #include <TwkApp/Event.h>
 #include <TwkApp/VideoDevice.h>
 
@@ -46,6 +46,19 @@
 #else
 #include <unistd.h>
 #endif
+
+//
+//  "-debug gpu"
+//
+
+namespace
+{
+    bool debugGpu()
+    {
+        const IPCore::RendererBackend* backend = IPCore::defaultRendererBackend();
+        return backend && backend->options().debugGpu;
+    }
+} // namespace
 
 namespace Rv
 {
@@ -222,7 +235,7 @@ namespace Rv
         std::vector<VkPhysicalDevice> devices(deviceCount);
         vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
-        if (ImageRenderer::debugGpu())
+        if (debugGpu())
         {
             cout << "INFO: VulkanWindow: supports10BitPresentation: probing " << deviceCount << " physical device(s)" << endl;
         }
@@ -253,7 +266,7 @@ namespace Rv
 
             VkPhysicalDeviceProperties props = {};
             vkGetPhysicalDeviceProperties(dev, &props);
-            if (ImageRenderer::debugGpu())
+            if (debugGpu())
             {
                 cout << "INFO: VulkanWindow:   device[" << di << "] '" << props.deviceName
                      << "': 10-bit surface format=" << (has10bit ? "YES" : "NO") << endl;
@@ -263,7 +276,7 @@ namespace Rv
         // The surface returned by surfaceForWindow() is owned by the platform
         // integration and is released when dummyWindow is destroyed on return;
         // QVulkanInstance has no destroySurface() in this Qt version.
-        if (ImageRenderer::debugGpu())
+        if (debugGpu())
         {
             cout << "INFO: VulkanWindow: supports10BitPresentation: returning " << (any10bit ? "true" : "false") << endl;
         }
@@ -371,7 +384,7 @@ namespace Rv
         {
             VkPhysicalDeviceProperties props = {};
             vkGetPhysicalDeviceProperties(m_vkPhysicalDevice, &props);
-            if (ImageRenderer::debugGpu())
+            if (debugGpu())
             {
                 cout << "INFO: VulkanWindow: initVulkan: picked physical device '" << props.deviceName << "' (of " << deviceCount
                      << " available)" << endl;
@@ -639,7 +652,7 @@ namespace Rv
         std::vector<VkSurfaceFormatKHR> formats(formatCount);
         vkGetPhysicalDeviceSurfaceFormatsKHR(m_vkPhysicalDevice, m_vkSurface, &formatCount, formats.data());
 
-        if (ImageRenderer::debugGpu())
+        if (debugGpu())
         {
             cout << "INFO: VulkanWindow: createSwapchain: surface offers " << formatCount << " format(s):" << endl;
             for (uint32_t i = 0; i < formats.size(); ++i)
@@ -681,7 +694,7 @@ namespace Rv
 
         if (found10bit)
         {
-            if (ImageRenderer::debugGpu())
+            if (debugGpu())
             {
                 cout << "INFO: VulkanWindow: createSwapchain: chose " << formatName(surfaceFormat.format) << " (10-bit OK)" << endl;
             }
@@ -1036,7 +1049,7 @@ namespace Rv
 
         cleanupSharedImage(slot);
 
-        if (ImageRenderer::debugGpu())
+        if (debugGpu())
         {
             cout << "INFO: VulkanWindow: getSharedImageInfo: (re)allocating shared image slot " << slot << " capacity " << capW << "x"
                  << capH << " for request " << w << "x" << h << endl;
@@ -1101,7 +1114,7 @@ namespace Rv
                 (srcFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT) && (dstProps.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT);
             if (!blitOk)
             {
-                if (ImageRenderer::debugGpu())
+                if (debugGpu())
                 {
                     cout << "INFO: VulkanWindow: GPU interop unavailable for " << formatName(m_vkSwapchainFormat)
                          << " swapchain (blit unsupported); using CPU fallback." << endl;

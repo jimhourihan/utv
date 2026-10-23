@@ -18,10 +18,9 @@
 #include <IPCore/DisplayStereoIPNode.h>
 #include <IPCore/Exception.h>
 #include <IPCore/FBCache.h>
-#include <IPRendererGLCompat/ImageRenderer.h>
 #include <IPCore/LUTIPNode.h>
 #include <IPCore/NodeManager.h>
-#include <IPRendererGLCompat/ShaderProgram.h>
+#include <IPCore/ShaderSymbol.h>
 #include <IPCore/SoundTrackIPNode.h>
 #include <ImfHeader.h>
 #include <MuTwkApp/MuInterface.h>
@@ -72,8 +71,8 @@ namespace Rv
         else if (name == "threads")
             stl_ext::thread_group::debug_all(true);
         else if (name == "gpu")
-            // Enables GLView format baseline, ImageRenderer GL reporting, and Vulkan presentation/interop diagnostics.
-            ImageRenderer::debugGpu(true);
+            // Enables GLView format baseline, the renderer's GPU report, and Vulkan presentation/interop diagnostics.
+            IPCore::setRendererDebugOption(name);
         else if (name == "audio")
         {
             AudioRenderer::setDebug(true);
@@ -114,14 +113,8 @@ namespace Rv
             TwkApp::setCompileOnDemand(true);
         else if (name == "dtree")
             IPGraph::setDebugTreeOutput(true);
-        else if (name == "passes")
-            ImageRenderer::setPassDebug(true);
-        else if (name == "imagefbo")
-            ImageRenderer::setOutputIntermediateDebug(true);
-        else if (name == "nogpucache")
-            ImageRenderer::setNoGPUCache(true);
-        else if (name == "imagefbolog")
-            ImageRenderer::setIntermediateLogging(true);
+        else if (name == "passes" || name == "imagefbo" || name == "nogpucache" || name == "imagefbolog")
+            IPCore::setRendererDebugOption(name);
         else if (name == "nodes")
             NodeManager::setDebug(true);
         else if (name == "plugins")
@@ -975,28 +968,36 @@ namespace Rv
             debugSwitches(debugKeyWords[i]);
         }
 
+        RendererBackend* backend = defaultRendererBackend();
+        RendererOptions rendererOptions = backend ? backend->options() : RendererOptions();
+
         if (bgpattern)
         {
-            ImageRenderer::BGPattern p = ImageRenderer::Solid0;
+            using Background = RendererOptions::Background;
+            Background p = Background::Solid0;
 
             if (!strcmp(bgpattern, "black"))
-                p = ImageRenderer::Solid0;
+                p = Background::Solid0;
             else if (!strcmp(bgpattern, "grey18"))
-                p = ImageRenderer::Solid18;
+                p = Background::Solid18;
             else if (!strcmp(bgpattern, "grey50"))
-                p = ImageRenderer::Solid50;
+                p = Background::Solid50;
             else if (!strcmp(bgpattern, "white"))
-                p = ImageRenderer::Solid100;
+                p = Background::Solid100;
             else if (!strcmp(bgpattern, "checker"))
-                p = ImageRenderer::Checker;
+                p = Background::Checker;
             else if (!strcmp(bgpattern, "crosshatch"))
-                p = ImageRenderer::CrossHatch;
+                p = Background::CrossHatch;
 
-            ImageRenderer::setDefaultBGPattern(p);
+            rendererOptions.defaultBackground = p;
         }
 
-        ImageRenderer::defaultAllowPBOs(!noPBO);
-        ImageRenderer::setUseAppleClientStorage(useAppleClientStorage);
+        rendererOptions.allowPixelBuffers = !noPBO;
+        rendererOptions.appleClientStorage = useAppleClientStorage;
+        rendererOptions.threadedUpload = useThreadedUpload;
+        if (backend)
+            backend->setOptions(rendererOptions);
+
         DisplayStereoIPNode::setSwapScanlines(swapScanlines);
         SystemInfo::setMaxVRAM(size_t(double(maxvram) * 1024.0 * 1024.0));
         if (eval)
@@ -1013,7 +1014,6 @@ namespace Rv
         FileSourceIPNode::defaultFPS = defaultfps;
         SystemInfo::setUseableMemory(size_t(double(maxcram) * 1024.0 * 1024.0 * 1024.0));
         Session::setUsePreEval(prefetch);
-        ImageRenderer::setUseThreadedUpload(useThreadedUpload);
         Session::setMaxBufferedWaitTime(maxbwait);
         Session::setCacheLookBehindFraction(lookback);
         Session::setMaxGreedyCacheSize(size_t(double(maxcram) * 1024.0 * 1024.0 * 1024.0));

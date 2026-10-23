@@ -28,7 +28,7 @@
 #include <IPCore/DisplayStereoIPNode.h>
 #include <IPCore/Application.h>
 #include <IPCore/AudioRenderer.h>
-#include <IPRendererGLCompat/ImageRenderer.h>
+#include <IPCore/Renderer.h>
 #include <IPCore/LUTIPNode.h>
 #include <IPCore/Profile.h>
 #include <IPCore/FBCache.h>
@@ -80,6 +80,22 @@ namespace Rv
             return true;
 
         return QObject::eventFilter(obj, event);
+    }
+
+    static RendererCapabilities rendererCapabilities()
+    {
+        const RendererBackend* backend = defaultRendererBackend();
+        return backend ? backend->capabilities() : RendererCapabilities();
+    }
+
+    template <class F> static void changeRendererOptions(F change)
+    {
+        if (RendererBackend* backend = defaultRendererBackend())
+        {
+            RendererOptions o = backend->options();
+            change(o);
+            backend->setOptions(o);
+        }
     }
 
     static const char* CompositeRenderer = "Composite";
@@ -635,7 +651,7 @@ namespace Rv
         m_ui.prefetchToggle->setCheckState(opts.prefetch ? Qt::Checked : Qt::Unchecked);
         m_ui.newGLSLlutInterpToggle->setCheckState(opts.newGLSLlutInterp ? Qt::Checked : Qt::Unchecked);
 
-        if (ImageRenderer::queryClientStorage())
+        if (rendererCapabilities().clientStorage)
         {
             m_ui.appleClientStorageToggle->setCheckState(opts.useAppleClientStorage ? Qt::Checked : Qt::Unchecked);
         }
@@ -644,7 +660,7 @@ namespace Rv
             m_ui.appleClientStorageToggle->setEnabled(false);
         }
 
-        if (ImageRenderer::queryThreadedUpload())
+        if (rendererCapabilities().threadedUpload)
         {
             m_ui.useThreadedUploadToggle->setCheckState(opts.useThreadedUpload ? Qt::Checked : Qt::Unchecked);
         }
@@ -1100,7 +1116,7 @@ namespace Rv
         opts.useAppleClientStorage = settings.value("appleClientStorage", opts.useAppleClientStorage).toBool();
         opts.newGLSLlutInterp = settings.value("newGLSLlutInterp", opts.newGLSLlutInterp).toBool();
 
-        //  Can't check ImageRenderer::queryThreadedUpload() here because this
+        //  Can't check the renderer's capabilities().threadedUpload here because this
         //  function is called very early (before video modules are created). If
         //  threaded uploads are not allowed, later code will ensure the
         //  checkbox is disabled, etc.  But opts struct should represent state
@@ -1439,7 +1455,7 @@ namespace Rv
         //  Don't write the value of the toggle as a setting unless the user was
         //  actually allowed to change it.
         //
-        if (ImageRenderer::queryThreadedUpload())
+        if (rendererCapabilities().threadedUpload)
         {
             settings.setValue("useThreadedUpload3", m_ui.useThreadedUploadToggle->checkState() == Qt::Checked);
         }
@@ -2028,7 +2044,7 @@ namespace Rv
 
     void RvPreferences::appleClientStorageChanged(int state)
     {
-        ImageRenderer::setUseAppleClientStorage(state != 0);
+        changeRendererOptions([=](RendererOptions& o) { o.appleClientStorage = state != 0; });
         const TwkApp::Application::Documents& docs = IPCore::App()->documents();
 
         for (size_t i = 0; i < docs.size(); i++)
@@ -2038,7 +2054,10 @@ namespace Rv
         }
     }
 
-    void RvPreferences::useThreadedUploadChanged(int state) { ImageRenderer::setUseThreadedUpload(state != 0); }
+    void RvPreferences::useThreadedUploadChanged(int state)
+    {
+        changeRendererOptions([=](RendererOptions& o) { o.threadedUpload = state != 0; });
+    }
 
     void RvPreferences::videoSyncChanged(int state)
     {

@@ -54,10 +54,48 @@ namespace IPCore
     {
         RendererCapabilities c;
         c.api = "OpenGL";
+        c.version = ImageRenderer::glVersion();
+        c.vendor = ImageRenderer::glVendor();
+        c.device = ImageRenderer::glRenderer();
         c.floatFormats = ImageRenderer::hasFloatFormats();
         c.clientStorage = ImageRenderer::queryClientStorage();
-        c.threadedUpload = ImageRenderer::useThreadedUpload();
+        c.threadedUpload = ImageRenderer::queryThreadedUpload();
+        c.acceptableTypes = ImageRenderer::fbAcceptableTypes();
         return c;
+    }
+
+    //
+    //  The settings are ImageRenderer's statics, which every ImageRenderer
+    //  reads when it renders, so setOptions() reaches existing renderers.
+    //  Background has the same order as ImageRenderer::BGPattern.
+    //
+
+    RendererOptions GLCompatRendererBackend::options() const
+    {
+        RendererOptions o;
+        o.defaultBackground = RendererOptions::Background(ImageRenderer::defaultBGPattern);
+        o.allowPixelBuffers = ImageRenderer::getDefaultAllowPBOs();
+        o.appleClientStorage = ImageRenderer::getUseAppleClientStorage();
+        o.threadedUpload = ImageRenderer::getUseThreadedUpload();
+        o.noGPUCache = ImageRenderer::noGPUCache();
+        o.passDebug = ImageRenderer::passDebug();
+        o.intermediateDebug = ImageRenderer::outputIntermediateDebug();
+        o.intermediateLogging = ImageRenderer::intermediateLogging();
+        o.debugGpu = ImageRenderer::debugGpu();
+        return o;
+    }
+
+    void GLCompatRendererBackend::setOptions(const RendererOptions& o)
+    {
+        ImageRenderer::setDefaultBGPattern(ImageRenderer::BGPattern(o.defaultBackground));
+        ImageRenderer::defaultAllowPBOs(o.allowPixelBuffers);
+        ImageRenderer::setUseAppleClientStorage(o.appleClientStorage);
+        ImageRenderer::setUseThreadedUpload(o.threadedUpload);
+        ImageRenderer::setNoGPUCache(o.noGPUCache);
+        ImageRenderer::setPassDebug(o.passDebug);
+        ImageRenderer::setOutputIntermediateDebug(o.intermediateDebug);
+        ImageRenderer::setIntermediateLogging(o.intermediateLogging);
+        ImageRenderer::debugGpu(o.debugGpu);
     }
 
     void GLCompatRendererBackend::printInfo(ostream& o) const { ImageRenderer::printGLInfo(o); }

@@ -649,6 +649,8 @@ namespace IPCore
 
         static void setUseAppleClientStorage(bool b) { m_useClientStorage = b; }
 
+        static bool getUseAppleClientStorage() { return m_useClientStorage; }
+
         static bool useAppleClientStorage() { return m_useClientStorage && m_hasClientStorage; }
 
         static bool queryThreadedUpload() { return m_hasThreadedUpload; }
@@ -656,6 +658,8 @@ namespace IPCore
         static void setAllowThreadedUpload(bool b) { m_hasThreadedUpload = b; }
 
         static void setUseThreadedUpload(bool b) { m_useThreadedUpload = b; }
+
+        static bool getUseThreadedUpload() { return m_useThreadedUpload; }
 
         static bool useThreadedUpload() { return m_useThreadedUpload && m_hasThreadedUpload; }
 
@@ -680,11 +684,29 @@ namespace IPCore
 
         static void setPassDebug(bool b) { m_passDebug = b; }
 
+        static bool passDebug() { return m_passDebug; }
+
         static void setNoGPUCache(bool b) { m_noGPUCache = b; }
+
+        static bool noGPUCache() { return m_noGPUCache; }
 
         static void setOutputIntermediateDebug(bool b) { m_imageFBODebug = b; }
 
+        static bool outputIntermediateDebug() { return m_imageFBODebug; }
+
         static void setIntermediateLogging(bool b);
+
+        static bool intermediateLogging();
+
+        //
+        //  GL_VERSION, GL_VENDOR and GL_RENDERER, from queryGL()
+        //
+
+        static const std::string& glVersion() { return m_glVersion; }
+
+        static const std::string& glVendor() { return m_glVendor; }
+
+        static const std::string& glRenderer() { return m_glRenderer; }
 
         //
         //  Image FBO related
@@ -1017,6 +1039,9 @@ namespace IPCore
         static int m_maxTexCoords;
         static int m_maxVertexAttrs;
         static bool m_floatFormats;
+        static std::string m_glVersion;
+        static std::string m_glVendor;
+        static std::string m_glRenderer;
         static GetProcAddressFunc m_procFunc;
         static FBAcceptableTypes m_FBAcceptableTypes;
     };

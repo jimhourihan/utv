@@ -31,7 +31,7 @@
 #include <RvApp/Options.h>
 #include <RvApp/RvNodeDefinitions.h>
 #include <IPRendererGLCompat/GLCompatRendererBackend.h>
-#include <IPRendererGLCompat/ImageRenderer.h>
+#include <IPCore/Renderer.h>
 #include <IPCore/LUTIPNode.h>
 #include <IPCore/IPGraph.h>
 #include <IPBaseNodes/SourceIPNode.h>
@@ -993,7 +993,7 @@ int utf8Main(int argc, char* argv[])
     //
 
     TwkGLF::FBOVideoDevice* dummyDev = new TwkGLF::FBOVideoDevice(0, 10, 10, false);
-    IPCore::ImageRenderer::queryGL();
+    IPCore::defaultRendererBackend()->initialize(dummyDev);
     const char* glVersion = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
     IPCore::Shader::Function::useShadingLanguageVersion(glVersion);
 
@@ -1032,7 +1032,12 @@ int utf8Main(int argc, char* argv[])
 
     opts.exrcpus = SystemInfo::numCPUs();
     Rv::Options::manglePerSourceArgs(argv, argc);
-    IPCore::ImageRenderer::defaultAllowPBOs(false);
+    {
+        IPCore::RendererBackend* backend = IPCore::defaultRendererBackend();
+        IPCore::RendererOptions rendererOptions = backend->options();
+        rendererOptions.allowPixelBuffers = false;
+        backend->setOptions(rendererOptions);
+    }
     Imf::staticInitialize();
     IPCore::Application::cacheEnvVars();
 
@@ -1434,14 +1439,14 @@ int utf8Main(int argc, char* argv[])
     }
 
     //
-    //  queryGL() ran before the options were parsed, so "-debug gpu"
+    //  initialize() ran before the options were parsed, so "-debug gpu"
     //  wasn't set yet when it would have printed its report.
     //
 
-    if (IPCore::ImageRenderer::debugGpu())
+    if (IPCore::defaultRendererBackend()->options().debugGpu)
     {
         dummyDev->makeCurrent();
-        IPCore::ImageRenderer::printGLInfo(cout);
+        IPCore::defaultRendererBackend()->printInfo(cout);
     }
 
     IPCore::FormatIPNode::defaultResampleMethod = resampleMethod;

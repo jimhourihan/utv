@@ -181,7 +181,7 @@ namespace TwkFB
             TWK_GLDEBUG;
             m_device->makeCurrent();
             TWK_GLDEBUG;
-            ImageRenderer::queryGL();
+            defaultRendererBackend()->initialize(m_device);
             TWK_GLDEBUG;
         }
 

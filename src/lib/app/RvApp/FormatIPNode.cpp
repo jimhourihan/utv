@@ -14,7 +14,7 @@
 #include <TwkFBAux/FBAux.h>
 #include <TwkMath/Mat44.h>
 #include <TwkMath/Iostream.h>
-#include <IPRendererGLCompat/ImageRenderer.h>
+#include <IPCore/Renderer.h>
 #include <IPCore/NodeDefinition.h>
 #include <stl_ext/stl_ext_algo.h>
 #include <iostream>
@@ -25,6 +25,15 @@ namespace IPCore
     using namespace TwkFB;
     using namespace std;
     using namespace TwkMath;
+
+    namespace
+    {
+        RendererCapabilities rendererCapabilities()
+        {
+            const RendererBackend* backend = defaultRendererBackend();
+            return backend ? backend->capabilities() : RendererCapabilities();
+        }
+    } // namespace
 
     int FormatIPNode::defaultBitDepth = 0; // any depth
     bool FormatIPNode::defaultAllowFP = true;
@@ -283,7 +292,7 @@ namespace IPCore
         if (const IntProperty* allowFloat = m_allowFloatingPoint)
         {
             s.floatOk = allowFloat->front() == 0 ? false : true;
-            s.floatOk = ImageRenderer::hasFloatFormats() ? s.floatOk : false;
+            s.floatOk = rendererCapabilities().floatFormats ? s.floatOk : false;
 
             if (s.floatOk)
             {
@@ -417,7 +426,7 @@ namespace IPCore
                     outType = (inType > s.bestIntegral) ? s.bestIntegral : inType;
                 }
 
-                if (ImageRenderer::fbAcceptableTypes().count(outType) == 0)
+                if (rendererCapabilities().acceptableTypes.count(outType) == 0)
                 {
                     outType = FrameBuffer::UCHAR;
                 }

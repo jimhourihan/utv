@@ -182,16 +182,6 @@ namespace IPCore
             renderer->finish();
     }
 
-    static bool setRendererDebugOption(const string& flag)
-    {
-        bool known = false;
-
-        for (const string& name : availableRendererBackends())
-            known = findRendererBackend(name)->setDebugOption(flag) || known;
-
-        return known;
-    }
-
     class AuxUserRender : public Renderer::AuxRender
     {
     public:
@@ -6370,7 +6360,7 @@ namespace IPCore
     bool Session::useThreadedUpload()
     {
         const RendererBackend* backend = defaultRendererBackend();
-        return backend && backend->capabilities().threadedUpload;
+        return backend && backend->options().threadedUpload && backend->capabilities().threadedUpload;
     }
 
     bool Session::framePatternCheck(int frame) const

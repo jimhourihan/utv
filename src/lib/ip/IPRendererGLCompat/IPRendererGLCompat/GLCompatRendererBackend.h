@@ -28,6 +28,9 @@ namespace IPCore
         RendererCapabilities capabilities() const override;
         void printInfo(std::ostream&) const override;
 
+        RendererOptions options() const override;
+        void setOptions(const RendererOptions&) override;
+
         bool setDebugOption(const std::string& flag) override;
 
         Renderer* newRenderer(const std::string& type) override;

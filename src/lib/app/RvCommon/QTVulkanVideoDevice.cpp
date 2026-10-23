@@ -15,7 +15,7 @@
 #include <TwkApp/VideoModule.h>
 #include <TwkApp/Event.h>
 #include <IPCore/Session.h>
-#include <IPRendererGLCompat/ImageRenderer.h>
+#include <IPCore/Renderer.h>
 #include <TwkGLF/GLFBO.h>
 
 #include <QScreen>
@@ -106,6 +106,19 @@ typedef void(GLAPIENTRY* PFNGLWAITSEMAPHOREEXTPROC_RV)(GLuint semaphore, GLuint 
 typedef void(GLAPIENTRY* PFNGLSIGNALSEMAPHOREEXTPROC_RV)(GLuint semaphore, GLuint numBufferBarriers, const GLuint* buffers,
                                                          GLuint numTextureBarriers, const GLuint* textures, const GLenum* srcLayouts);
 
+//
+//  "-debug gpu"
+//
+
+namespace
+{
+    bool debugGpu()
+    {
+        const IPCore::RendererBackend* backend = IPCore::defaultRendererBackend();
+        return backend && backend->options().debugGpu;
+    }
+} // namespace
+
 namespace
 {
     PFNGLCREATEMEMORYOBJECTSEXTPROC_RV g_glCreateMemoryObjectsEXT = nullptr;
@@ -150,7 +163,7 @@ namespace
         const GLubyte* vendor = glGetString(GL_VENDOR);
         const GLubyte* renderer = glGetString(GL_RENDERER);
         const GLubyte* version = glGetString(GL_VERSION);
-        if (IPCore::ImageRenderer::debugGpu())
+        if (debugGpu())
         {
             std::cout << "INFO: QTVulkanVideoDevice: GL_VENDOR='" << (vendor ? reinterpret_cast<const char*>(vendor) : "?")
                       << "' GL_RENDERER='" << (renderer ? reinterpret_cast<const char*>(renderer) : "?") << "' GL_VERSION='"
@@ -617,7 +630,7 @@ namespace Rv
         if (!firstFrameLogged)
         {
             firstFrameLogged = true;
-            if (ImageRenderer::debugGpu())
+            if (debugGpu())
             {
                 const VkFormat scFmt = m_window ? m_window->swapchainFormat() : VK_FORMAT_UNDEFINED;
                 cout << "INFO: QTVulkanVideoDevice: syncBuffers: first frame path = " << (sharedInfo ? "GPU-interop" : "CPU-fallback")

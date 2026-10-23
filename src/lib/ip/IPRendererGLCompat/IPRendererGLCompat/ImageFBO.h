@@ -95,6 +95,8 @@ namespace IPCore
 
         static void setIntermediateLogging(bool b) { m_imageFBOLog = b; }
 
+        static bool intermediateLogging() { return m_imageFBOLog; }
+
         // management functions
         void insertFBOFence(const GLFBO*);
         void waitForFBOFence(const GLFBO*);

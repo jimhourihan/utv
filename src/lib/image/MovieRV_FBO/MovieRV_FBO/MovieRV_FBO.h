@@ -11,6 +11,7 @@
 #include <TwkMovie/MovieIO.h>
 #include <TwkApp/EventNode.h>
 #include <TwkAudio/Audio.h>
+#include <TwkGLF/GLVideoDevice.h>
 #include <string>
 
 namespace TwkGLF

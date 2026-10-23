@@ -44,9 +44,9 @@ namespace IPCore
     };
 
     //
-    //  Settings a backend is created with. These will replace
-    //  ImageRenderer's static setters, which Options and RvPreferences call
-    //  before or between renders. Only Background is used so far.
+    //  The backend's settings, from the command line (Options) and the
+    //  preferences (RvPreferences). RendererBackend::setOptions() can be
+    //  called at any time; see there.
     //
 
     struct RendererOptions
@@ -71,9 +71,9 @@ namespace IPCore
             Linear
         };
 
-        Background defaultBackground = Background::Checker;
-        bool allowPixelBuffers = true;  // PBOs on GL
-        bool appleClientStorage = true; // macOS upload fast path on GL
+        Background defaultBackground = Background::Solid0;
+        bool allowPixelBuffers = true;   // PBOs on GL
+        bool appleClientStorage = false; // macOS upload fast path on GL
         bool threadedUpload = false;
         bool noGPUCache = false;
         bool passDebug = false;
@@ -96,8 +96,8 @@ namespace IPCore
         std::string device;
 
         bool floatFormats = false;
-        bool clientStorage = false;
-        bool threadedUpload = false;
+        bool clientStorage = false;  // macOS upload fast path on GL
+        bool threadedUpload = false; // uploads can run on their own thread
         std::set<TwkFB::FrameBuffer::DataType> acceptableTypes;
 
         //
@@ -308,8 +308,19 @@ namespace IPCore
         virtual void printInfo(std::ostream&) const = 0; // "-debug gpu"
 
         //
+        //  Settings. setOptions() applies to the renderers already made as
+        //  well as later ones. A setting the device can't do (for example
+        //  threadedUpload without capabilities().threadedUpload) is kept but
+        //  not used.
+        //
+
+        virtual RendererOptions options() const = 0;
+        virtual void setOptions(const RendererOptions&) = 0;
+
+        //
         //  "-debug" flags for the backend. Returns false for a flag it
-        //  doesn't know.
+        //  doesn't know. setRendererDebugOption() below passes a flag to
+        //  every backend.
         //
 
         virtual bool setDebugOption(const std::string& flag) = 0;
@@ -333,6 +344,7 @@ namespace IPCore
     RendererBackend* findRendererBackend(const std::string& name);
     RendererBackend* defaultRendererBackend();
     std::vector<std::string> availableRendererBackends();
+    bool setRendererDebugOption(const std::string& flag);
 
 } // namespace IPCore
 

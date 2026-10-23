@@ -46,4 +46,14 @@ namespace IPCore
         return names;
     }
 
+    bool setRendererDebugOption(const string& flag)
+    {
+        bool known = false;
+
+        for (RendererBackend* b : backends())
+            known = b->setDebugOption(flag) || known;
+
+        return known;
+    }
+
 } // namespace IPCore

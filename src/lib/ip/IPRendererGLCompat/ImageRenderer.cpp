@@ -323,6 +323,9 @@ namespace IPCore
     int ImageRenderer::m_ALUinsnLimit = 0;
     int ImageRenderer::m_tempLimit = 0;
     bool ImageRenderer::m_floatFormats = false;
+    string ImageRenderer::m_glVersion;
+    string ImageRenderer::m_glVendor;
+    string ImageRenderer::m_glRenderer;
 
     ImageRenderer::FBAcceptableTypes ImageRenderer::m_FBAcceptableTypes;
     ImageRenderer::GetProcAddressFunc ImageRenderer::m_procFunc = 0;
@@ -688,6 +691,8 @@ namespace IPCore
 
     void ImageRenderer::setIntermediateLogging(bool b) { ImageFBOManager::setIntermediateLogging(b); }
 
+    bool ImageRenderer::intermediateLogging() { return ImageFBOManager::intermediateLogging(); }
+
     ImageRenderer::FastPath ImageRenderer::findFastPath(const FrameBuffer* fb) const
     {
         // NOTE this is probably no longer relevant because most cards nowadays
@@ -937,6 +942,10 @@ namespace IPCore
         TWK_GLDEBUG;
         const string glren = TwkGLF::safeGLGetString(GL_RENDERER);
         TWK_GLDEBUG;
+
+        m_glVersion = glver;
+        m_glVendor = glven;
+        m_glRenderer = glren;
 
         vector<string> tokens;
         stl_ext::tokenize(tokens, glren);
