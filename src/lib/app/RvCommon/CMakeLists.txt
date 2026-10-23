@@ -464,7 +464,6 @@ TARGET_INCLUDE_DIRECTORIES(
 TARGET_LINK_LIBRARIES(
   ${_target}
   PUBLIC IPCore
-         IPRendererGLCompat
          Mu
          MuLang
          MuTwkApp

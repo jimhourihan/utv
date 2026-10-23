@@ -46,10 +46,8 @@
 #include <QtNetwork/QtNetwork>
 #include <IPCore/AudioRenderer.h>
 #include <IPCore/HoverPreviewOverlay.h>
-#include <IPRendererGLCompat/ImageRenderer.h>
 #include <IPCore/TextureOutputGroupIPNode.h>
 #include <RvApp/RvSession.h>
-#include <IPRendererGLCompat/ImageRenderer.h>
 #include <IPBaseNodes/SourceIPNode.h>
 #include <TwkApp/Action.h>
 #include <TwkApp/Application.h>

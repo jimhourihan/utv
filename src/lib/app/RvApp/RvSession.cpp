@@ -28,7 +28,6 @@
 #include <IPCore/AdaptorIPNode.h>
 #include <IPCore/Application.h>
 #include <IPCore/CacheIPNode.h>
-#include <IPRendererGLCompat/ImageRenderer.h>
 #include <IPCore/DefaultMode.h>
 #include <IPCore/DispTransform2DIPNode.h>
 #include <IPCore/DisplayGroupIPNode.h>
@@ -55,7 +54,6 @@
 #include <TwkContainer/GTOReader.h>
 #include <TwkContainer/GTOWriter.h>
 #include <TwkContainer/PropertyContainer.h>
-#include <TwkGLText/TwkGLText.h>
 #include <TwkDeploy/Deploy.h>
 #include <TwkMath/Function.h>
 #include <TwkMath/Iostream.h>

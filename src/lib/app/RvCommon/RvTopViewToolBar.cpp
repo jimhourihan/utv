@@ -20,7 +20,6 @@
 #include <RvCommon/RvDocument.h>
 #include <TwkQtCoreUtil/QtConvert.h>
 #include <IPCore/Session.h>
-#include <IPRendererGLCompat/ImageRenderer.h>
 #include <IPCore/PropertyEditor.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/regex.hpp>
